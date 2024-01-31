@@ -1,0 +1,29 @@
+---
+title: "How species' thermal limits can shape population and community dynamics: applications in a changing world"
+bibliography: ../bib/refs.bib
+csl: ../bib/nature.csl
+format:
+  docx:
+    reference-doc: ../bib/template.docx
+  pdf:
+    include-in-header: 
+      text: '\usepackage{lineno}\linenumbers'
+editor_options: 
+  chunk_output_type: console
+execute:
+  freeze: auto  # re-render only when source changes
+  cache: false
+  echo: false
+  warning: false
+  error: false
+  include: true
+crossref:
+  fig-title: 'Figure'
+  fig-labels: arabic
+  title-delim: "-"
+  fig-prefix: "Figure"
+  tbl-prefix: "Table"
+---
+# Introduction
+
+# References
