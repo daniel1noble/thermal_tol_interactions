@@ -38,6 +38,9 @@ Márquez *et. al* @marquez2007virus describe a three-way mutulastic assocation b
 
 -chat with Mike about this some more.
 
+## Differenecs in focus for plants and animals
+- Animals behave. We need to model that. HOw do changes in behaviour impact inetractions with other species and the environment. How might this impact plant productivity   
+
 # Future Directions
 
 *Better understanding of the mechanisms enhancing thermal tolerance in plants and animals*: We need to understand the genomic, cellular and physiological processes that confer greater thermal tolerance and help prepare organisms for future heat stress events.
