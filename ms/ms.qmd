@@ -43,6 +43,17 @@ Li *et al* @li2023interspecific measured the thermal tolerance landscape for thr
 ## Differenecs in focus for plants and animals
 - Animals behave. We need to model that. HOw do changes in behaviour impact inetractions with other species and the environment. How might this impact plant productivity   
 
+## Network theory can integrate thermal tolerance landscapes with ecological models
+- seems like most people are analysing communities with network theory. Some important papers @delmas2019analysing @godoy2019coexistence @poisot2021global @hui2019invade @gomez2023role @lytle2023matrix @petsopoulos2021using Should also look at this book @dale2021quantitative
+
+have a close look at @vitali2022disruption and @riva2023toward
+
+limitations @terry2020finding
+
+Also this is a cool paper @lu2023food on carnivores diets by DNA sequecing fecal data
+
+The other way to model interactions us using foundational communitu ecology/ species abundance models see @carrara2015inferring. We can here model the actual abundance of a given species and it would seem more flexible to incorperate thermal tolerance infor into these models. 
+
 # Future Directions
 
 *Better understanding of the mechanisms enhancing thermal tolerance in plants and animals*: We need to understand the genomic, cellular and physiological processes that confer greater thermal tolerance and help prepare organisms for future heat stress events.
