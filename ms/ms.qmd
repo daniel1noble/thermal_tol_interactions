@@ -38,7 +38,7 @@ Li *et al* @li2023interspecific measured the thermal tolerance landscape for thr
 
 # Opportunities for modelling thermal tolerance landscapes to capture interactions*
 
--chat with Mike about this some more.
+-chat with Marggie and Mike about this some more.
 
 ## Differenecs in focus for plants and animals
 - Animals behave. We need to model that. HOw do changes in behaviour impact inetractions with other species and the environment. How might this impact plant productivity   
