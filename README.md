@@ -15,3 +15,6 @@ https://www.nature.com/articles/s41559-022-01693-3
 The stability of multitrophic communities under habitat loss
 
 https://www.nature.com/articles/s41467-019-10370-2
+
+
+# Alison will tackle agricultural space and interactions that are important there.
