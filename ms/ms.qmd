@@ -30,15 +30,17 @@ Márquez *et. al* @marquez2007virus describe a three-way mutulastic assocation b
 
 Li *et al* @li2023interspecific measured the thermal tolerance landscape for three aphid species that are pests for cereal crops globally to understand whether it could predict changes in community abundance. Using a thermal death time (TDT) approach to estimate the culmuative impacts of heat stress on survival they found that one species, *Rhopalosiphum padi*, showed high heat tolerance and accumulated less injury over natural temperature fluctuations, which may explain the increase in relative abundance of this species with extremely high temperatures observed in southern parts of its range. Li *et al* @li2023interspecific also found that different life-stages were affected differently by heat stress, with adults being more thermally tolerant than early developmental stages emphasising the need for models to capture such variation. However, such findings do not incorperate acclimation to heat stress or different microhabitat choice by the different species, which are both likely to be important for predicting the impacts of heat stress on community structure. It also ignores how interspecific interactions between competing aphid species will also likely mediate species abundance. It would be worth while integrating thermal tolerance landscapes with ecological models that capture interspecific interactions to better predict how heat stress will affect community structure.
 
-# Methods for manipulating thermal tolerance
+# Modelling thermal tolerance landscapes to capture interactions*
+
+-chat with Marggie and Mike about this some more.
+
+# Methods for manipulating thermal tolerance to maintain functional interactions
 
 *Genetic engineering*: The use of genetic engineering to confer thermal tolerance to plants and animals is a promising avenue for enhancing thermal tolerance. For example, the overexpression of heat shock proteins (HSPs) in plants has been shown to enhance thermal tolerance. HSPs are a family of proteins that are upregulated in response to heat stress and are involved in protein folding and degradation, and the prevention of protein aggregation. CRISPR-Cas9 gene editing technology has been used to enhance thermal tolerance in plants by modifying genes involved in heat stress response.
 
 *Selective breeding*: Artifical selection will be a useful avenue for both plants and animals to enhance thermal tolerance. 
 
-# Opportunities for modelling thermal tolerance landscapes to capture interactions*
-
--chat with Marggie and Mike about this some more.
+# Applications of thermal tolerance landscapes in a changing world
 
 ## Differenecs in focus for plants and animals
 - Animals behave. We need to model that. HOw do changes in behaviour impact inetractions with other species and the environment. How might this impact plant productivity   
