@@ -49,3 +49,6 @@ po/*~
 rsconnect/
 .DS_Store
 bib/papers/
+
+# Others
+SparseInteractions/
