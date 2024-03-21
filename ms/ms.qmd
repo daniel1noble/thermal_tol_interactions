@@ -65,3 +65,17 @@ The other way to model interactions us using foundational communitu ecology/ spe
 *Trade-offs between thermal tolerance and other traits*: We need to understand the trade-offs between thermal tolerance and other traits such as growth rate, reproduction, and competitive ability. It is fine to confer greater thermal tolerance resistance but if this comes at a cost to reproduction, growth or biomass accumulation, then it may not be beneficial. NEED EXAPLES
 
 # References
+
+
+```{r}
+## See box 1 in Weiss-Lehman et al. 2022 for a decsription of the model. This could be applied to non-linear fitness effects based on optimal environment.
+
+#parameters
+bmax = 2  # Maximum pop growth rate lamda (think of this as optimal fitness)
+ zi  = 5  # Optimal environment (the optimal temperature where fitness is maximised)
+ sdi = 3  # Niche breadth (this is the variation in the fitness surface)
+  xe = seq(-10,10,0.1) # Environmental gradient (self-explanatory)
+
+lamda <- bmax*exp(-((zi-xe)/(2*sdi))^2)
+plot(xe,lamda, type = "l", ylab = "Population growth rate (Lambda)", xlab = "Environmental gradient")
+```
