@@ -78,4 +78,19 @@ bmax = 2  # Maximum pop growth rate lamda (think of this as optimal fitness)
 
 lamda <- bmax*exp(-((zi-xe)/(2*sdi))^2)
 plot(xe,lamda, type = "l", ylab = "Population growth rate (Lambda)", xlab = "Environmental gradient")
+
+## Another way of doing this from Agelettas book pg 229
+#parameters
+ rm = 2  # Maximum pop growth rate lamda (think of this as optimal fitness)
+ z  = 5  # Optimal environment (the optimal temperature where fitness is maximised)
+ sd = 10  # Niche breadth (this is the variation in the fitness surface)
+ tb = seq(-10,10,0.1) # Environmental gradient (self-explanatory)
+r <- rm - ((z-tb)^2/(2*sd^2))
+
+plot(tb,r, type = "l", ylab = "Fitness", xlab = "Environmental gradient")
+
+
+```
+
+```{r}
 ```
