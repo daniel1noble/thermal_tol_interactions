@@ -96,4 +96,15 @@ plot(tb,r, type = "l", ylab = "Fitness", xlab = "Environmental gradient")
 ```
 
 ```{r}
+# Skew normal fitness functins from https://academic.oup.com/evolut/article/73/2/145/6882140
+#The parameter θ specifies the location, sigma the width, and alpha the skew of the fitness function. α > 0 gives a right-skewed function (positive skewness), α < 0 a left-skewed function, and α = 0 a symmetric Gaussian fitness function. Importantly, α also changes the position of the maximum value of w (despite location parameter θ being kept constant), so we will write θ0 as the value of θ that provides maximum fitness for a trait value of zero.
+#parameters
+delta <- 5  # Optimal environment (the optimal temperature where fitness is maximised)
+sigma <- 10  # Niche breadth (this is the variation in the fitness surface)
+z = seq(-10,15,0.1)
+alpha = -1.2
+w <- 2*exp(-(z-delta)^2/(2*sigma^2))*pnorm(alpha*(z-delta)/sigma)
+
+plot(z,w, type = "l", ylab = "Fitness", xlab = "Environmental gradient")
+
 ```
