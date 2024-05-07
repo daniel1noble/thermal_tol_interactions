@@ -35,7 +35,7 @@ Li *et al* @li2023interspecific measured the thermal tolerance landscape for thr
 
 # Modelling thermal tolerance landscapes to capture interactions*
 
--chat with Marggie and Mike about this some more.
+-chat with Marggie and Mike about this some more. But see @zou2024time
 
 # Methods for manipulating thermal tolerance to maintain functional interactions
 
