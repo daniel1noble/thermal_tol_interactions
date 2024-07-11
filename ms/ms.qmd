@@ -71,7 +71,7 @@ The other way to model interactions us using foundational community ecology/ spe
 
 
 ```{r, performancecurve}
-## See box 1 in Weiss-Lehman et al. 2022 for a decsription of the model. This could be applied to non-linear fitness effects based on optimal environment.
+## See box 1 in Weiss-Lehman et al. 2022 for a description of the model. This could be applied to non-linear fitness effects based on optimal environment.
 
 #parameters
 bmax = 2  # Maximum pop growth rate lamda (think of this as optimal fitness)
@@ -84,10 +84,10 @@ plot(xe,lamda, type = "l", ylab = "Population growth rate (Lambda)", xlab = "Env
 
 ## Another way of doing this from Agelettas book pg 229
 #parameters
- rm = 2  # Maximum pop growth rate lamda (think of this as optimal fitness)
- z  = 5  # Optimal environment (the optimal temperature where fitness is maximised)
- sd = 10  # Niche breadth (this is the variation in the fitness surface)
- tb = seq(-10,10,0.1) # Environmental gradient (self-explanatory)
+ rm = 1.5  # Maximum pop growth rate lamda (think of this as optimal fitness)
+ z  = 35  # Optimal environment (the optimal temperature where fitness is maximised)
+ sd = 8  # Niche breadth (this is the variation in the fitness surface)
+ tb = seq(0,80,0.1) # Environmental gradient (self-explanatory)
 r <- rm - ((z-tb)^2/(2*sd^2))
 
 plot(tb,r, type = "l", ylab = "Fitness", xlab = "Environmental gradient")
@@ -96,15 +96,43 @@ plot(tb,r, type = "l", ylab = "Fitness", xlab = "Environmental gradient")
 ```
 
 ```{r, skewnormal}
-# Skew normal fitness functins from https://academic.oup.com/evolut/article/73/2/145/6882140
+# Skew normal fitness functions from https://academic.oup.com/evolut/article/73/2/145/6882140
 #The parameter θ specifies the location, sigma the width, and alpha the skew of the fitness function. α > 0 gives a right-skewed function (positive skewness), α < 0 a left-skewed function, and α = 0 a symmetric Gaussian fitness function. Importantly, α also changes the position of the maximum value of w (despite location parameter θ being kept constant), so we will write θ0 as the value of θ that provides maximum fitness for a trait value of zero.
-#parameters
-delta <- 5  # Optimal environment (the optimal temperature where fitness is maximised)
-sigma <- 10  # Niche breadth (this is the variation in the fitness surface)
-z = seq(-10,15,0.1)
-alpha = -1.2
-w <- 2*exp(-(z-delta)^2/(2*sigma^2))*pnorm(alpha*(z-delta)/sigma)
 
-plot(z,w, type = "l", ylab = "Fitness", xlab = "Environmental gradient")
+# Library
+pacman::p_load(latex2exp, ggplot2, dplyr, tidyr, viridis)
+
+# delta; Optimal environment (the optimal temperature where fitness is maximised)
+# sigma; Niche breadth (this is the variation in the fitness surface)
+# alpha; Skewness of the fitness function
+
+# Environmental Temperature
+  set.seed(23)
+     z = seq(0,45,0.1) # Temperature gradient
+     n = 40            # Number of individuals
+ind_sd = 0.5           # Standard deviation among individuals
+
+# Simulation 1. Assume optimum is rather constant among individuals 
+#parameters
+delta <-  35  
+sigma <-  9  + rnorm(n, 0, ind_sd) 
+alpha <- -15 + rnorm(n, 0, ind_sd)
+
+w<- list()
+for(i in 1:length(alpha)){
+w[[i]] <- 2*exp(-(z-delta)^2/(2*sigma[i]^2))*pnorm(alpha[i]*(z-delta)/sigma)
+}
+
+w2 <- data.frame(do.call(cbind, w))  %>% pivot_longer(everything(), names_to = "run", values_to = "fitness")  %>% mutate(z = rep(z,each = n))
+
+my_theme <- function(){
+  theme(legend.position = "none", 
+           axis.title.y = element_text(size = 20), 
+           axis.title.x = element_text(size = 20),
+           axis.text.x = element_text(size = 18),
+            axis.text.y = element_text(size = 18))
+}
+
+ggplot(w2, aes(x = z, y = fitness, color = run)) + geom_line() + theme_classic() + labs(y = "Physiological Rate", x = TeX("Temperature ($^\\circ$C)"), color = "Individual") + scale_color_viridis_d() + my_theme()+ geom_vline(xintercept = 28, linetype = "dashed", color = "red") +     geom_vline(xintercept = 18, linetype = "dashed", color = "blue")    
 
 ```
