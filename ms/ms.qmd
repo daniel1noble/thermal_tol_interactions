@@ -31,6 +31,7 @@ Climate change is expected to result in warmer and more variable thermal environ
 - thermal load sensitivity, damage and repair as key concepts to introduce
 
 - What we hope to achieve in the paper.
+# Applying theory on thermal load sensitivity across plant and animal communities
 
 # Interactions among species affect thermal tolerance: direct and indirect effects
 
@@ -52,9 +53,6 @@ Li *et al.* @li2023interspecific also found that different life-stages were affe
 
 # Applications of thermal tolerance landscapes in a changing world
 
-## Differences in focus for plants and animals
-- Animals behave. We need to model that. HOw do changes in behaviour impact interactions with other species and the environment. How might this impact plant productivity   
-
 ## Network theory can integrate thermal tolerance landscapes with ecological models
 - seems like most people are analysing communities with network theory. Some important papers @delmas2019analysing @godoy2019coexistence @poisot2021global @hui2019invade @gomez2023role @lytle2023matrix @petsopoulos2021using Should also look at this book @dale2021quantitative
 
@@ -68,11 +66,13 @@ The other way to model interactions us using foundational community ecology/ spe
 
 # Future Directions
 
-*Better understanding of the mechanisms enhancing thermal tolerance in plants and animals*: We need to understand the genomic, cellular and physiological processes that confer greater thermal tolerance and help prepare organisms for future heat stress events.
+#### *Better understanding of the mechanisms enhancing thermal tolerance in plants and animals*: We need to understand the genomic, cellular and physiological processes that confer greater thermal tolerance and help prepare organisms for future heat stress events.
 
-*Modelling interactions among plants and animals to build community thermal tolerance landscapes and predict how heat stress events will affect communities*: We need to understand how thermal tolerance of individual species will affect the thermal tolerance of communities and ecosystems.
+#### *Modelling interactions among plants and animals to build community thermal tolerance landscapes and predict how heat stress events will affect communities*: We need to understand how thermal tolerance of individual species will affect the thermal tolerance of communities and ecosystems.
 
-*Trade-offs between thermal tolerance and other traits*: We need to understand the trade-offs between thermal tolerance and other traits such as growth rate, reproduction, and competitive ability. It is fine to confer greater thermal tolerance resistance but if this comes at a cost to reproduction, growth or biomass accumulation, then it may not be beneficial. NEED EXAMPLES
+#### *Trade-offs between thermal tolerance and other traits*: We need to understand the trade-offs between thermal tolerance and other traits such as growth rate, reproduction, and competitive ability. It is fine to confer greater thermal tolerance resistance but if this comes at a cost to reproduction, growth or biomass accumulation, then it may not be beneficial. NEED EXAMPLES
+
+#### *Behavioural responses to heat stress*: Animals behave. We need to model that. HOw do changes in behaviour impact interactions with other species and the environment. How might this impact plant productivity   
 
 # References
 
