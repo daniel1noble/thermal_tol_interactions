@@ -24,6 +24,7 @@ crossref:
   fig-prefix: "Figure"
   tbl-prefix: "Table"
 ---
+
 # Introduction
 
 Climate change is expected to result in warmer and more variable thermal environments globally resulting in more frequent and severe heat wave events [@barriopedro2023heat; @aglas2024recent]. Greater thermal variability will result in organisms experiencing more extreme heat wave events that exceed species tolerance limits. Exceeding physiological limits will have profound impacts on organismal growth, survival and reproduction with cascading effects on population dynamics, community composition and ecosystem services that human populations rely upon. Climate variability has already resulted in dramatic declines in pollinator abundance [@kazenel2024heat] and in crop yields globally [@zhao2017temperature; @tito2018global], but the causes underlying such declines are not fully understood. Declines are likely driven by a combination of direct effects of heat stress on plant and insect physiology, indirect effects on interactions among species -- including the microbial communities with which they interact [@trivedi2022plant] -- and how temperature interacts with other environmental stressors. Understanding the dynamic interplay between direct and indirect interactions has been hampered by the complexity of community interactions, lack of methods for measuring and predicting changes in interaction strength in diverse communities and how such interactions impact community assembly [@trivedi2022plant]. Understanding how thermal tolerance varies across populations and communities is crucial for predicting how climate change will affect ecosystems and the services they provide.
@@ -31,9 +32,10 @@ Climate change is expected to result in warmer and more variable thermal environ
 - thermal load sensitivity, damage and repair as key concepts to introduce
 
 - What we hope to achieve in the paper.
-# Applying theory on thermal load sensitivity to plant and animal communities
 
 # Species intrinsically vary in their ability to cope with heat stress
+
+# Applying theory on thermal load sensitivity to plant and animal communities
 
 # Microbial communities impact thermal tolerance in plants and animals
 
@@ -75,7 +77,7 @@ The other way to model interactions us using foundational community ecology/ spe
 
 #### *Better understanding of the mechanisms enhancing thermal tolerance in plants and animals*: We need to understand the genomic, cellular and physiological processes that confer greater thermal tolerance and help prepare organisms for future heat stress events.
 
-#### *Modelling interactions among plants and animals to build community thermal tolerance landscapes and predict how heat stress events will affect communities*: We need to understand how thermal tolerance of individual species will affect the thermal tolerance of communities and ecosystems.
+#### *Modelling interactions among plants and animals to build community thermal tolerance landscapes that predict how heat stress events will affect communities*: We need to understand how thermal tolerance of individual species will affect the thermal tolerance of communities and ecosystems.
 
 #### *Trade-offs between thermal tolerance and other traits*: We need to understand the trade-offs between thermal tolerance and other traits such as growth rate, reproduction, and competitive ability. It is fine to confer greater thermal tolerance resistance but if this comes at a cost to reproduction, growth or biomass accumulation, then it may not be beneficial. NEED EXAMPLES
 
