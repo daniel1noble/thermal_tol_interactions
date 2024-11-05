@@ -25,6 +25,16 @@ crossref:
   tbl-prefix: "Table"
 ---
 
+Trends in Ecology and Evolution, Opinion
+https://www.cell.com/trends/ecology-evolution/authors
+
+Abstract: 100-120 
+Highlights: Provide a short collection of 3-5 statements that concisely convey to the reader the recent advances in the field, including emerging concepts and/or distinctions, that constitute a main motivation for the discussion developed in the article. This summary is prominently featured on the first page of the article, thus allowing readers to immediately get a sense of the current status of the field.
+Word Count: 3500 words (this limit does not include text in the boxes, glossary, abstract, references, tables or figure legends)
+References: 80-100
+Outstanding Questions: 350 words
+Glossary: 500 words
+
 # Introduction (Dan)
 - What is the problem? Extreme heat events are increasing in intensity and frequency globally.
 - Why is it important? Heat stress can have profound impacts on plant / animal survival and reproduction that can reshape communities by impacting population growth and abundance.
