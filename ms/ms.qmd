@@ -25,63 +25,87 @@ crossref:
   tbl-prefix: "Table"
 ---
 
-# Introduction
+# Introduction (Dan)
+- What is the problem? Extreme heat events are increasing in intensity and frequency globally.
+- Why is it important? Heat stress can have profound impacts on plant / animal survival and reproduction that can reshape communities by impacting population growth and abundance.
+- What are the knowledge gaps with respect to predicting heat stress responses on entire communities?
+  - We lack a mechanistic understanding of how heat stress impacts interactions among species in communities.
+  - We lack an integrated modelling framework that transcends disparate disciplines that are siloed to predict how heat stress will affect communities.
+  - Integrating modeling approaches across disciplines is critical to predicting how heat stress will affect communities.
+- What we hope to achieve in the paper to overcome this challenge.
 
 Climate change is expected to result in warmer and more variable thermal environments globally resulting in more frequent and severe heat wave events [@barriopedro2023heat; @aglas2024recent]. Greater thermal variability will result in organisms experiencing more extreme heat wave events that exceed species tolerance limits. Exceeding physiological limits will have profound impacts on organismal growth, survival and reproduction with cascading effects on population dynamics, community composition and ecosystem services that human populations rely upon. Climate variability has already resulted in dramatic declines in pollinator abundance [@kazenel2024heat] and in crop yields globally [@zhao2017temperature; @tito2018global], but the causes underlying such declines are not fully understood. Declines are likely driven by a combination of direct effects of heat stress on plant and insect physiology, indirect effects on interactions among species -- including the microbial communities with which they interact [@trivedi2022plant] -- and how temperature interacts with other environmental stressors. Understanding the dynamic interplay between direct and indirect interactions has been hampered by the complexity of community interactions, lack of methods for measuring and predicting changes in interaction strength in diverse communities and how such interactions impact community assembly [@trivedi2022plant]. Understanding how thermal tolerance varies across populations and communities is crucial for predicting how climate change will affect ecosystems and the services they provide.
 
-- thermal load sensitivity, damage and repair as key concepts to introduce
+# How can we model the effects of extreme temperatures on individual species within communities? Capturing the balance between physiological damage and repair using thermal load sensitivity theory (Dan, Adrienne)
+- Introduce thermal load sensitivity theory
+  - Heat effects depend on the *exposure* and *sensitivity* 
+  - Mechanistically involves the accumulation of damage and repair over time in response to a temperature stressor
+  - We know different species will be exposed to extreme heat at different life stages
+  - We know sensitivity will vary across species and life stages
+  - We can make predictions about impacts of heat on: 1) survival and 2) reproduction across life stages and even tissues
+  - Can be applied to both plants and animals- allows for lagged effects of heat stress on survival and reproduction in response to short term heat stress events
+  - Captured by modelling thermal effects of the severity of temperature and the amount of time an organism is exposed to that temperature on survival and reproduction of given life stages
+  - Concepts can be applied to both plants and animals, and targeted to key tissues
+  - Critical to TLS is the idea of damage accumulation and repair over time in response to a temperature stressor
+  - Figure 1: demonstrating how thermal load sensitivity can be used to predict heat stress impacts on plants and animals, survival, reproductive tissue. Simplified. 
 
-- What we hope to achieve in the paper.
+# How can we model temperature *exposure* across diverse species and communities? Combining TLS with biophysical and dynamic energy budget models (Mike, Belinda, Dan)
+- Introduce biophysical and dynamic energy budget models
+  - Biophysical models are used to predict how temperature affects the energy balance of an organism
+  - DEB models are used to predict how temperature affects the energy budget of an organism
+  - Both models can be used to predict how temperature affects the growth, reproduction and survival of an organism
+  - Combining these models with TLS can help predict how temperature affects the survival and reproduction of a focal species in a community
 
-# Species intrinsically vary in their ability to cope with heat stress
+# How can we link mechanistic physiological models with population and community ecology theory? (Margie) 
 
-# Applying theory on thermal load sensitivity to plant and animal communities
+- Introducing population and network models to link outputs from DEB (survival, reproduction, abundance) to population growth.
+- How people are analysing communities with network theory. Some important papers @delmas2019analysing @godoy2019coexistence @poisot2021global @hui2019invade @gomez2023role @lytle2023matrix @petsopoulos2021using Should also look at this book @dale2021quantitative
+- How can we capture interactions among species within the community to predict how heat stress will affect community structure? 
+- Figure 2: demonstrating how TLS, biophysical and DEB models can be used to predict heat stress impacts on plants and animals, growth, reproduction, survival. (Dan, Margie)
+- Also this is a cool paper @lu2023food on carnivores diets by DNA sequencing fecal data
+-The other way to model interactions us using foundational community ecology/ species abundance models see @carrara2015inferring. We can here model the actual abundance of a given species and it would seem more flexible to incorporate thermal tolerance infor into these models. 
+- have a close look at @vitali2022disruption and @riva2023toward, limitations @terry2020finding
 
-# Microbial communities impact thermal tolerance in plants and animals
+# How can heat waves shape and reshape species interactions in communities? (Brajesh, Brendan, James, Everyone else who wants to contribute)
+
+### Microbial communities can impact thermal sensitivity plants and animals (Brajesh)
 
 - focus on direct interactions
 Interactions with symbiotic microbiota can also directly impact thermal tolerance of a focal species. For example, in plants, Márquez *et. al* @marquez2007virus describe a three-way mutualistic association between a tropical panic grass (*Dichanthelium lanuginosum*), the fungus, *Curvularia protuberata*, and a *Curvularia* virus whereby thermal tolerance of the fungus and grass is highly dependent on fungal-virus associations. Endophytic fungus cured of the virus were unable to survive extreme heating events (temperatures of 65$^\circ$C for 2 weeks). However, when the fungus were inoculated with the virus, heat tolerance was restored. Fascinatingly, the virus could be manipulated to confer heat tolerance to tomato (*Solanum lycopersicon*) demonstrating the potential for conferring thermal tolerance to other plant species. The mechanisms by which fungal-virus associations confer thermal tolerance are not yet understood but are hypothesized to involve scavenging of reactive oxygen species (ROS) by fungal endophytes generated by plant defense mechanisms in response to heat stress. 
+- See @zou2024time. The paper provides a framework for modelling soil plant interactions
 
-# Heat stress can shape and reshape species interactions in communities: a view from thermal tolerance landscapes
+### Water availability can impact thermal sensitivity of plants and animals (Brendan)
+### Competition can impact thermal sensitivity of plants and animals (James? Feel free to add a different section title here.)
 
-- direct and indirect effects of heat stress on interactions
 Competition among species within a community can influence a focal species' tolerance to heat stress. Competition can influence microhabitat selection and the availability of thermal refugia which can protect against thermal extremes, the diet of a focal species that can indirectly influence physiological tolerance of temperature stress, and the availability of resources that can help buffer against heat stress. For example, Li *et al.* @li2023interspecific measured the thermal tolerance landscape for three aphid species that are pests for cereal crops globally to understand whether they could predict changes in community abundance. Using a thermal death time (TDT) approach to estimate the cumulative impacts of heat stress on survival they found that one species, *Rhopalosiphum padi*, showed high heat tolerance and accumulated less injury over natural temperature fluctuations. The ability to maintain high relative abundance in the face of extreme heat may allow this species to outcompete other aphids explaining why it dominates in southern parts of its range.
-
 
 Li *et al.* @li2023interspecific also found that different life-stages were affected differently by heat stress, with adults being more thermally tolerant than early developmental stages emphasising the need for models to capture such variation. However, such findings do not incorporate acclimation to heat stress or different microhabitat choice by the different species, which are both likely to be important for predicting the impacts of heat stress on community structure. It also ignores how interspecific interactions between competing aphid species will also likely mediate species abundance. It would be worth while integrating thermal tolerance landscapes with ecological models that capture interspecific interactions to better predict how heat stress will affect community structure.
 
-# Modelling thermal tolerance landscapes to capture interactions among species
+### Acclimation can impact thermal sensitivity of plants and animals (Everyone)
 
--chat with Margie and Mike about this some more. But see @zou2024time. The paper provides a framework for modelling soil plant interactions
+# Applications of thermal tolerance landscapes in a changing world (Alison, Owen and everyone)
+- Applications in: 
+  - Agriculture
+  - Pest control
+  - Conservation
 
-# Methods for manipulating thermal tolerance to maintain functional interactions
+# Innovative solutions for maintaining functional interactions in the face of extreme heat events (Everyone)
 
 *Genetic engineering*: The use of genetic engineering to confer thermal tolerance to plants and animals is a promising avenue for enhancing thermal tolerance. For example, the over-expression of heat shock proteins (HSPs) in plants has been shown to enhance thermal tolerance. HSPs are a family of proteins that are up-regulated in response to heat stress and are involved in protein folding and degradation, and the prevention of protein aggregation. CRISPR-Cas9 gene editing technology has been used to enhance thermal tolerance in plants by modifying genes involved in heat stress response.
 
 *Selective breeding*: Artificial selection will be a useful avenue for both plants and animals to enhance thermal tolerance. 
 
-# Applications of thermal tolerance landscapes in a changing world
-
-## Network theory can integrate thermal tolerance landscapes with ecological models
-- seems like most people are analysing communities with network theory. Some important papers @delmas2019analysing @godoy2019coexistence @poisot2021global @hui2019invade @gomez2023role @lytle2023matrix @petsopoulos2021using Should also look at this book @dale2021quantitative
-
-have a close look at @vitali2022disruption and @riva2023toward
-
-limitations @terry2020finding
-
-Also this is a cool paper @lu2023food on carnivores diets by DNA sequencing fecal data
-
-The other way to model interactions us using foundational community ecology/ species abundance models see @carrara2015inferring. We can here model the actual abundance of a given species and it would seem more flexible to incorporate thermal tolerance infor into these models. 
+*Cooler landscapes*: Landscapes can be designed to provide thermal refugia for plants and animals. For example, planting trees in urban areas can provide shade and reduce the urban heat island effect. Similarly, planting hedgerows in agricultural landscapes can provide thermal refugia for beneficial insects and pollinators.
 
 # Future Directions
 
 #### *Better understanding of the mechanisms enhancing thermal tolerance in plants and animals*: We need to understand the genomic, cellular and physiological processes that confer greater thermal tolerance and help prepare organisms for future heat stress events.
 
-#### *Modelling interactions among plants and animals to build community thermal tolerance landscapes that predict how heat stress events will affect communities*: We need to understand how thermal tolerance of individual species will affect the thermal tolerance of communities and ecosystems.
+#### *Trade-offs between thermal tolerance and other traits*: We need to understand the trade-offs between thermal tolerance and other traits such as growth rate, reproduction, and competitive ability. It is fine to confer greater thermal tolerance resistance but if this comes at a cost to reproduction, growth or biomass accumulation, then it may not be beneficial. (Strand 1 folks)
 
-#### *Trade-offs between thermal tolerance and other traits*: We need to understand the trade-offs between thermal tolerance and other traits such as growth rate, reproduction, and competitive ability. It is fine to confer greater thermal tolerance resistance but if this comes at a cost to reproduction, growth or biomass accumulation, then it may not be beneficial. NEED EXAMPLES
+#### *Behavioural responses to heat stress*: Animals behave. We need to model that. How do changes in behaviour impact interactions with other species and the environment. How might this impact plant productivity  (Mike, Dan, DEB models)
 
-#### *Behavioural responses to heat stress*: Animals behave. We need to model that. HOw do changes in behaviour impact interactions with other species and the environment. How might this impact plant productivity   
+#### *Evolutionary dynamics leading to changes in thermal sensitivity and exposure*: We need to understand how thermal sensitivity and exposure will evolve in response to climate change. (Ary)
 
 # References
 
