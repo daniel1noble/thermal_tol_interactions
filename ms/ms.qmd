@@ -25,15 +25,31 @@ crossref:
   tbl-prefix: "Table"
 ---
 
-Trends in Ecology and Evolution, Opinion
+**Alternative Titles**: (I'm not happy with the title yet...brainstorming)
+
+- Predicting the resilience of species interactions under extreme heat
+- Integrated modeling approaches for predicting the impacts of extreme heat on communities
+- Predicting the impacts of extreme heat on communities: an integrated modeling approach
+
+**Target Journal**:
+*Trends in Ecology and Evolution*, Opinion
 https://www.cell.com/trends/ecology-evolution/authors
 
-Abstract: 100-120 
-Highlights: Provide a short collection of 3-5 statements that concisely convey to the reader the recent advances in the field, including emerging concepts and/or distinctions, that constitute a main motivation for the discussion developed in the article. This summary is prominently featured on the first page of the article, thus allowing readers to immediately get a sense of the current status of the field.
-Word Count: 3500 words (this limit does not include text in the boxes, glossary, abstract, references, tables or figure legends)
-References: 80-100
-Outstanding Questions: 350 words
-Glossary: 500 words
+Abstract: 100-120 words\
+Highlights: Provide a short collection of 3-5 statements that concisely convey to the reader the recent advances in the field, including emerging concepts and/or distinctions, that constitute a main motivation for the discussion developed in the article. This summary is prominently featured on the first page of the article, thus allowing readers to immediately get a sense of the current status of the field.\
+Word Count: 3500 words (this limit does not include text in the boxes, glossary, abstract, references, tables or figure legends)\
+References: 80-100\
+Outstanding Questions: 350 words\
+Glossary: 500 words\
+
+**Alternative homes**:
+
+*Nature Ecology and Evolution* (Perspective) - 3000-4000 words, 4-6 display items: https://www.nature.com/natecolevol/content\
+*Global Change Biology* - 3000 (Mini Review)-5000 (Opinion) words (https://onlinelibrary.wiley.com/page/journal/13652486/homepage/forauthors.html)\
+*Ecology Letters* (Perspective) - up to 7500 words if needed. 
+
+# Abstract (Dan)
+Anthropogenic climate change is leading to more frequent and extreme heat waves. These short-term events will radically re-shape interactions among organisms, impacting biodiversity, community composition and ecosystem services that are crucial to agricultural productivity, food security and natural ecosystem structure and function. Predicting the short- and long-term impacts of heat waves on community assemblages requires a detailed mechanistic understanding of the exposure and sensitivity of organisms to extreme heat events. Such an understanding has been hampered by the lack of a holistic modelling framework that can simultaneously integrate physiological sensitivity, biophysical predictions of body temperature and its effects on population fitness across species. We show how the integration of models in disparate fields can provide pathways for understanding how extreme heat perturbs and shapes interactions among species. Such a holistic modelling approach to communities will provide novel pathways for making predictions and understanding the changes brought about by extreme heat.
 
 # Introduction (Dan)
 - What is the problem? Extreme heat events are increasing in intensity and frequency globally.
@@ -44,7 +60,11 @@ Glossary: 500 words
   - Integrating modeling approaches across disciplines is critical to predicting how heat stress will affect communities.
 - What we hope to achieve in the paper to overcome this challenge.
 
-Climate change is expected to result in warmer and more variable thermal environments globally resulting in more frequent and severe heat wave events [@barriopedro2023heat; @aglas2024recent]. Greater thermal variability will result in organisms experiencing more extreme heat wave events that exceed species tolerance limits. Exceeding physiological limits will have profound impacts on organismal growth, survival and reproduction with cascading effects on population dynamics, community composition and ecosystem services that human populations rely upon. Climate variability has already resulted in dramatic declines in pollinator abundance [@kazenel2024heat] and in crop yields globally [@zhao2017temperature; @tito2018global], but the causes underlying such declines are not fully understood. Declines are likely driven by a combination of direct effects of heat stress on plant and insect physiology, indirect effects on interactions among species -- including the microbial communities with which they interact [@trivedi2022plant] -- and how temperature interacts with other environmental stressors. Understanding the dynamic interplay between direct and indirect interactions has been hampered by the complexity of community interactions, lack of methods for measuring and predicting changes in interaction strength in diverse communities and how such interactions impact community assembly [@trivedi2022plant]. Understanding how thermal tolerance varies across populations and communities is crucial for predicting how climate change will affect ecosystems and the services they provide.
+Climate change is leading to warmer and more variable thermal environments globally [@barriopedro2023heat; @aglas2024recent]. Greater thermal variability will result in organisms experiencing more extreme heat waves that result in thermal stress that impacts organismal growth, survival and reproduction with cascading effects on population dynamics, community composition and ecosystem services. Climate variability has already been linked to dramatic declines in pollinator abundance [@kazenel2024heat] and in crop yields globally [@zhao2017temperature; @tito2018global], but the causes underlying such declines, and their ramifications through communities, are not fully understood. Declines are driven by a combination of direct effects of heat stress on organism physiology and indirect effects on interactions (both positive and negative) among species -- including the microbial communities many species rely upon [@trivedi2022plant]. Understanding the dynamic interplay between direct and indirect interactions and how these are mediated by environmental factors has been hampered by the complexity of community interactions and the lack of integrated modelling approaches that translate short-term physiological damage into changes in fitness and population growth to predict changes in interaction strength among species in diverse communities [@trivedi2022plant].
+
+Predicting how extreme heat impacts population dynamics and community interactions requires a coupling of physiological, biophysical and population ecology models. We argue that such a feat is becoming increasingly more tangible and will provide powerful new ways of predicting how extreme heat shapes community dynamics. For example, Dynamic Energy Budget (DEB) theory can now be seamlessly integrated with biophysical models of heat and mass exchange to characterise organismal body temperatures and simulate the effects of extreme heat events on the entire life cycle of species within communities. Physiological models that estimate thermal load sensitivity for each species can then be integrated into DEB theory to characterise the accumulation of physiological damage that compromises growth, survival and reproduction, providing a way of capturing the impacts of extreme heat events on organismal fitness. Mechanistic models such as these provide common currencies that can then be integrated into population and community ecology models to capture how extreme heat event perturb interactions among species in a community.
+
+Here, we bring together diverse fields to establish a bridge for thinking about how we might begin integrating models in disparate fields to predict how extreme heat will affect communities. Here, we highlight the immense opportunities such an integration may provide in improving our understanding of indirect consequences on species that . We discuss the challenges and unknowns of an integrated modelling framework moving forward and how it can be extended to include other critical features that capture evolutionary change and plasticity in response to changing environments. 
 
 # How can we model the effects of extreme temperatures on individual species within communities? Capturing the balance between physiological damage and repair using thermal load sensitivity theory (Dan, Adrienne)
 - Introduce thermal load sensitivity theory
@@ -93,29 +113,28 @@ Li *et al.* @li2023interspecific also found that different life-stages were affe
 
 ### Acclimation can impact thermal sensitivity of plants and animals (Everyone)
 
-# Applications of thermal tolerance landscapes in a changing world (Alison, Owen and everyone)
+# Applications of thermal tolerance landscapes in a changing world (Alison, Owen and Belinda, Mike)
 - Applications in: 
   - Agriculture
   - Pest control
   - Conservation
 
-# Innovative solutions for maintaining functional interactions in the face of extreme heat events (Everyone)
-
-*Genetic engineering*: The use of genetic engineering to confer thermal tolerance to plants and animals is a promising avenue for enhancing thermal tolerance. For example, the over-expression of heat shock proteins (HSPs) in plants has been shown to enhance thermal tolerance. HSPs are a family of proteins that are up-regulated in response to heat stress and are involved in protein folding and degradation, and the prevention of protein aggregation. CRISPR-Cas9 gene editing technology has been used to enhance thermal tolerance in plants by modifying genes involved in heat stress response.
-
 *Selective breeding*: Artificial selection will be a useful avenue for both plants and animals to enhance thermal tolerance. 
 
 *Cooler landscapes*: Landscapes can be designed to provide thermal refugia for plants and animals. For example, planting trees in urban areas can provide shade and reduce the urban heat island effect. Similarly, planting hedgerows in agricultural landscapes can provide thermal refugia for beneficial insects and pollinators.
 
-# Future Directions
+# Future directions: Challenges, gaps and possible solutions to using a unified modelling framework
+
+#### *Data Limitations for Applying DEB Theory*: (Mike) Requires lots of information on a given species to model life-cycles, challenges in applying stage-structured populations (metamorphosis) others....Solutions?
 
 #### *Better understanding of the mechanisms enhancing thermal tolerance in plants and animals*: We need to understand the genomic, cellular and physiological processes that confer greater thermal tolerance and help prepare organisms for future heat stress events.
-
-#### *Trade-offs between thermal tolerance and other traits*: We need to understand the trade-offs between thermal tolerance and other traits such as growth rate, reproduction, and competitive ability. It is fine to confer greater thermal tolerance resistance but if this comes at a cost to reproduction, growth or biomass accumulation, then it may not be beneficial. (Strand 1 folks)
 
 #### *Behavioural responses to heat stress*: Animals behave. We need to model that. How do changes in behaviour impact interactions with other species and the environment. How might this impact plant productivity  (Mike, Dan, DEB models)
 
 #### *Evolutionary dynamics leading to changes in thermal sensitivity and exposure*: We need to understand how thermal sensitivity and exposure will evolve in response to climate change. (Ary)
+
+#### *Trade-offs between thermal tolerance and other traits*: We need to understand the trade-offs between thermal tolerance and other traits such as growth rate, reproduction, and competitive ability. It is fine to confer greater thermal tolerance resistance but if this comes at a cost to reproduction, growth or biomass accumulation, then it may not be beneficial. (Dani, James, Brendan)
+
 
 # References
 
