@@ -1,5 +1,5 @@
 ---
-title: "An integrated modelling approach for predicting the impacts of extreme heat on communities"
+title: "Predicting the resilience of species interactions under extreme heat"
 bibliography: ../bib/refs.bib
 csl: ../bib/trends-in-ecology-and-evolution.csl
 format:
@@ -26,10 +26,10 @@ crossref:
 ---
 
 **Alternative Titles**: (just brainstorming)
-
-- Predicting the resilience of species interactions under extreme heat (I like this one best maybe?)
 - Integrated modeling approaches for predicting the impacts of extreme heat on communities
--Thermal tolerance landscapes for populations and communities: applications in a changing world
+- Thermal tolerance landscapes for populations and communities: applications in a changing world
+- An integrated modelling approach for predicting the impacts of extreme heat on communities
+- Predicting the resilience of species interactions under extreme heat now and into the future
 
 **Target Journal**:
 *Trends in Ecology and Evolution*, Opinion
@@ -61,7 +61,7 @@ Glossary: 500 words\
 Please see more detailed guidance for each section below and some names who might lead these.
 
 # Abstract (Dan)
-Anthropogenic climate change is leading to more frequent and extreme heat waves. These short-term events will radically re-shape interactions among organisms, impacting biodiversity, community composition and ecosystem services that are crucial to agricultural productivity and food security. Predicting the short- and long-term impacts of heat waves on community assemblages requires a detailed mechanistic understanding of the exposure and sensitivity of organisms to extreme heat events. Such an understanding has been hampered by the lack of a holistic modelling framework that can simultaneously integrate physiological sensitivity, biophysical predictions of organism temperature and its effects on population fitness across species. We show how the integration of models in disparate fields may facilitate our understanding how extreme heat perturbs and shapes interactions among species providing novel pathways for making predictions and understanding the changes brought about by extreme heat.
+Anthropogenic climate change is leading to more frequent and extreme heat waves. These short-term events will radically re-shape interactions among organisms, impacting biodiversity, community composition and ecosystem services that are crucial to agricultural productivity and food security. Predicting the short- and long-term impacts of heat waves on community assemblages requires a detailed mechanistic understanding of the exposure and sensitivity of organisms to extreme heat events. Such an understanding has been hampered by the lack of a holistic modelling framework that can simultaneously integrate physiological sensitivity, biophysical predictions of organism temperature and its effects on population fitness across species. We show how the integration of models in disparate fields may facilitate our understanding how extreme heat perturbs and shapes interactions among species now, and into the future, by providing novel pathways for making predictions and understanding the changes brought about by extreme heat.
 
 # A need for a mechanistically informed modelling framework for predicting the effects of extreme heat on community assemblages (Dan)
 
