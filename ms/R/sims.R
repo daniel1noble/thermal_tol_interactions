@@ -72,7 +72,7 @@ parameters <- c(
 )
 
 # Time steps
-time <- seq(0, 200, by = 0.1)
+time <- seq(0, 1000, by = 0.1)
 
 # Solve the ODE
 set.seed(123)  # Ensure reproducibility
