@@ -30,6 +30,8 @@ crossref:
 - Thermal tolerance landscapes for populations and communities: applications in a changing world
 - An integrated modelling approach for predicting the impacts of extreme heat on communities
 - Predicting the resilience of species interactions under extreme heat now and into the future
+- Calculated responses to the biological impacts of extreme heat: the need to connect our models (Mike) (Dan likes this one as well) 
+- Connecting our models for calculated biological responses to extreme heat 
 
 **Target Journal**:
 *Trends in Ecology and Evolution*, Opinion
@@ -51,6 +53,8 @@ Glossary: 500 words\
 **Structure Overview - Sections**:\
 - Abstract (Dan) (~120 words - First Draft Done)\
 - A need for a mechanistically informed modelling framework for predicting the effects of extreme heat on community assemblages (Dan) (~ 500 words - First Draft Done)\
+- The next wave of climate models\ (Mike, Belinda)
+
 - Capturing the balance between physiological *damage* and *repair* to predict multi-species thermal sensitivity (Dan, Adrienne) (~300-500 words)\
 - Biophysics to the rescue: realistic community wide *exposure* to extreme heat and Dynamic Energy Budget models (Mike, Belinda) (~300-500 word)\
 - Mechanistic approaches that 'speak' to population and community ecology under extreme heat (Margie) (~300-500 words)\
