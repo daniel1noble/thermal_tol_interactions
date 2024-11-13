@@ -1,5 +1,5 @@
 ---
-title: "Predicting the resilience of species interactions under extreme heat"
+title: "Connecting our models for calculated biological responses to extreme heat"
 bibliography: ../bib/refs.bib
 csl: ../bib/trends-in-ecology-and-evolution.csl
 format:
@@ -26,12 +26,12 @@ crossref:
 ---
 
 **Alternative Titles**: (just brainstorming)
-- Integrated modeling approaches for predicting the impacts of extreme heat on communities
-- Thermal tolerance landscapes for populations and communities: applications in a changing world
-- An integrated modelling approach for predicting the impacts of extreme heat on communities
-- Predicting the resilience of species interactions under extreme heat now and into the future
-- Calculated responses to the biological impacts of extreme heat: the need to connect our models (Mike) (Dan likes this one as well) 
-- Connecting our models for calculated biological responses to extreme heat 
+- Integrated modeling approaches for predicting the impacts of extreme heat on communities\
+- Thermal tolerance landscapes for populations and communities: applications in a changing world\
+- An integrated modelling approach for predicting the impacts of extreme heat on communities\
+- Predicting the resilience of species interactions under extreme heat now and into the future\
+- Calculated responses to the biological impacts of extreme heat: the need to connect our models (Mike) (Dan likes this one as well)\ 
+- Predicting the resilience of species interactions under extreme heat\
 
 **Target Journal**:
 *Trends in Ecology and Evolution*, Opinion
