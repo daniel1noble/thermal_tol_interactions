@@ -157,7 +157,6 @@ Li *et al.* @li2023interspecific also found that different life-stages were affe
 
 #### *Trade-offs between thermal tolerance and other traits*: We need to understand the trade-offs between thermal tolerance and other traits such as growth rate, reproduction, and competitive ability. It is fine to confer greater thermal tolerance resistance but if this comes at a cost to reproduction, growth or biomass accumulation, then it may not be beneficial. (Dani, James, Brendan)
 
-
 # References
 
 ```{r, performancecurve}
