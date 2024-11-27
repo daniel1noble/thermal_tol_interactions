@@ -110,7 +110,7 @@ Here, we bring together modelling approaches across diverse fields to establish 
 - Also this is a cool paper @lu2023food on carnivores diets by DNA sequencing fecal data
 -The other way to model interactions us using foundational community ecology/ species abundance models see @carrara2015inferring. We can here model the actual abundance of a given species and it would seem more flexible to incorporate thermal tolerance infor into these models. 
 - have a close look at @vitali2022disruption and @riva2023toward, limitations @terry2020finding
-
+@weiss2022disentangling
 # Incorporating context-dependent environmental feedback to evaluate resilience to extreme heat  (Brajesh, Brendan, James, Everyone else who wants to contribute)
 - Goal of this section is to briefly focus on the BIOLOGY that will shift thermal exposure and sensitivity in plants and animals.
 - I **just** found this important paper for which a lot can be gleaned upon. Many of the important things we have been discussing are discussed in here: @martinez2024ecological, so we should be careful to make our narrative distinct. The limitation of this study is it lacks the focus on modelling frameworks, so I think us distinguishing how we link these concepts back into the model would be quite novel and distinguish ourselves from them..
