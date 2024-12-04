@@ -1,5 +1,5 @@
 ---
-title: "Connecting our models for calculated biological responses to extreme heat"
+title: "A systems-modelling approach to predict biological responses to extreme heat"
 bibliography: ../bib/refs.bib
 csl: ../bib/trends-in-ecology-and-evolution.csl
 format:
@@ -25,14 +25,6 @@ crossref:
   tbl-prefix: "Table"
 ---
 
-**Alternative Titles**: (just brainstorming)
-- Integrated modeling approaches for predicting the impacts of extreme heat on communities\
-- Thermal tolerance landscapes for populations and communities: applications in a changing world\
-- An integrated modelling approach for predicting the impacts of extreme heat on communities\
-- Predicting the resilience of species interactions under extreme heat now and into the future\
-- Calculated responses to the biological impacts of extreme heat: the need to connect our models (Mike) (Dan likes this one as well)\ 
-- Predicting the resilience of species interactions under extreme heat\
-
 **Target Journal**:
 *Trends in Ecology and Evolution*, Opinion
 https://www.cell.com/trends/ecology-evolution/authors
@@ -51,25 +43,31 @@ Glossary: 500 words\
 *Ecology Letters* (Perspective) - up to 7500 words if needed. 
 
 **Structure Overview - Sections**:\
-- Abstract (Dan) (~120 words - First Draft Done)\
-- A need for a mechanistically informed modelling framework for predicting the effects of extreme heat on community assemblages (Dan) (~ 500 words - First Draft Done)\
-- The next wave of climate models\ (Mike, Belinda)\
-- Building thermal biology into biosphere/interaction models\
-- Capturing the balance between physiological *damage* and *repair* to predict multi-species thermal sensitivity (Dan, Adrienne) (~300-500 words)\
-- Biophysics to the rescue: realistic community wide *exposure* to extreme heat and Dynamic Energy Budget models (Mike, Belinda) (~300-500 word)\
-- Mechanistic approaches that 'speak' to population and community ecology under extreme heat (Margie) (~300-500 words)\
-- Incorporating context-dependent environmental feedback to evaluate resilience to extreme heat (Brajesh, Brendan, James, Everyone else who wants to contribute) (~500 words)\
-- 'Hot' solutions for a changing world (Alison, Owen and Belinda, Mike, Anyone else!) (~500 words)\
-- Future directions: modelling challenges, gaps and possible solutions (Mike, Belinda, Dan, Ary, Braj, Everyone) (~300-500 words)
+Proposed Outline:
+•	A need for a mechanistically-informed modelling framework for predicting the effects of extreme heat on community assemblages in natural and managed landscapes (Dan) (~ 500 words - First Draft Done)\
+•	The next wave of climate models that incorporate feedbacks between biological systems and the atmosphere (Mike, Belinda)\
+•	Biophysics to the ‘rescue’: realistic community wide exposure to extreme heat and dynamic energy budget theory (Mike, Belinda)\
+•	Capturing the balance between physiological damage and repair to predict multi-species thermal sensitivity (Dan, Adrienne) (~300-500 words)\
+•	Mechanistic approaches that ‘speak’ to population and community ecology under extreme heat (Margie) (~300-500 words)\
+•	Incorporating environmental feedback to evaluate resilience of biological systems to extreme heat (Brajesh, Brendan, James, Everyone else who wants to contribute) (~500 words)\
+•	‘Hot’ solutions for a changing world (Alison, Owen and Belinda, Mike, Anyone else!) (~300-500 words)\
+•	Interacting species interacting with people: social-ecological systems (Steven and Xuemei) (~300-500 words)\
+•	Future directions: modelling challenges, gaps and possible solutions (Mike, Belinda, Dan, Ary, Braj, Everyone) (~300-500 words)
 
-- add bios to proposal
+We will also have three figures and two boxes as part of the paper that discuss / demonstrate the following:
+
+Figure 1: Broad conceptual overview of different modelling frameworks and how they can be integrated (see above)
+Box 1: Box 1 will provide an example of the distinct ways models can be coupled and used to test different scenarios and interventions. We will have a figure within this box.
+Box 2: Box 2 will show how to incorporate different environmental contexts and how plasticity of individual organisms and evolution can be integrated into model components. We will have a figure within this box.
+
+
 - add cell modelling
 - organise weekly writing catchups to push forward. Agree it won't be done by end of year
 
 Please see more detailed guidance for each section below and some names who might lead these.
 
 # Abstract (Dan)
-Anthropogenic climate change is leading to more frequent and extreme heat waves. These short-term but large-scale events are radically re-shaping interactions among organisms, impacting biodiversity, community composition and ecosystem services crucial to natural systems and food security. Predicting heat wave impacts on interacting species requires an understanding of the processes driving differential exposure and sensitivity of organisms to extreme heat events in a life-cycle context. But this, in turn, requires a modelling framework that can capture species-specific responses via habitat-mediated microclimates, biophysics of body temperature, physiological sensitivity, and its effects on vital rates across ontogeny and thermal history. We show how existing models in disparate fields can be linked to achieve this level of understanding to allow calculated  responses to extreme heat now and into the future.  
+Anthropogenic climate change is leading to more frequent and extreme heat waves. These short-term but large-scale events are radically re-shaping interactions among organisms, impacting biodiversity, community composition and ecosystem services crucial to natural systems and food security. Predicting heat wave impacts on interacting species requires an understanding of the processes driving differential exposure and sensitivity of organisms to extreme heat events in a life-cycle context. Key to developing this predictive capacity is the formulation of a modelling framework that captures species-specific responses. This includes knowledge of habitat-mediated changes in microclimates, biophysical controls on body temperature, temperature sensitivity of organismal physiology, and how the effects of heatwaves vary depending on thermal history. We show how existing models in disparate fields can be linked to achieve this level of understanding to allow for calculated responses to extreme heat now and into the future with implications for socioecological systems more generally.   
 
 # A need for a mechanistically informed modelling framework for predicting the effects of extreme heat on community assemblages (Dan)
 
