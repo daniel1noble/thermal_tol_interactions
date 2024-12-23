@@ -1,0 +1,155 @@
+---
+title: "A systems-modelling approach to predict biological responses to extreme heat"
+date: "`r Sys.Date()`"
+bibliography: ../bib/refs.bib
+csl: ../bib/trends-in-ecology-and-evolution.csl
+format:
+  html:
+    toc: true
+    toc-location: left
+    toc-depth: 3
+    toc-title: "**Table of Contents**"
+    output-file: "supp.html"
+    theme: simplex
+    embed-resources: true
+    code-fold: show
+    code-tools: true
+    number-sections: true
+    fontsize: "12"
+    max-width: "10"
+    code-overflow: wrap
+crossref: 
+  fig-title: Figure     # (default is "Figure")
+  tbl-title: Table     # (default is "Table")
+  title-delim: —     # (default is ":")
+  fig-prefix: Fig.   # (default is "Figure")
+  tbl-prefix: Tab.    # (default is "Table")
+editor_options: 
+  chunk_output_type: console
+---
+
+## Introduction
+
+In this supplementary material, we provide extended versions, with code, of our case studies we draw upon within our manuscript. Our case studies focus on plan-insect-microbe interactions, and how these interactions are influenced by extreme heat events. We provide the code for the models we use in our case studies, and the code for the simulations we run to predict the impact of heatwaves on these interactions.
+
+### Load packages
+
+```{r, libraries}
+#| label: libraries
+# Load required libraries
+install.packages("pacman")
+pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork)
+devtools::install_github('mrke/NicheMapR')
+
+```
+
+## Case Study 1: Predicting the impact of heatwaves on the growth of plants, microbes and insects
+
+
+First, we need to get the microclimate, or simulate our own with some heatwaves. This can be done as follows:
+
+```{r, micro_sim1}
+
+#| label: micro_sim1
+#| echo: true
+
+# Set up environmental model (e.g., microclimate)
+	microclim <- microclimate(loc = c(30, -85), 
+                          month = 6,  # June
+                          n = 30,     # 30 days simulation
+                          shade = 0.5)  # 50% shade
+
+# Generate temperature data for DEB models
+temperature <- microclim$output$temp  # Da
+```
+
+Now that we have the temperatures each species is occupying we can include this temperature time series in our DEB models. We can simulate the growth of plants, microbes and insects under these conditions. The outputs of each can be used as input for others. First, we need to create a dynamic energy budget model for each of the three interacting species.
+
+```{r, deb_sim1_function}
+#| label: deb_sim1_function
+#| echo: true
+
+# Define DEB model for insect pest
+insect_deb <- function(temp, food) {
+  kappa <- 0.8  # Fraction of energy allocated to maintenance and growth
+  growth <- kappa * food * exp(-((temp - 25)^2) / 10)  # Simplified growth equation
+  reproduction <- (1 - kappa) * food * exp(-((temp - 30)^2) / 15)
+  list(growth = growth, reproduction = reproduction)
+}
+
+# Define DEB model for plant
+plant_deb <- function(temp, light, nutrient) {
+  photosynthesis <- light * exp(-((temp - 20)^2) / 10)  # Simplified photosynthesis
+  growth <- photosynthesis * nutrient
+  respiration <- 0.1 * photosynthesis
+  list(growth = growth, respiration = respiration)
+}
+
+# Define DEB model for microbe
+microbe_deb <- function(temp, organic_matter) {
+  growth <- organic_matter * exp(-((temp - 30)^2) / 10)
+  respiration <- 0.2 * growth
+  list(growth = growth, respiration = respiration)
+}
+```
+
+Now, we can run the simulation for each species.
+
+
+```{r, deb_sim1}
+#| label: deb_sim1
+#| echo: true
+
+# Simulate interactions over 30 days
+days <- 1:30
+results <- data.frame(day = days, 
+                      insect_growth = NA, 
+                      plant_growth = NA, 
+                      microbe_growth = NA)
+
+# Initialize resources
+plant_nutrients <- 1
+microbe_organic_matter <- 1
+light <- 1  # Assume constant light for simplicity
+
+for (day in days) {
+  temp <- temperature[day]
+  
+  # Insect feeds on plant
+  insect_result <- insect_deb(temp, food = plant_nutrients * 0.1)
+  
+  # Plant photosynthesis and growth
+  plant_result <- plant_deb(temp, light, nutrient = plant_nutrients)
+  
+  # Microbe decompose organic matter
+  microbe_result <- microbe_deb(temp, organic_matter = microbe_organic_matter)
+  
+  # Update resources
+  plant_nutrients <- plant_nutrients + plant_result$growth - insect_result$growth
+  microbe_organic_matter <- microbe_organic_matter + insect_result$reproduction - microbe_result$respiration
+  
+  # Record results
+  results$insect_growth[day] <- insect_result$growth
+  results$plant_growth[day] <- plant_result$growth
+  results$microbe_growth[day] <- microbe_result$growth
+}
+
+```
+
+Now that we have the results, we can plot them to see how the growth of each species changes over time.
+
+```{r, deb_sim1_plot}
+#| label: deb_sim1_plot
+#| fig-cap: "Growth of plant, insect and microbe over 30 days"
+#| fig-pos: H
+#| echo: true
+
+# Plot results
+library(ggplot2)
+ggplot(results, aes(day)) +
+  geom_line(aes(y = insect_growth, color = "Insect Growth")) +
+  geom_line(aes(y = plant_growth, color = "Plant Growth")) +
+  geom_line(aes(y = microbe_growth, color = "Microbe Growth")) +
+  labs(y = "Growth Rate", color = "Species") +
+  theme_minimal()
+```
