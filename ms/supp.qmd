@@ -37,7 +37,7 @@ In this supplementary material, we provide extended versions, with code, of our 
 ```{r, libraries}
 #| label: libraries
 # Load required libraries
-install.packages("pacman")
+#install.packages("pacman")
 pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork)
 devtools::install_github('mrke/NicheMapR')
 
@@ -53,14 +53,51 @@ First, we need to get the microclimate, or simulate our own with some heatwaves.
 #| label: micro_sim1
 #| echo: true
 
-# Set up environmental model (e.g., microclimate)
-	microclim <- microclimate(loc = c(30, -85), 
-                          month = 6,  # June
-                          n = 30,     # 30 days simulation
-                          shade = 0.5)  # 50% shade
+# Set up environmental model (e.g., microclimate)# 30 days simulation
+	#microclim <- microclimate(loc = c(30, -85),   month = 6, n = 30, shade = 0.5)  # 50% shade
 
 # Generate temperature data for DEB models
-temperature <- microclim$output$temp  # Da
+#temperature <- microclim$output$temp 
+
+# Set random seed for reproducibility
+set.seed(42)
+
+# Generate a base temperature time series (e.g., daily data for 1 year)
+days <- 1:365  # 1 year of daily data
+base_temp <- 20 + 10 * sin(2 * pi * days / 365)  # Seasonal temperature
+
+# Add random daily variation
+daily_variation <- rnorm(length(days), mean = 0, sd = 2)
+temperature_series <- base_temp + daily_variation
+
+# Add a few heatwave events (spikes in temperature)
+heatwave_days <- c(50, 120, 200, 280)  # Arbitrary days for heatwaves
+heatwave_durations <- c(5, 7, 4, 6)  # Duration of each heatwave
+heatwave_intensity <- 8  # Degrees Celsius above the base temperature
+
+for (i in seq_along(heatwave_days)) {
+  start <- heatwave_days[i]
+  duration <- heatwave_durations[i]
+  temperature_series[start:(start + duration - 1)] <- temperature_series[start:(start + duration - 1)] + heatwave_intensity
+}
+
+# Create a data frame for the time series
+temperature_df <- data.frame(
+  Day = days,
+  Temperature = temperature_series
+)
+
+# Plot the temperature time series
+library(ggplot2)
+ggplot(temperature_df, aes(x = Day, y = Temperature)) +
+  geom_line(color = "blue") +
+  geom_point(data = data.frame(Day = heatwave_days, 
+                               Temperature = temperature_series[heatwave_days]), 
+             aes(x = Day, y = Temperature), color = "red", size = 3) +
+  labs(title = "Simulated Temperature Time Series with Heatwaves",
+       x = "Day of Year", 
+       y = "Temperature (°C)") +
+  theme_minimal()
 ```
 
 Now that we have the temperatures each species is occupying we can include this temperature time series in our DEB models. We can simulate the growth of plants, microbes and insects under these conditions. The outputs of each can be used as input for others. First, we need to create a dynamic energy budget model for each of the three interacting species.
