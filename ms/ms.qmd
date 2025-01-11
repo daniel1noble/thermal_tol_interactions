@@ -129,6 +129,7 @@ Competition among species within a community can influence a focal species' tole
 Li *et al.* @li2023interspecific also found that different life-stages were affected differently by heat stress, with adults being more thermally tolerant than early developmental stages emphasising the need for models to capture such variation. However, such findings do not incorporate acclimation to heat stress or different microhabitat choice by the different species, which are both likely to be important for predicting the impacts of heat stress on community structure. It also ignores how interspecific interactions between competing aphid species will also likely mediate species abundance. It would be worth while integrating thermal tolerance landscapes with ecological models that capture interspecific interactions to better predict how heat stress will affect community structure.
 
 ### Acclimation can impact thermal sensitivity of plants and animals (Everyone)
+A very important paper @zhu2024responses. Connects heat tolerance to population matrix models. And, shows acclimation responses (heat hardening).
 
 ### Phenology and activity pattern shifts mediating interactions (James?)
 
