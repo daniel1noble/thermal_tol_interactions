@@ -45,7 +45,6 @@ devtools::install_github('mrke/NicheMapR')
 
 ## Case Study 1: Predicting the impact of heatwaves on the growth of plants, microbes and insects
 
-
 First, we need to get the microclimate, or simulate our own with some heatwaves. This can be done as follows:
 
 ```{r, micro_sim1}
@@ -132,7 +131,6 @@ microbe_deb <- function(temp, organic_matter) {
 
 Now, we can run the simulation for each species.
 
-
 ```{r, deb_sim1}
 #| label: deb_sim1
 #| echo: true
@@ -190,3 +188,7 @@ ggplot(results, aes(day)) +
   labs(y = "Growth Rate", color = "Species") +
   theme_minimal()
 ```
+
+## Case Study 2: Developing a DEB model for parasitoid wasps applied to control of an aphid system under heatwaves
+
+In this case study, we will develop a DEB model for a parasitoid wasp that preys on aphids. We will then simulate the growth of the aphid population and the parasitoid wasp population under different temperature conditions, including heatwaves. 
