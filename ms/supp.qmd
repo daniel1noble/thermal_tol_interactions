@@ -51,6 +51,7 @@ First, we need to get the microclimate, or simulate our own with some heatwaves.
 
 #| label: micro_sim1
 #| echo: true
+#| eval: false
 
 # Set up environmental model (e.g., microclimate)# 30 days simulation
 	#microclim <- microclimate(loc = c(30, -85),   month = 6, n = 30, shade = 0.5)  # 50% shade
@@ -104,6 +105,7 @@ Now that we have the temperatures each species is occupying we can include this 
 ```{r, deb_sim1_function}
 #| label: deb_sim1_function
 #| echo: true
+#| eval: false
 
 # Define DEB model for insect pest
 insect_deb <- function(temp, food) {
@@ -134,6 +136,7 @@ Now, we can run the simulation for each species.
 ```{r, deb_sim1}
 #| label: deb_sim1
 #| echo: true
+#| eval: false
 
 # Simulate interactions over 30 days
 days <- 1:30
@@ -178,6 +181,7 @@ Now that we have the results, we can plot them to see how the growth of each spe
 #| fig-cap: "Growth of plant, insect and microbe over 30 days"
 #| fig-pos: H
 #| echo: true
+#| eval: false
 
 # Plot results
 library(ggplot2)
