@@ -191,4 +191,4 @@ ggplot(results, aes(day)) +
 
 ## Case Study 2: Developing a DEB model for parasitoid wasps applied to control of an aphid system under heatwaves
 
-In this case study, we will develop a DEB model for a parasitoid wasp that preys on aphids. We will then simulate the growth of the aphid population and the parasitoid wasp population under different temperature conditions, including heatwaves. 
+In this case study, we will develop a DEB model for a parasitoid wasp that preys on aphids. We will then simulate the growth of the aphid population and the parasitoid wasp population under different temperature conditions, including heatwaves. Following from @Llandres2015, we will use the DEB model to predict the impact of heatwaves on the parasitoid wasp population and the aphid population. @Llandres2015 build a multi-life stage model for the wasp. 
