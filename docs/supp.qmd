@@ -244,10 +244,77 @@ To begin, we need to first define the DEB model for the various life-stages. Let
 # Pupal Stage
 ####----------------------------------------------#######
 
- pL_transformation_larvae  <- function(V, kEl){
+pL_transformation_pupae  <- function(V, kEl){
     return(V*kEl) #Table 5 from Llandres2015
- }
+}
 
+pc_mobilisation_E_pupae  <- function(E, vj, Eg, V2, pS, ke, k){
+    return(E * (((((Eg * vj) / (V2^1/3)) + pS)/(k*E + Eg)))
+}
+
+pS_somatic_maintenance_pupae  <- function(pM, V2){
+    return(pM*V2) #Table 5 from Llandres2015
+}
+
+pG_growth_pupae  <- function(pC, pM, k){
+    return(k*pC - pM) #Table 5 from Llandres2015
+}
+
+pJ_maturity_maintenance_pupae  <- function(kj, Eh){
+    return(kj * eh) #Table 5 from Llandres2015
+}
+
+pR_maturation_pupae  <- function(k){
+    return((1 - k)*pC - pJ) #Table 5 from Llandres2015
+}
+
+pc2_mobilisation_Er_pupae  <- function(ke, Er){
+    return(ke*Er) #Table 5 from Llandres2015  
+}
+
+pro_repro_overhead_pupae <- function(kr, pc2){
+    return((1-kr)*pc2) #Table 5 from Llandres2015
+}
+
+pr2_eggFlux_pupae <- function(pc2, pro){
+    return(pc2 - pro) #Table 5 from Llandres2015
+}
+
+####----------------------------------------------#######
+# Imago Stage
+####----------------------------------------------#######
+
+pa_assimilation_imago <- function(ps, pj){
+    return(ps + pj) #Table 5 from Llandres2015
+}
+
+pc_mobilisation_E_imago <- function(ke, E){
+    return(ke*E) #Table 5 from Llandres2015
+}
+
+ps_somatic_maintenance_imago <- function(pM, V2){
+    return(pM*V2) #Table 5 from Llandres2015
+}
+
+pj_maturity_maintenance_imago <- function(kj, Ehe){
+    return(kj * Ehe) #Table 5 from Llandres2015
+}
+
+pr_repro_imago <- function(pc, ps, pj){
+    return(pc - ps - pj) #Table 5 from Llandres2015
+}
+
+pc2_mobilisation_Er_imago <- function(ke, Er){
+    return(ke*Er) #Table 5 from Llandres2015
+}
+
+pro_repro_overhead_imago <- function(kr, pc2){
+    return((1-kr)*pc2) #Table 5 from Llandres2015
+}
+
+pr2_eggFlux_imago <- function(pc2, pro){
+    return(pc2 - pro) #Table 5 from Llandres2015
+}
 ```
 
 
