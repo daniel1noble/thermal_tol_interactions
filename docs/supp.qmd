@@ -317,6 +317,7 @@ pr2_eggFlux_imago <- function(pc2, pro){
 }
 ```
 
+@tbl-deb_paramaters shows the parameters for the DEB model. These parameters are used in the functions defined above to calculate the metabolic processes.
 
 ```{r, deb_paramaters}
 #| label: tbl-deb_paramaters
