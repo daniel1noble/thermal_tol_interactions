@@ -41,7 +41,7 @@ In this supplementary material, we provide extended versions, with code, of our 
 #| message: false
 # Load required libraries
 #install.packages("pacman")
-pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork)
+pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags)
 #devtools::install_github('mrke/NicheMapR')
 
 ```
@@ -204,6 +204,55 @@ In this case study, we will develop a DEB model for a parasitoid wasp that preys
 #### Building a DEB model for the parasitoid wasp
 
 To begin, we need to first define the DEB model for the various life-stages. Lets first define the key metabolic processes as functions:
+
+
+$$
+\dot{v}
+$$
+
+```{r, tbl-equivalent}
+#| label: tbl-equivalent
+#| tbl-cap: "Mathematical notation and equivalent code notation"
+
+eqn <- c(
+"\\dot{p}_{A}",
+"\\{\\dot{p}_{Am} \\}",
+"f",
+"V",
+"\\dot{p}_{C}",
+"\\dot{v}",
+"E",
+"[E_{G}]",
+"[\\dot{p}_{S}]"
+)
+
+code <- c(
+"pA",
+"pAm", 
+"f",
+"V",
+"pC",
+"v",
+"E",
+"Eg",
+"pS"
+)
+
+# Create dataframe
+df <- data.frame(formula = eqn, code = code)
+
+# Create table
+ft <- flextable(df)
+ft <- compose(
+    x = ft, j = "formula",
+    value = as_paragraph(as_equation(formula, width = 2, height = .5))
+  )
+ft <- align(ft, align = "center", part = "all")
+ft <- width(ft, width = 2)
+ft
+
+
+```
 
 ```{r, deb_model}
 #| label: deb_model 
