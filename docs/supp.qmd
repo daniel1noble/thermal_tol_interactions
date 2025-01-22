@@ -334,5 +334,33 @@ values  <- c(0.94, 0.95, 21210, 0.0207, 245.7, 0.930, 0.002, 0.85, 3.98, 0.152, 
 flextable::flextable(data.frame(parameter, detail, values))  %>% flextable::set_table_properties(width = .5) %>% flextable::set_table_properties(layout = "autofit") %>% flextable::theme_zebra() %>% flextable::theme_booktabs()
 ```
 
+
+TODO: I need to add a table of how mathematical notation equates to code to amke sure we don't miss somthing. 
+
+```{r, simulations}
+#| label: simulations
+#| echo: true
+#| message: false
+#| warning: false
+
+# Lets just go through the pupal stage for now
+# Parameters
+  E  =
+  vj = 
+  Eg = 
+  V2 = 
+  pS = 
+  ke = 
+  k  = 
+  f  = 
+  V  = 
+  pAm= 
+  pM = 
+  V  =
+  pT =
+
+
+```
+
 ### Deb Modelling Paper
 
