@@ -41,7 +41,7 @@ In this supplementary material, we provide extended versions, with code, of our 
 #| message: false
 # Load required libraries
 #install.packages("pacman")
-pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags)
+pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable)
 #devtools::install_github('mrke/NicheMapR')
 
 ```
@@ -216,14 +216,24 @@ $$
 
 eqn <- c(
 "\\dot{p}_{A}",
-"\\{\\dot{p}_{Am} \\}",
+"[\\dot{p}_{Am}]",
 "f",
 "V",
 "\\dot{p}_{C}",
 "\\dot{v}",
 "E",
 "[E_{G}]",
-"[\\dot{p}_{S}]"
+"[\\dot{p}_{S}]", 
+"\\dot{k}_{E}",
+"\\kappa",
+"[E]",
+"\\dot{p}_{S}",
+"[\\dot{p}_{M}]",
+"\\dot{p}_{G}",
+"\\dot{p}_{J}",
+"\\dot{k}_{J}",
+"\\dot{p}_{R}",
+"E_{H}^b"
 )
 
 code <- c(
@@ -234,8 +244,19 @@ code <- c(
 "pC",
 "v",
 "E",
-"Eg",
-"pS"
+"Eg_brac",
+"pS_brac", 
+"kE",
+"kappa",
+"E_brac",
+"pS",
+"pM_brac",
+"pG",
+"pJ",
+"kJ",
+"pR",
+"Ehb"
+
 )
 
 # Create dataframe
@@ -265,28 +286,28 @@ ft
 # Larval Stage
 ####----------------------------------------------#######
   
-  pA_assimilation_larval <- function(f, V, pAm){
+  pA <- function(f, V, pAm){
     return(pAm * f * V) # Table 5 from Llandres2015
   }
 
-  pC_mobilisation_larval <- function(E, Eg, V, pS, ke, k){
-    return(E * ((((Eg * ke) + pS)/(k*E + Eg))) # Table 5 from Llandres2015
+  pC <- function(E, Eg, V, pS_brac, kE, kappa, E_brac){
+    return(E * ((((Eg_brac * kE) + pS)/(kappa*E_brac + Eg))) # Table 5 from Llandres2015
   }
 
-  pS_somatic_maintenance_larval  <- function(pM, V, pT){
-    return(pM*V) #Table 5 from Llandres2015
+  pS  <- function(pM_brac, V){
+    return(pM_brac*V) #Table 5 from Llandres2015
   }
 
-  pG_growth_larval  <- function(pC, pM, pT, k2){
-    return(k2*pC - pM) #Table 5 from Llandres2015
+  pG  <- function(pC, pM, kappa){
+    return(kappa*pC - pM) #Table 5 from Llandres2015
   }
 
-  pJ_maturity_maintenance_larval  <- function(kj, Ehb){
-    return(kj * ehb) #Table 5 from Llandres2015
+  pJ  <- function(kJ, Ehb){
+    return(kJ * Ehb) #Table 5 from Llandres2015
   }
 
-  pR_reproduction_larval  <- function(k){
-    return((1 - k)*pC - pJ) #Table 5 from Llandres2015
+  pR  <- function(kappa){
+    return((1 - kappa)*pC - pJ) #Table 5 from Llandres2015
   }
 
 ####----------------------------------------------#######
@@ -391,6 +412,7 @@ TODO: I need to add a table of how mathematical notation equates to code to amke
 #| echo: true
 #| message: false
 #| warning: false
+#| eval: false
 
 # Lets just go through the pupal stage for now
 # Parameters
