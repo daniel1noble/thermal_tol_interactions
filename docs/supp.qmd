@@ -275,6 +275,23 @@ ft
 
 ```
 
+
+```{r, deb_paramaters}
+#| label: tbl-deb_paramaters
+#| tbl-cap: "Parameters for the DEB model"
+#| echo: true
+
+# Define parameters for the DEB model
+parameter  <- c("kx", "f", "Eg", "v_dot", "pM", "k", "kJ", "kR", "z", "DeltaM", "ha", "sG", "yEV", "sj", "sS", "Exh", "Ebh", "Eeh", "Eeggsh", "kE", "kSA", "kSG", "kSD")
+
+detail <- c("assimilation efficiency","Holling type II scaled functional response","volume-specific cost of structure","energy conductance","volume-specific somatic maintenance","fraction of mobilized reserve allocated to soma","maturity maintenance rate coefficient","fraction of the reproduction buffer fixed into eggs","zoom factor","shape correction coefficient","Weibull ageing acceleration","Gompertz stress coefficient","yield of imago reserve on larval structure","threshold for the onset of pupation","threshold for the onset of silk production","maturity threshold from embryo1 to embryo2","maturity threshold from the embryonic stage to the larval stage maturity threshold at imago" ,"emergence","maturity threshold at egg maturation","reserve and reproduction buffer turnover of the imago","mass coefficient from assimilation to silk production","mass coefficient from growth to silk production","mass coefficient from dissipation to silk production")
+
+values  <- c(0.94, 0.95, 21210, 0.0207, 245.7, 0.930, 0.002, 0.85, 3.98, 0.152, 0.004, 0.0001, 0.8, 0.983, 0.106, 0.0002, 0.044, 5.56, 5.48, 0.291, 0.03, 0.5, 0.94)
+
+flextable::flextable(data.frame(parameter, detail, values))  %>% flextable::set_table_properties(width = .5) %>% flextable::set_table_properties(layout = "autofit") %>% flextable::theme_zebra() %>% flextable::theme_booktabs()
+```
+
+
 ```{r, deb_model}
 #| label: deb_model 
 #| echo: true
@@ -388,24 +405,6 @@ pr2_eggFlux_imago <- function(pc2, pro){
 ```
 
 @tbl-deb_paramaters shows the parameters for the DEB model. These parameters are used in the functions defined above to calculate the metabolic processes.
-
-```{r, deb_paramaters}
-#| label: tbl-deb_paramaters
-#| tbl-cap: "Parameters for the DEB model"
-#| echo: true
-
-# Define parameters for the DEB model
-parameter  <- c("kx", "f", "Eg", "v_dot", "pM", "k", "kJ", "kR", "z", "DeltaM", "ha", "sG", "yEV", "sj", "sS", "Exh", "Ebh", "Eeh", "Eeggsh", "kE", "kSA", "kSG", "kSD")
-
-detail <- c("assimilation efficiency","Holling type II scaled functional response","volume-specific cost of structure","energy conductance","volume-specific somatic maintenance","fraction of mobilized reserve allocated to soma","maturity maintenance rate coefficient","fraction of the reproduction buffer fixed into eggs","zoom factor","shape correction coefficient","Weibull ageing acceleration","Gompertz stress coefficient","yield of imago reserve on larval structure","threshold for the onset of pupation","threshold for the onset of silk production","maturity threshold from embryo1 to embryo2","maturity threshold from the embryonic stage to the larval stage maturity threshold at imago" ,"emergence","maturity threshold at egg maturation","reserve and reproduction buffer turnover of the imago","mass coefficient from assimilation to silk production","mass coefficient from growth to silk production","mass coefficient from dissipation to silk production")
-
-values  <- c(0.94, 0.95, 21210, 0.0207, 245.7, 0.930, 0.002, 0.85, 3.98, 0.152, 0.004, 0.0001, 0.8, 0.983, 0.106, 0.0002, 0.044, 5.56, 5.48, 0.291, 0.03, 0.5, 0.94)
-
-flextable::flextable(data.frame(parameter, detail, values))  %>% flextable::set_table_properties(width = .5) %>% flextable::set_table_properties(layout = "autofit") %>% flextable::theme_zebra() %>% flextable::theme_booktabs()
-```
-
-
-TODO: I need to add a table of how mathematical notation equates to code to amke sure we don't miss somthing. 
 
 ```{r, simulations}
 #| label: simulations
