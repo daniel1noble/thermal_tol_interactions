@@ -256,7 +256,6 @@ code <- c(
 "kJ",
 "pR",
 "Ehb"
-
 )
 
 # Create dataframe
@@ -271,8 +270,6 @@ ft <- compose(
 ft <- align(ft, align = "center", part = "all")
 ft <- width(ft, width = 2)
 ft
-
-
 ```
 
 
