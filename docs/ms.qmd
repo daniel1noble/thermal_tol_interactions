@@ -147,6 +147,14 @@ A very important paper @Zhu2024. Connects heat tolerance to population matrix mo
 - Pest and disease prediction and control. (Ary)
 - Conservation (Adrienne?)
 
+#### Interacting species interacting with people: social-ecological systems (Steven and Xuemei) (~300-500 words)
+-	Nested scale idea, from genetics to species to ecosystem to SES, if not presented earlier
+-	Must consider social- 
+ - 	multiple pathways and varying magnitude of cascading impacts 
+ - 	solutions need to be supported by the society
+-	Not sufficiently understood
+-	What SES systems modeling can do
+
 # Future directions: modelling challenges, gaps and possible solutions
 
 #### *Data Limitations for Applying DEB Theory*: (Mike) Requires lots of information on a given species to model life-cycles, challenges in applying stage-structured populations (metamorphosis) others....Solutions?
