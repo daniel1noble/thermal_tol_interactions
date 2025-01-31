@@ -25,7 +25,7 @@ crossref:
   tbl-prefix: "Table"
 ---
 
-**Target Journal**:
+##### **Target Journal**:
 *Trends in Ecology and Evolution*, Opinion
 https://www.cell.com/trends/ecology-evolution/authors
 
@@ -36,13 +36,13 @@ References: 80-100\
 Outstanding Questions: 350 words\
 Glossary: 500 words\
 
-**Alternative homes**:
+##### **Alternative homes**:
 
 *Nature Ecology and Evolution* (Perspective) - 3000-4000 words, 4-6 display items: https://www.nature.com/natecolevol/content\
 *Global Change Biology* - 3000 (Mini Review)-5000 (Opinion) words (https://onlinelibrary.wiley.com/page/journal/13652486/homepage/forauthors.html)\
 *Ecology Letters* (Perspective) - up to 7500 words if needed. 
 
-**Structure Overview - Sections**:\
+##### **Structure Overview - Sections**:\
 Proposed Outline:
 •	A need for a mechanistically-informed modelling framework for predicting the effects of extreme heat on community assemblages in natural and managed landscapes (Dan) (~ 500 words - First Draft Done)\
 •	The next wave of climate models that incorporate feedbacks between biological systems and the atmosphere (Mike, Belinda)\
