@@ -42,6 +42,7 @@ In this supplementary material, we provide extended versions, with code, of our 
 # Load required libraries
 #install.packages("pacman")
 pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable)
+
 #devtools::install_github('mrke/NicheMapR')
 
 ```
