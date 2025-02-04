@@ -41,7 +41,7 @@ In this supplementary material, we provide extended versions, with code, of our 
 #| message: false
 # Load required libraries
 #install.packages("pacman")
-pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable)
+pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable, NicheMapR)
 
 # Note that gFortran is a problem for NicheMapR so you need to set the paths properly. Follow details here: https://stackoverflow.com/questions/69639782/installing-gfortran-on-macbook-with-apple-m1-chip-for-use-in-r
 
