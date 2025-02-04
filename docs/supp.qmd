@@ -44,7 +44,9 @@ In this supplementary material, we provide extended versions, with code, of our 
 pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable)
 
 #devtools::install_github('mrke/NicheMapR')
-
+#devtools::load_all("./NicheMapR")
+#install.packages("", repos = NULL, type = "source")
+#devtools::install("/Users/noble/Library/CloudStorage/Dropbox/1_Research/1_Manuscripts/In_Preparation/thermal_tol_interactions/NicheMapR")
 ```
 
 ## Case Study 1: Predicting the impact of heatwaves on the growth of plants, microbes and insects
