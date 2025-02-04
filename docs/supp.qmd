@@ -45,8 +45,11 @@ pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equat
 
 #devtools::install_github('mrke/NicheMapR')
 #devtools::load_all("./NicheMapR")
+<<<<<<< HEAD
 #install.packages("", repos = NULL, type = "source")
 #devtools::install("/Users/noble/Library/CloudStorage/Dropbox/1_Research/1_Manuscripts/In_Preparation/thermal_tol_interactions/NicheMapR")
+=======
+>>>>>>> 061c58d (old)
 
 #/usr/local/bin/gfortran # My path to gfortran
 
