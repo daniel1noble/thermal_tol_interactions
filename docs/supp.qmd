@@ -47,6 +47,14 @@ pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equat
 #devtools::load_all("./NicheMapR")
 #install.packages("", repos = NULL, type = "source")
 #devtools::install("/Users/noble/Library/CloudStorage/Dropbox/1_Research/1_Manuscripts/In_Preparation/thermal_tol_interactions/NicheMapR")
+
+#/usr/local/bin/gfortran # My path to gfortran
+
+
+#Sys.setenv(LDFLAGS = "-L//usr/local/bin/gfortran")  # Adjust path if needed
+#Sys.setenv(FLIBS = "-L//usr/local/bin/gfortran -lgfortran -lquadmath")
+#Sys.setenv(F77 = "/usr/local/bin/gfortran")  # Adjust if different
+#Sys.setenv(FC = "/usr/local/bin/gfortran")
 ```
 
 ## Case Study 1: Predicting the impact of heatwaves on the growth of plants, microbes and insects
