@@ -43,21 +43,23 @@ In this supplementary material, we provide extended versions, with code, of our 
 #install.packages("pacman")
 pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable)
 
-#devtools::install_github('mrke/NicheMapR')
-#devtools::load_all("./NicheMapR")
-<<<<<<< HEAD
-#install.packages("", repos = NULL, type = "source")
-#devtools::install("/Users/noble/Library/CloudStorage/Dropbox/1_Research/1_Manuscripts/In_Preparation/thermal_tol_interactions/NicheMapR")
-=======
->>>>>>> 061c58d (old)
+# Note that gFortran is a problem for NicheMapR so you need to set the paths properly. Follow details here: https://stackoverflow.com/questions/69639782/installing-gfortran-on-macbook-with-apple-m1-chip-for-use-in-r
 
-#/usr/local/bin/gfortran # My path to gfortran
+# But do the following:
+# 1. Install gfortran using homebrew
+  # brew install gcc # In terminal
+# 2. In home directory of terminal create a Makevars file
+  # mkdir ~/.R
+  # touch ~/.R/Makevars
+  # open ~/.R/Makevars
+# 3. Add the following to the Makevars file. Note that you need to make sure your version of fortran is correct and replace 124.2.0_1 with your version. You can find version in terminal by typing `gfortran --version`
+# FC = /opt/homebrew/Cellar/gcc/14.2.0_1/bin/gfortran
+# F77 = /opt/homebrew/Cellar/gcc/14.2.0_1/bin/gfortran
+# FLIBS = -L/opt/homebrew/Cellar/gcc/14.2.0_1/lib/gcc/11
 
+#4. Restart R and try to install the package again. It should now work.
+# devtools::install_github('mrke/NicheMapR')
 
-#Sys.setenv(LDFLAGS = "-L//usr/local/bin/gfortran")  # Adjust path if needed
-#Sys.setenv(FLIBS = "-L//usr/local/bin/gfortran -lgfortran -lquadmath")
-#Sys.setenv(F77 = "/usr/local/bin/gfortran")  # Adjust if different
-#Sys.setenv(FC = "/usr/local/bin/gfortran")
 ```
 
 ## Case Study 1: Predicting the impact of heatwaves on the growth of plants, microbes and insects
