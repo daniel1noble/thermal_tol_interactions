@@ -450,5 +450,7 @@ pr2_eggFlux_imago <- function(pc2, pro){
 Now that we have NicheMapR lets try doing some DEB modelling for, say, a single location for a number of species
 
 ```{r}
-
+longlat <- c(140.79970255974192, -34.159176277782564) # Near Renmark
+micro <- micro_global(loc = longlat)
+ecto <- ectotherm()
 ```
