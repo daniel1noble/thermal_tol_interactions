@@ -447,3 +447,8 @@ pr2_eggFlux_imago <- function(pc2, pro){
 
 ### Deb Modelling Paper
 
+Now that we have NicheMapR lets try doing some DEB modelling for, say, a single location for a number of species
+
+```{r}
+
+```
