@@ -458,4 +458,5 @@ get.global.climate(folder="./NCEP_dan/NCEAP/")
 longlat <- c(140.79970255974192, -34.159176277782564) # Near Renmark
 micro <- micro_global(loc = longlat)
 ecto <- ectotherm()
+
 ```
