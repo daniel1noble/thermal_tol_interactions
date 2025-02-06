@@ -41,7 +41,7 @@ In this supplementary material, we provide extended versions, with code, of our 
 #| message: false
 # Load required libraries
 #install.packages("pacman")
-pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable, NicheMapR)
+pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable, NicheMapR, terra)
 
 # Note that gFortran is a problem for NicheMapR so you need to set the paths properly. Follow details here: https://stackoverflow.com/questions/69639782/installing-gfortran-on-macbook-with-apple-m1-chip-for-use-in-r
 
@@ -450,6 +450,11 @@ pr2_eggFlux_imago <- function(pc2, pro){
 Now that we have NicheMapR lets try doing some DEB modelling for, say, a single location for a number of species
 
 ```{r}
+
+# First, set the location where NCEAP climate data is located. This is a global dataset. We need this to calculate the microclimate. 
+get.global.climate(folder="./NCEP_dan/NCEAP/")
+
+# Location we want
 longlat <- c(140.79970255974192, -34.159176277782564) # Near Renmark
 micro <- micro_global(loc = longlat)
 ecto <- ectotherm()
