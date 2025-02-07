@@ -62,6 +62,26 @@ pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equat
 
 ```
 
+### Deb Modelling Paper
+
+Now that we have NicheMapR lets try doing some DEB modelling for, say, a single location for a number of species
+
+```{r}
+
+# First, set the location where NCEAP climate data is located. This is a global dataset. We need this to calculate the microclimate. 
+  get.global.climate(folder="./NCEP_dan/NCEAP/")
+
+# Location we want
+  longlat <- c(140.79970255974192, -34.159176277782564) # Near Renmark
+    micro <- micro_global(loc = longlat, nyears = 15, soiltype = 9, minshade = 40, maxshade = 80, Usrhyt = 0.2)
+
+# Explore microclimate data
+  soil_temp <- micro$soil
+
+ggplot(soil_temp, aes(y = D0cm, x = TIME, col = DOY)) + geom_line() + facet_wrap(~DOY)
+```
+
+
 ## Case Study 1: Predicting the impact of heatwaves on the growth of plants, microbes and insects
 
 First, we need to get the microclimate, or simulate our own with some heatwaves. This can be done as follows:
@@ -445,18 +465,4 @@ pr2_eggFlux_imago <- function(pc2, pro){
 
 ```
 
-### Deb Modelling Paper
 
-Now that we have NicheMapR lets try doing some DEB modelling for, say, a single location for a number of species
-
-```{r}
-
-# First, set the location where NCEAP climate data is located. This is a global dataset. We need this to calculate the microclimate. 
-get.global.climate(folder="./NCEP_dan/NCEAP/")
-
-# Location we want
-longlat <- c(140.79970255974192, -34.159176277782564) # Near Renmark
-micro <- micro_global(loc = longlat)
-ecto <- ectotherm()
-
-```
