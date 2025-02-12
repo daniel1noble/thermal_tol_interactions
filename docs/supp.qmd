@@ -39,29 +39,43 @@ In this supplementary material, we provide extended versions, with code, of our 
 #| echo: true
 #| warning: false
 #| message: false
-# Load required libraries
-#install.packages("pacman")
-pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable, NicheMapR, terra, microclima)
 
-# Note that gFortran is a problem for NicheMapR so you need to set the paths properly. Follow details here: https://stackoverflow.com/questions/69639782/installing-gfortran-on-macbook-with-apple-m1-chip-for-use-in-r
-
-# But do the following:
-# 1. Install gfortran using homebrew
-  # brew install gcc # In terminal
-# 2. In home directory of terminal create a Makevars file
-  # mkdir ~/.R
-  # touch ~/.R/Makevars
-  # open ~/.R/Makevars
-# 3. Add the following to the Makevars file. Note that you need to make sure your version of fortran is correct and replace 124.2.0_1 with your version. You can find version in terminal by typing `gfortran --version`
-# FC = /opt/homebrew/Cellar/gcc/14.2.0_1/bin/gfortran
-# F77 = /opt/homebrew/Cellar/gcc/14.2.0_1/bin/gfortran
-# FLIBS = -L/opt/homebrew/Cellar/gcc/14.2.0_1/lib/gcc/11
-
-#4. Restart R and try to install the package again. It should now work.
+# You will need to install a few packages first, a couple from GitHub as they are not on CRAN. Note that you will need to remove '#' from the code below to install the packages.
+# install.packages("pacman")
 # devtools::install_github('mrke/NicheMapR')
 # devtools::install_github("ilyamaclean/microclima")
 
+# Load required libraries after the installation
+pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable, NicheMapR, terra, microclima, plantecophys)
+
 ```
+
+::{.column-margin}
+:::{.callout-note}
+gFortran can be a problem for NicheMapR so you need to set the paths properly if you are getting errors. Follow details [here](https://stackoverflow.com/questions/69639782/installing-gfortran-on-macbook-with-apple-m1-chip-for-use-in-r). The following code will help you set the paths properly.
+
+```{r}
+#| echo: true
+#| eval: false
+#| results: hide
+#| code-fold: true
+
+# But do the following:
+# 1. Install gfortran using homebrew in the terminal/bash window
+   brew install gcc 
+# 2. In home directory of terminal create a Makevars file
+   mkdir ~/.R
+   touch ~/.R/Makevars
+   open  ~/.R/Makevars
+# 3. Add the following to the Makevars file. Note that you need to make sure your version of fortran is correct and replace 124.2.0_1 with your version. You can find version in terminal by typing `gfortran --version`
+    FC = /opt/homebrew/Cellar/gcc/14.2.0_1/bin/gfortran
+   F77 = /opt/homebrew/Cellar/gcc/14.2.0_1/bin/gfortran
+ FLIBS = -L/opt/homebrew/Cellar/gcc/14.2.0_1/lib/gcc/11
+
+#4. Restart R and try to install the package again. It should now work.
+```
+:::
+:::
 
 ### Deb Modelling Paper
 
@@ -70,7 +84,7 @@ Now that we have NicheMapR lets try doing some DEB modelling for, say, a single 
 ```{r}
 
 # First, set the location where NCEAP climate data is located. This is a global dataset. We need this to calculate the microclimate. Only need to do once.
-  # get.global.climate(folder="./NCEP_dan/NCEAP/")
+   get.global.climate(folder="./NCEP_dan/NCEAP/")
 
 # Location we want
   longlat <- c(140.79970255974192, -34.159176277782564) # Near Renmark
