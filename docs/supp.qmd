@@ -50,7 +50,7 @@ pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equat
 
 ```
 
-::{.column-margin}
+:::{.column-margin}
 :::{.callout-note}
 gFortran can be a problem for NicheMapR so you need to set the paths properly if you are getting errors. Follow details [here](https://stackoverflow.com/questions/69639782/installing-gfortran-on-macbook-with-apple-m1-chip-for-use-in-r). The following code will help you set the paths properly.
 
@@ -82,7 +82,11 @@ gFortran can be a problem for NicheMapR so you need to set the paths properly if
 Now that we have NicheMapR lets try doing some DEB modelling for, say, a single location for a number of species
 
 ```{r}
-
+#| echo: true
+#| eval: false
+#| results: hide
+#| code-fold: true
+#| 
 # First, set the location where NCEAP climate data is located. This is a global dataset. We need this to calculate the microclimate. Only need to do once.
    get.global.climate(folder="./NCEP_dan/NCEAP/")
 
@@ -318,8 +322,8 @@ ft <- compose(
     x = ft, j = "formula",
     value = as_paragraph(as_equation(formula, width = 2, height = .5))
   )
-ft <- align(ft, align = "center", part = "all")
-ft <- width(ft, width = 2)
+ft <- flextable::align(ft, align = "center", part = "all")
+ft <- flextable::width(ft, width = 2)
 ft
 ```
 
