@@ -34,7 +34,7 @@ In this supplementary material, we provide extended versions, with code, of our 
 
 ### Load packages
 
-Our case studies all use the statistical software [R] (https://www.r-project.org/). We use a number of packages to run our simulations, including [`NicheMapR`](https://mrke.github.io), [`microclima`](https://github.com/ilyamaclean/microclima), and `plantecophys`. We also use the `deSolve` package to solve the differential equations in our models. The code below loads the required packages.
+Our case studies all use the statistical software [R] (https://www.r-project.org/). We use a number of packages to run our simulations, including [`NicheMapR`](https://mrke.github.io) [@Kearney2009b; @Kearney2013], [`microclima`](https://github.com/ilyamaclean/microclima), and `plantecophys`. We also use the `deSolve` package to solve the differential equations in our models. The code below loads the required packages.
 
 ```{r, libraries}
 #| label: libraries
