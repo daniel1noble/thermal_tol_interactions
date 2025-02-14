@@ -30,9 +30,11 @@ editor_options:
 
 ## Introduction
 
-In this supplementary material, we provide extended versions, with code, of our case studies we draw upon within our manuscript. Our case studies focus on plan-insect-microbe interactions, and how these interactions are influenced by extreme heat events. We provide the code for the models we use in our case studies, and the code for the simulations we run to predict the impact of heatwaves on these interactions.
+In this supplementary material, we provide extended versions, with code, of our case studies we draw upon within our manuscript to demonstrate how a systems modelling approach can be implemented in practice. Our case studies focus on plant-insect-microbe interactions, and how these interactions are influenced by extreme heat events. We provide the code for the models we use in our case studies, and the code for the simulations we run to predict the impact of heatwaves on these interactions. It is important to realize that extreme heat events are relative to the system in question. What qualifies as 'extreme' will vary across species and communities. Models and code will of course always need to be modified to suite the specific system in question.
 
 ### Load packages
+
+Our case studies all use the statistical software [R] (https://www.r-project.org/). We use a number of packages to run our simulations, including [`NicheMapR`](https://mrke.github.io), [`microclima`](https://github.com/ilyamaclean/microclima), and `plantecophys`. We also use the `deSolve` package to solve the differential equations in our models. The code below loads the required packages.
 
 ```{r, libraries}
 #| label: libraries
@@ -77,9 +79,20 @@ gFortran can be a problem for NicheMapR so you need to set the paths properly if
 :::
 :::
 
+### Case Study 1: Simulating plant and insect interactions under heatwaves
+
+#### Step 1: Predicting the microclimate of an organism
+
+To predict the impact of heatwaves on plant-insect interactions, we first need to predict the microclimate. Using biophysical models we can use coarse climate, topological, rainfall elevation and spatial information to make predictions on what the mircoclimate a species is likely to experience, which can help us predict it's likely body temperature. It is important to recognize that these are predictions. As with any model, they need field validation. Nonetheless, they provide an important tool in our systems modelling framework to help us understand how heatwaves are likely to affect species interactions.
+
+To model the microclimate, we can use [`NicheMapR`](https://mrke.github.io) and the [`microclima`](https://github.com/ilyamaclean/microclima) package to predict the microclimate at a given location. We can then use this microclimate data to simulate the growth of plants and insects under different temperature conditions.
+
+
+
+
 ### Deb Modelling Paper
 
-Now that we have NicheMapR lets try doing some DEB modelling for, say, a single location for a number of species
+Now that we have `NicheMapR` lets try doing some DEB modelling for, say, a single location for a number of species
 
 ```{r}
 #| echo: true
