@@ -99,7 +99,11 @@ Translating how heat waves impact plants and animals not only depends on tempera
   - Figure 1: demonstrating how thermal load sensitivity can be used to predict heat stress impacts on plants and animals, survival, reproductive tissue. Simplified. 
 
 # Dynamic Energy Budget models (Mike, Belinda, Dan)
-- Combining TLS with biophysical and dynamic energy budget models 
+
+Dynamic Energy Budget (DEB) models are physiologically explicit life-cycle models that allow for life-history, growth, reproduction and survival to be predicted through time for diverse sets of organisms. DEB models are mechanistic models used expensively to understand how temperature and resource availability affect growth, reproduction and survival adhering to thermodynamic principles of energy-mass balance. DEB models are parameter rich but DEB parameters have been estimated for > 900 species already, and new analytical approaches using phylogenetic imputation methods can be used to estimate key parameters for over 1.3 millions species (see, https://deb.bolding-bruggeman.com). 
+
+
+- Combining TLS with biophysical and dynamic energy budget models. 
 - Introduce biophysical and dynamic energy budget models
   - Biophysical models are used to predict how temperature affects the energy balance of an organism
   - DEB models are used to predict how temperature affects the energy budget of an organism
