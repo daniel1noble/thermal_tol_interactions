@@ -86,9 +86,9 @@ gFortran can be a problem for NicheMapR so you need to set the paths properly if
 
 ## Case Study 1: Simulating plant and insect interactions under heatwaves
 
-Case study one explores how feedback between plants and insects can happen in response to extreme heat events. Here, we are interested in how the behaviour of grasshoppers is influenced by changes in plant transpiration which can impact microhabitat temperatures of grasshoppers (@fig-case1). While this is a simple situation it's a useful starting point to understand how a systems modelling approach can be used to predict the impact of heatwaves on species interactions. 
+Case study one explores how feedback between plants and insects can happen in response to extreme heat events. Here, we are interested in how the behaviour of grasshoppers is influenced by changes in plant transpiration which can impact microhabitat temperatures of grasshoppers (@fig-case1). While this is a simple situation it's a useful starting point to understand how a systems modelling approach can be built up to predict the impact of heatwaves on species interactions. 
 
-```{r}
+```{r, fig-case1}
 #| label: fig-case1
 #| echo: false
 #| fig-cap: "Grasshopper and plant interactions under heatwaves. Grasshoppers feeding on leaves of a bush in Calperum Station, South Australia. Complex leaf structure provides shade and cooler microclimate for grasshoppers. Leaves exposed to hot temperatures close their stomata to conserve water reducing transpiration and photosynthesis. Leaves that are not exposed to direct sunlight can keep their stomata open and continue photosynthesis while also transpiring and providing cooler microhabitats that grasshoppers can exploit through thermoregulatory behaviours. Importantly, stomatal behaviour is mediated by drought conditions. More stomata will be closed during drought to conserve water and this will impact the cooling effect of the plant on the grasshopper."
@@ -98,7 +98,7 @@ fig_case1
 ```
 
 
-### Step 1: Predicting the microclimate of a grasshopper
+### Step 1: Predicting the microclimate of a grasshopper: A walk through microclimate modelling 
 
 To predict the impact of heatwaves on plant-insect interactions, we first need to predict the microclimate. Using biophysical models we can use coarse climate, topological, rainfall, elevation and spatial information to make predictions on what the microclimate a species is likely to experience, which can help us predict its likely body temperature (*exposure*). 
 
@@ -169,7 +169,6 @@ Of course, if we are working with an organism that doesn't burrow we can also ob
 #| echo: true
 #| warning: false
 #| message: false
-#| code-fold: true
 
 # Get the above ground temperatures at 20 cm and 1.2 m
   air_temp <- data.frame(micro$metout)
@@ -207,7 +206,7 @@ If this is an grasshopper on a bush as in @fig-case1, the plant itself will also
 #| message: false
 
 # Get the plant transpiration data
-  transpiration <- data.frame(micro$shadplant)
+  transpiration <- data.frame(micro$plant)
 
 
 ```
