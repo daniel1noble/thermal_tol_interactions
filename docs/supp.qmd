@@ -145,7 +145,7 @@ Now that we have the temperatures on the ground to 1m below it we can see how va
 
 ```{r, fig-soil_temp}
 #| label: fig-soil_temp
-#| fig-cap: "Average soil temperature across 15 years at a location near Renmark, South Australia. Soil temperatures are simulated from the surface (0 cm) to 100 cm below ground and shown for each month of the year and each hour of the day. "
+#| fig-cap: "Average soil temperature across 15 years at a location near Renmark, South Australia. Soil temperatures are simulated from the surface (0 cm) to 100 cm below ground (and in minimum shade, 20%) and shown for each month of the year and each hour of the day. "
 #| code-fold: true
 
 # Re-arrange for plotting
@@ -183,7 +183,7 @@ Now we can have a look at what the air temperature would be 20 cm and 1.2 m abov
 
 ```{r, fig-Air_temp}
 #| label: fig-Air_temp
-#| fig-cap: "Average air temperature across 15 years at a location near Renmark, South Australia. Air temperatures at 20 cm (solid line) and 1.2 m (dashed line) above ground are shown for each month of the year and each hour of the day. "
+#| fig-cap: "Average air temperature across 15 years at a location near Renmark, South Australia. Air temperatures at 20 cm (solid line) and 1.2 m (dashed line) above ground (and in minimum shade, 20%) are shown for each month of the year and each hour of the day. "
 #| code-fold: true
 
 # Plot soil temps
@@ -198,6 +198,19 @@ Now we can have a look at what the air temperature would be 20 cm and 1.2 m abov
 
 We can immediately see from @fig-Air_temp that air temperatures closer to the ground are hotter than those higher up likely because of increased radiative heat transfer from the ground to air in close proximity and convective cooling higher in the air column.
 
+If this is an grasshopper on a bush as in @fig-case1, the plant itself will also change its transpiration through the day. We can also obtain plant transpiration data from the microclimate model. This can be used to predict the cooling effect of the plant on the grasshopper.
+
+```{r, microclimate_transpiration}
+#| label: microclimate_transpiration
+#| echo: true
+#| warning: false
+#| message: false
+
+# Get the plant transpiration data
+  transpiration <- data.frame(micro$shadplant)
+
+
+```
 
 
 
