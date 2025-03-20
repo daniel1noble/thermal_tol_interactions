@@ -48,7 +48,8 @@ Our case studies all use the statistical software [R](https://www.r-project.org/
 # devtools::install_github("ilyamaclean/microclima")
 
 # Load required libraries after the installation
-pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable, NicheMapR, terra, microclima, plantecophys, magick, here)
+pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable, NicheMapR, terra, microclima, plantecophys, magick, here, ggrepel)
+source(here("R", "func.R"))
 
 ```
 
@@ -65,16 +66,20 @@ gFortran can be a problem for NicheMapR so you need to set the paths properly if
 # But do the following:
 # 1. Install gfortran using homebrew in the terminal/bash window
    brew install gcc 
-# 2. In home directory of terminal create a Makevars file
+# 2. Take note of the path to gfortran. You'll need this for later
+    which gfortran
+
+# 3. In home directory of terminal create a Makevars file
    mkdir ~/.R
    touch ~/.R/Makevars
    open  ~/.R/Makevars
-# 3. Add the following to the Makevars file. Note that you need to make sure your version of fortran is correct and replace 124.2.0_1 with your version. You can find version in terminal by typing `gfortran --version`
+
+# 4. Add the following to the Makevars file. Note that you need to make sure your version of fortran is correct and replace 124.2.0_1 with your version. You can find version in terminal by typing `gfortran --version`. In addition you need to replace the path to gfortran with the path you found in step 2.
     FC = /opt/homebrew/Cellar/gcc/14.2.0_1/bin/gfortran
    F77 = /opt/homebrew/Cellar/gcc/14.2.0_1/bin/gfortran
  FLIBS = -L/opt/homebrew/Cellar/gcc/14.2.0_1/lib/gcc/11
 
-#4. Restart R and try to install the package again. It should now work.
+#5. Restart R and try to install the package again via devtools. It should now work.
 ```
 :::
 :::
@@ -95,42 +100,110 @@ fig_case1
 
 ### Step 1: Predicting the microclimate of a grasshopper
 
-To predict the impact of heatwaves on plant-insect interactions, we first need to predict the microclimate. Using biophysical models we can use coarse climate, topological, rainfall, elevation and spatial information to make predictions on what the mircoclimate a species is likely to experience, which can help us predict it's likely body temperature (*exposure*). It is important to recognize that these are predictions. As with any model, they need field validation [@De_Frenne2024]. Nonetheless, they provide an important tool in our systems modelling framework to help us understand how heatwaves are likely to affect species interactions.
+To predict the impact of heatwaves on plant-insect interactions, we first need to predict the microclimate. Using biophysical models we can use coarse climate, topological, rainfall, elevation and spatial information to make predictions on what the microclimate a species is likely to experience, which can help us predict its likely body temperature (*exposure*). 
 
-To model the microclimate, we can use [`NicheMapR`](https://mrke.github.io) and the [`microclima`](https://github.com/ilyamaclean/microclima) package to predict the microclimate at a given location. We can then use this microclimate data to simulate the growth of plants and insects under different temperature conditions [@fig-case1].
+:::{.column-margin}
+:::{.callout-important}
+It is important to recognize that these are predictions. As with any model, they need field validation [@De_Frenne2024]. Nonetheless, they provide an important tool in our systems modelling framework to help us understand how heatwaves are likely to affect species interactions.
+:::
+:::
 
-### Deb Modelling Paper
+To model the microclimate, we can use [`NicheMapR`](https://mrke.github.io) and the [`microclima`](https://github.com/ilyamaclean/microclima) package to predict the microclimate at a given location. 
 
-Now that we have `NicheMapR` lets try doing some DEB modelling for, say, a single location for a number of species.
+There are various climate datasets that can be used to predict the microclimate but for simplicity we'll use the NCEP dataset. The code below shows how to predict the microclimate at a given location using the NCEP dataset at various depths below ground (0-100cm at or below the ground). For organisms that burrow, for example, we can now simulate the temperature they are likely to experience if they behaviorally adjust their depth in response to heatwaves.
 
-```{r}
+```{r, microclimate_soil}
+#| label: microclimate_soil
 #| echo: true
-#| eval: false
-#| results: hide
-#| code-fold: true
-#| 
+#| warning: false
+#| message: false
+
 # First, set the location where NCEAP climate data is located. This is a global dataset. We need this to calculate the microclimate. Only need to do once.
-   get.global.climate(folder="./NCEP_dan/NCEAP/")
+   # get.global.climate(folder=here("NCEP_dan", "NCEAP" ))
 
 # Location we want
   longlat <- c(140.79970255974192, -34.159176277782564) # Near Renmark
-    micro <- micro_global(loc = longlat, nyears = 15, soiltype = 9, minshade = 40, maxshade = 80, Usrhyt = 0.2, terrain = 0)
+    micro <- micro_global(loc = longlat, # Location
+                       nyears = 15,      # Number of years to simulate
+                     soiltype = 9,       # Soil type
+                     minshade = 40,      # Minimum shade
+                     maxshade = 80,      # Maximum shade
+                       Usrhyt = 0.2,     # Height above ground air temp, humidity and wind speed are calculated
+                      Refhyt = 1.2,      # Height of reference air temperature, humidity and wind speed
+                      terrain = 0)       # Terrain, flat
 
 # Explore microclimate data. Note that we have monthly averages across each hour of the day, but these are also averaged across 15 years. This is coarse data for now but can be made much more fine scale.
   soil_temp <- data.frame(micro$soil)
 
 # Convert to day of year and time of day in a clearer format
-  soil_temp$month <- convert_doy(soil_temp[,"DOY"], year = 2025, format_type = "month")
+  soil_temp$month <- factor(convert_doy(soil_temp[,"DOY"], year = 2025, format_type = "month"), levels = c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"))
   soil_temp$TIME2 <- convert_time_for_plot(soil_temp[,"TIME"], format_type = "hms")
 
-# Plot soil temps
-  ggplot(soil_temp, aes(y = D0cm, x = TIME2, col = month)) + 
-              geom_line() + 
-              facet_wrap(~month) + 
-              labs(y = "Temperature (°C, 0 cm above ground)", x = "Time of day (24hr)", col = "Month") +
-              theme(legend.position = "none")
 ```
 
+Now that we have the temperatures on the ground to 1m below it we can see how variable each microclimate can be. Organisms can exploit this variation if capable of seeking out refuges below ground (@fig-soil_temp).
+
+```{r, fig-soil_temp}
+#| label: fig-soil_temp
+#| fig-cap: "Average soil temperature across 15 years at a location near Renmark, South Australia. Soil temperatures are simulated from the surface (0 cm) to 100 cm below ground and shown for each month of the year and each hour of the day. "
+#| code-fold: true
+
+# Re-arrange for plotting
+  soil_temp2 <- soil_temp %>% 
+                select(D0cm, D10cm, D30cm, D50cm, D100cm, TIME2, month) %>%
+                pivot_longer(cols = c(D0cm, D10cm, D30cm, D50cm, D100cm), names_to = "Depth", values_to = "Temperature")
+
+# Plot soil temps
+  ggplot(soil_temp2) + 
+              geom_line(aes(y = Temperature, x = TIME2, col = month, linetype = Depth), show.legend = TRUE) +
+              facet_wrap(~month) + 
+              labs(y = "Soil Temperature (°C)", x = "Time of day (24hr)", col = "Month") + theme_classic() +
+              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
+                        scale_colour_viridis_d() + guides(col = "none")
+```
+
+Of course, if we are working with an organism that doesn't burrow we can also obtain air temperatures at various locations above the ground.
+
+```{r, microclimate_air}
+#| label: microclimate_air
+#| echo: true
+#| warning: false
+#| message: false
+#| code-fold: true
+
+# Get the above ground temperatures at 20 cm and 1.2 m
+  air_temp <- data.frame(micro$metout)
+
+# Do some conversions
+  air_temp$month <- factor(convert_doy(air_temp[,"DOY"], year = 2025, format_type = "month"), levels = c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"))
+  air_temp$TIME2 <- convert_time_for_plot(air_temp[,"TIME"], format_type = "hms")  
+```
+
+Now we can have a look at what the air temperature would be 20 cm and 1.2 m above ground, a space relevant to a grasshopper (@fig-Air_temp). Of course, we could simulate temperatures for various heights to factor in movement of the grasshopper in response to heatwaves, but we'll keep it simple for now.
+
+```{r, fig-Air_temp}
+#| label: fig-Air_temp
+#| fig-cap: "Average air temperature across 15 years at a location near Renmark, South Australia. Air temperatures at 20 cm (solid line) and 1.2 m (dashed line) above ground are shown for each month of the year and each hour of the day. "
+#| code-fold: true
+
+# Plot soil temps
+  ggplot(air_temp) + 
+              geom_line(aes(y = TALOC, x = TIME2, col = month), show.legend = TRUE) +
+              geom_line(aes(y = TAREF, x = TIME2, col = month), show.legend = TRUE, linetype = "dashed") +
+              facet_wrap(~month) + 
+              labs(y = "Air Temperature (°C)", x = "Time of day (24hr)", col = "Month") + theme_classic() +
+              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
+                        scale_colour_viridis_d() + guides(col = "none")
+```
+
+We can immediately see from @fig-Air_temp that air temperatures closer to the ground are hotter than those higher up likely because of increased radiative heat transfer from the ground to air in close proximity and convective cooling higher in the air column.
+
+
+
+
+
+
+We can then use this microclimate data to simulate the growth of plants and insects under different temperature conditions [@fig-case1].
 
 ## Case Study 1: Predicting the impact of heatwaves on the growth of plants, microbes and insects
 
