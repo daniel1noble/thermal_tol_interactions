@@ -48,7 +48,7 @@ Our case studies all use the statistical software [R](https://www.r-project.org/
 # devtools::install_github("ilyamaclean/microclima")
 
 # Load required libraries after the installation
-pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable, NicheMapR, terra, microclima, plantecophys, magick, here, ggrepel)
+pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable, NicheMapR, terra, microclima, plantecophys, magick, here, ggrepel, lutz)
 source(here("R", "func.R"))
 
 ```
@@ -110,7 +110,7 @@ It is important to recognize that these are predictions. As with any model, they
 
 To model the microclimate, we can use [`NicheMapR`](https://mrke.github.io) and the [`microclima`](https://github.com/ilyamaclean/microclima) package to predict the microclimate at a given location. 
 
-There are various climate datasets that can be used to predict the microclimate but for simplicity we'll use the NCEP dataset. The code below shows how to predict the microclimate at a given location using the NCEP dataset at various depths below ground (0-100cm at or below the ground). For organisms that burrow, for example, we can now simulate the temperature they are likely to experience if they behaviorally adjust their depth in response to heatwaves.
+There are various climate datasets that can be used to predict the microclimate but for simplicity we'll use weather data from 1889 to yesterday https://www.longpaddock.qld.gov.au/silo/. The code below shows how to predict the microclimate at a given location at various depths below (0 and 50cm at or below the ground) and above ground relevant to our organisms. For organisms that burrow, for example, we can simulate the temperature they are likely to experience if they behaviorally adjust their depth in response to heatwaves.
 
 ```{r, microclimate_soil}
 #| label: microclimate_soil
@@ -119,25 +119,25 @@ There are various climate datasets that can be used to predict the microclimate 
 #| message: false
 
 # First, set the location where NCEAP climate data is located. This is a global dataset. We need this to calculate the microclimate. Only need to do once.
-   # get.global.climate(folder=here("NCEP_dan", "NCEAP" ))
+    get.global.climate(folder=here("NCEP_dan", "NCEAP" ))
 
 # Location we want
   longlat <- c(140.79970255974192, -34.159176277782564) # Near Renmark
-    micro <- micro_global(loc = longlat, # Location
-                       nyears = 15,      # Number of years to simulate
-                     soiltype = 9,       # Soil type
+    micro <- micro_silo(  loc = longlat, # Location
+                       dstart = "01/01/2018",
+                      dfinish = "31/12/2019", # Number of years to simulate
                      minshade = 40,      # Minimum shade
                      maxshade = 80,      # Maximum shade
                        Usrhyt = 0.2,     # Height above ground air temp, humidity and wind speed are calculated
                       Refhyt = 1.2,      # Height of reference air temperature, humidity and wind speed
-                      terrain = 0)       # Terrain, flat
+                      microclima = 1,    # Use mircoclima to get diffuse and direct radiation
+                      PC = -1500,        # Critical leaf water potential for stomatal closure
+                      SP = 10,           # Stability parameter for stomatal closure
+                      email = "daniel.noble@anu.edu.au")       # Terrain, flat
 
 # Explore microclimate data. Note that we have monthly averages across each hour of the day, but these are also averaged across 15 years. This is coarse data for now but can be made much more fine scale.
-  soil_temp <- data.frame(micro$soil)
-
-# Convert to day of year and time of day in a clearer format
-  soil_temp$month <- factor(convert_doy(soil_temp[,"DOY"], year = 2025, format_type = "month"), levels = c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"))
-  soil_temp$TIME2 <- convert_time_for_plot(soil_temp[,"TIME"], format_type = "hms")
+  soil_temp <- data.frame(micro$soil) # Note this is under 20% shade
+  soil_temp$dates <- micro$dates
 
 ```
 
@@ -150,16 +150,15 @@ Now that we have the temperatures on the ground to 1m below it we can see how va
 
 # Re-arrange for plotting
   soil_temp2 <- soil_temp %>% 
-                select(D0cm, D10cm, D30cm, D50cm, D100cm, TIME2, month) %>%
-                pivot_longer(cols = c(D0cm, D10cm, D30cm, D50cm, D100cm), names_to = "Depth", values_to = "Temperature")
+                select(D0cm,  D50cm, dates) %>%
+                pivot_longer(cols = c(D0cm,  D50cm), names_to = "Depth", values_to = "Temperature")
 
 # Plot soil temps
   ggplot(soil_temp2) + 
-              geom_line(aes(y = Temperature, x = TIME2, col = month, linetype = Depth), show.legend = TRUE) +
-              facet_wrap(~month) + 
-              labs(y = "Soil Temperature (°C)", x = "Time of day (24hr)", col = "Month") + theme_classic() +
+              geom_line(aes(y = Temperature, x = dates, col = Depth), show.legend = TRUE) +
+              labs(y = "Soil Temperature (°C)", x = "Date") + theme_classic() +
               theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
-                        scale_colour_viridis_d() + guides(col = "none")
+                        scale_colour_viridis_d()
 ```
 
 Of course, if we are working with an organism that doesn't burrow we can also obtain air temperatures at various locations above the ground.
@@ -172,10 +171,7 @@ Of course, if we are working with an organism that doesn't burrow we can also ob
 
 # Get the above ground temperatures at 20 cm and 1.2 m
   air_temp <- data.frame(micro$metout)
-
-# Do some conversions
-  air_temp$month <- factor(convert_doy(air_temp[,"DOY"], year = 2025, format_type = "month"), levels = c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"))
-  air_temp$TIME2 <- convert_time_for_plot(air_temp[,"TIME"], format_type = "hms")  
+  air_temp$dates <- micro$dates
 ```
 
 Now we can have a look at what the air temperature would be 20 cm and 1.2 m above ground, a space relevant to a grasshopper (@fig-Air_temp). Of course, we could simulate temperatures for various heights to factor in movement of the grasshopper in response to heatwaves, but we'll keep it simple for now.
@@ -187,12 +183,12 @@ Now we can have a look at what the air temperature would be 20 cm and 1.2 m abov
 
 # Plot soil temps
   ggplot(air_temp) + 
-              geom_line(aes(y = TALOC, x = TIME2, col = month), show.legend = TRUE) +
-              geom_line(aes(y = TAREF, x = TIME2, col = month), show.legend = TRUE, linetype = "dashed") +
+              geom_line(aes(y = TALOC, x = dates)) +
+              geom_line(aes(y = TAREF, x = dates), linetype = "dashed") +
               facet_wrap(~month) + 
-              labs(y = "Air Temperature (°C)", x = "Time of day (24hr)", col = "Month") + theme_classic() +
+              labs(y = "Air Temperature (°C)", x = "Date") + theme_classic() +
               theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
-                        scale_colour_viridis_d() + guides(col = "none")
+                        scale_colour_viridis_d()
 ```
 
 We can immediately see from @fig-Air_temp that air temperatures closer to the ground are hotter than those higher up likely because of increased radiative heat transfer from the ground to air in close proximity and convective cooling higher in the air column.
