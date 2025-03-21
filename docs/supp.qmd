@@ -98,7 +98,7 @@ fig_case1
 ```
 
 
-### Step 1: Predicting the microclimate of a grasshopper: A walk through microclimate modelling 
+### Step 1: Predicting the microclimate of a grasshopper: A walk through microclimate modelling {#step1}
 
 To predict the impact of heatwaves on plant-insect interactions, we first need to predict the microclimate. Using biophysical models we can use coarse climate, topological, rainfall, elevation and spatial information to make predictions on what the microclimate a species is likely to experience, which can help us predict its likely body temperature (*exposure*). 
 
@@ -110,42 +110,45 @@ It is important to recognize that these are predictions. As with any model, they
 
 To model the microclimate, we can use [`NicheMapR`](https://mrke.github.io) and the [`microclima`](https://github.com/ilyamaclean/microclima) package to predict the microclimate at a given location. 
 
-There are various climate datasets that can be used to predict the microclimate but for simplicity we'll use weather data from 1889 to yesterday https://www.longpaddock.qld.gov.au/silo/. The code below shows how to predict the microclimate at a given location at various depths below (0 and 50cm at or below the ground) and above ground relevant to our organisms. For organisms that burrow, for example, we can simulate the temperature they are likely to experience if they behaviorally adjust their depth in response to heatwaves.
+There are various climate datasets that can be used to predict the microclimate but for simplicity we'll use weather data from 1889 to yesterday from https://www.longpaddock.qld.gov.au/silo/. 
+
+The code below shows how to predict the microclimate at a location close to Renmark, South Australia (Calperum Station). It uses the weather data to calculate various microclimates relevant at various locations and conditions relevant to an organism. For example, it will compute temperatures at depths below ground (e.g., 0 and 50cm at or below the ground as we do here) and above also above ground (20 cm and 1.2 m air temperature above ground). 
 
 ```{r, microclimate_soil}
 #| label: microclimate_soil
 #| echo: true
 #| warning: false
 #| message: false
+#| error: false
 
 # First, set the location where NCEAP climate data is located. This is a global dataset. We need this to calculate the microclimate. Only need to do once.
     get.global.climate(folder=here("NCEP_dan", "NCEAP" ))
 
 # Location we want
-  longlat <- c(140.79970255974192, -34.159176277782564) # Near Renmark
-    micro <- micro_silo(  loc = longlat, # Location
-                       dstart = "01/01/2018",
-                      dfinish = "31/12/2019", # Number of years to simulate
-                     minshade = 40,      # Minimum shade
-                     maxshade = 80,      # Maximum shade
-                       Usrhyt = 0.2,     # Height above ground air temp, humidity and wind speed are calculated
-                      Refhyt = 1.2,      # Height of reference air temperature, humidity and wind speed
-                      microclima = 1,    # Use mircoclima to get diffuse and direct radiation
-                      PC = -1500,        # Critical leaf water potential for stomatal closure
-                      SP = 10,           # Stability parameter for stomatal closure
-                      email = "daniel.noble@anu.edu.au")       # Terrain, flat
+  longlat <- c(140.79970255974192, -34.159176277782564) # Near Renmark, South Australia
+    micro <- micro_silo(     loc = longlat,      # Location
+                          dstart = "01/01/2018", # Start year
+                         dfinish = "31/12/2019", # End year
+                        minshade = 40,           # Minimum shade
+                        maxshade = 80,           # Maximum shade
+                          Usrhyt = 0.2,          # Height above ground 
+                          Refhyt = 1.2,          # Height of reference air temperature
+                      microclima = 1,            # Use mircoclima 
+                              PC = -1500,        # Water potential for stomatal closure
+                              SP = 10,           # Stability parameter for stomatal closure
+                           email = "daniel.noble@anu.edu.au") # Replace with your email
 
-# Explore microclimate data. Note that we have monthly averages across each hour of the day, but these are also averaged across 15 years. This is coarse data for now but can be made much more fine scale.
-  soil_temp <- data.frame(micro$soil) # Note this is under 20% shade
-  soil_temp$dates <- micro$dates
+# Explore microclimate data. For ease of plotting we'll extract soil temperatures at the 20% share levels across the full set of dates we requested. 
+        soil_temp <- data.frame(micro$soil) # Note this is under 20% shade
+  soil_temp$dates <- micro$dates            # Add in the dates
 
 ```
 
-Now that we have the temperatures on the ground to 1m below it we can see how variable each microclimate can be. Organisms can exploit this variation if capable of seeking out refuges below ground (@fig-soil_temp).
+We can now plot the below ground temperatures to see the thermal profiles at different depths. Organisms can exploit this variation, especially if they can burrow (@fig-soil_temp). We can see that surface temperatures are much more heterogeneous than those at 50 cm below ground. This is because the surface is more exposed to the sun and can heat up more quickly.
 
 ```{r, fig-soil_temp}
 #| label: fig-soil_temp
-#| fig-cap: "Average soil temperature across 15 years at a location near Renmark, South Australia. Soil temperatures are simulated from the surface (0 cm) to 100 cm below ground (and in minimum shade, 20%) and shown for each month of the year and each hour of the day. "
+#| fig-cap: "Average soil temperature at a location near Renmark, South Australia. Soil temperatures are simulated from the surface (0 cm) to 50 cm below ground (and in minimum shade, 20%) and shown across time (hours) between 01/01/2018 to 31/12/2019. "
 #| code-fold: true
 
 # Re-arrange for plotting
@@ -161,7 +164,15 @@ Now that we have the temperatures on the ground to 1m below it we can see how va
                         scale_colour_viridis_d()
 ```
 
-Of course, if we are working with an organism that doesn't burrow we can also obtain air temperatures at various locations above the ground.
+If we want to use air temperatures because our organism does not burrow, as is the case for our grasshopper case study (@fig-case1), then we can extract air temperatures at different heights above ground that we estimated (20 cm and 1.2 m) (@fig-Air_temp). 
+
+Of course, we could calculate for other heights as well, but this is the space most relevant to our system (@fig-case1). To obtain our air temperatures, these are stored in a different place in our "microclimate" object. Again, we have access to these calculations under our two shade levels (20% and 80%), but we'll just use our lowest shade level for now. 
+
+:::{.column-margin}
+:::{.callout-important}
+It's important to recognize that the microclimate object has a lot of relevant information that we can use in our simulations. Keep this in mind while exploring the documentation. We'll come back to this later on.
+:::
+:::
 
 ```{r, microclimate_air}
 #| label: microclimate_air
@@ -178,22 +189,36 @@ Now we can have a look at what the air temperature would be 20 cm and 1.2 m abov
 
 ```{r, fig-Air_temp}
 #| label: fig-Air_temp
-#| fig-cap: "Average air temperature across 15 years at a location near Renmark, South Australia. Air temperatures at 20 cm (solid line) and 1.2 m (dashed line) above ground (and in minimum shade, 20%) are shown for each month of the year and each hour of the day. "
+#| fig-cap: "Average air temperature at a location near Renmark, South Australia. Air temperatures at 20 cm and 1.2 m above ground (and in minimum shade, 20%) are shown for a short times between 2019-01-01 and 2019-01-10."
 #| code-fold: true
 
+  air_temp2 <- air_temp                             %>% 
+                select(dates, TALOC, TAREF)         %>%
+                pivot_longer(cols = c(TALOC,  TAREF), 
+                         names_to = "Height", 
+                        values_to = "Temperature")  %>% 
+                mutate(Height = ifelse(Height == "TALOC", "20 cm", "1.2 m"))
+
 # Plot soil temps
-air_temp  %>% filter(dates > "2019-01-01" & dates < "2019-02-01") %>%
-  ggplot() + 
-              geom_line(aes(y = TALOC, x = dates)) +
-              geom_line(aes(y = TAREF, x = dates), linetype = "dashed") +
+  air_temp2  %>% filter(dates > "2019-01-01" & dates < "2019-01-10") %>%
+  ggplot(aes(y = Temperature, x = dates, col = Height)) + 
+              geom_line() +
               labs(y = "Air Temperature (°C)", x = "Date") + theme_classic() +
               theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
                         scale_colour_viridis_d()
+              
 ```
 
 We can immediately see from @fig-Air_temp that air temperatures closer to the ground are hotter than those higher up likely because of increased radiative heat transfer from the ground to air in close proximity and convective cooling higher in the air column.
 
+
+### Step 2: Accounting for the cooling effects on grasshopper body temperature as a result of plant transpiration
+
+Taking a systems approach means that we can account for the effects of other organisms on our focal species. To do this, we need to consider the biology of the species that co-exist and form part of the same system. In this case, the plants tha the grasshopper consumes which will influence the microclimate the grasshopper experiences. Plants will also respond to the environmental temperatures and this will directly and indirectly influence the grasshopper.
+
 If this is an grasshopper on a bush as in @fig-case1, the plant itself will also change its transpiration through the day. We can also obtain plant transpiration data from the microclimate model. This can be used to predict the cooling effect of the plant on the grasshopper.
+
+The microclimate model that we ran in [Step 1](#step1)
 
 ```{r, microclimate_transpiration}
 #| label: microclimate_transpiration
