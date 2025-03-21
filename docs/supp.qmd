@@ -182,10 +182,10 @@ Now we can have a look at what the air temperature would be 20 cm and 1.2 m abov
 #| code-fold: true
 
 # Plot soil temps
-  ggplot(air_temp) + 
+air_temp  %>% filter(dates > "2019-01-01" & dates < "2019-02-01") %>%
+  ggplot() + 
               geom_line(aes(y = TALOC, x = dates)) +
               geom_line(aes(y = TAREF, x = dates), linetype = "dashed") +
-              facet_wrap(~month) + 
               labs(y = "Air Temperature (°C)", x = "Date") + theme_classic() +
               theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
                         scale_colour_viridis_d()
