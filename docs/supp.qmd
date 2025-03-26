@@ -322,17 +322,17 @@ Now that we have run the ectotherm model we can plot the body temperature of the
 #| fig-cap: "Body temperature of a grasshopper at a location near Renmark, South Australia. Body temperature of the grasshopper is shown in relation to air temperature at 20 cm and 1.2 m above ground (and in minimum shade, 20%) for a short times between 2018-12-24 and 2019-01-07."
 
 grasshopper_environ2 <- grasshopper_environ %>% 
-                        filter(dates > "2018-12-24" & dates < "2019-01-07")  %>% select(dates, TA, TC)         %>%
+                        filter(dates > "2018-12-24" & dates < "2019-01-07")  %>% select(dates, TA, TC, ACT)         %>%
                 pivot_longer(cols = c(TA, TC), 
                          names_to = "Temps", 
                         values_to = "Temperature")  %>% 
                 mutate(Temps = ifelse(Temps == "TA", "Air Temperature", "Body Temperature"))
 
   ggplot(grasshopper_environ2) + 
-              geom_line(aes(y = Temperature, x = dates, col = Temps), show.legend = TRUE) +
+              geom_line(aes(y = Temperature, x = dates, col = Temps), show.legend = TRUE) + geom_point(aes(y = ACT, x = dates, fill = ACT)) +
               labs(y = "Temperature (°C)", x = "Date") + theme_classic() +
               theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
-                        scale_colour_viridis_d()
+              scale_colour_viridis_d()
 
 
 ```
