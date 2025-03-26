@@ -120,6 +120,7 @@ The code below shows how to predict the microclimate at a location close to Renm
 #| warning: false
 #| message: false
 #| error: false
+#| eval: false  
 
 # First, set the location where NCEAP climate data is located. This is a global dataset. We need this to calculate the microclimate. Only need to do once.
     get.global.climate(folder=here("NCEP_dan", "NCEAP" ))
@@ -129,18 +130,17 @@ The code below shows how to predict the microclimate at a location close to Renm
     micro <- micro_silo(     loc = longlat,      # Location
                           dstart = "01/01/2018", # Start year
                          dfinish = "31/12/2019", # End year
-                        minshade = 40,           # Minimum shade
-                        maxshade = 80,           # Maximum shade
-                          Usrhyt = 0.2,          # Height above ground 
-                          Refhyt = 1.2,          # Height of reference air temperature
+                        minshade = 40,           # Minimum shade, %
+                        maxshade = 80,           # Maximum shade, %
+                          Usrhyt = 0.2,          # Height above ground, m 
+                          Refhyt = 1.2,          # Height of reference air temperature, m
                       microclima = 1,            # Use mircoclima 
                               PC = -1500,        # Water potential for stomatal closure
                               SP = 10,           # Stability parameter for stomatal closure
                            email = "daniel.noble@anu.edu.au") # Replace with your email
 
-# Explore microclimate data. For ease of plotting we'll extract soil temperatures at the 20% share levels across the full set of dates we requested. 
-        soil_temp <- data.frame(micro$soil) # Note this is under 20% shade
-  soil_temp$dates <- micro$dates            # Add in the dates
+# Save the microclimate object for later in case we need it again as it avoids needing to rerun.                           
+  save(micro, file = here("output", "microclim", "microclimate.RDa"))
 
 ```
 
@@ -150,6 +150,13 @@ We can now plot the below ground temperatures to see the thermal profiles at dif
 #| label: fig-soil_temp
 #| fig-cap: "Average soil temperature at a location near Renmark, South Australia. Soil temperatures are simulated from the surface (0 cm) to 50 cm below ground (and in minimum shade, 20%) and shown across time (hours) between 01/01/2018 to 31/12/2019. "
 #| code-fold: true
+
+# Load the microclimate object
+  load(here("output", "microclim", "microclimate.RDa"))
+
+# Explore microclimate data. For ease of plotting we'll extract soil temperatures at the 20% share levels across the full set of dates we requested. 
+        soil_temp <- data.frame(micro$soil) # Note this is under 20% shade
+  soil_temp$dates <- micro$dates            # Add in the dates
 
 # Re-arrange for plotting
   soil_temp2 <- soil_temp %>% 
@@ -164,9 +171,9 @@ We can now plot the below ground temperatures to see the thermal profiles at dif
                         scale_colour_viridis_d()
 ```
 
-If we want to use air temperatures because our organism does not burrow, as is the case for our grasshopper case study (@fig-case1), then we can extract air temperatures at different heights above ground that we estimated (20 cm and 1.2 m) (@fig-Air_temp). 
+If we want to use air temperatures because our organism does not burrow, as in the case for our grasshopper case study (@fig-case1), then we can extract air temperatures at different heights above ground that we estimated (20 cm and 1.2 m) (@fig-Air_temp). Of course, we could calculate temperatures for other heights as well, but this is the space most relevant to our system (@fig-case1). This information is also stored in our 'microclimate' object.
 
-Of course, we could calculate for other heights as well, but this is the space most relevant to our system (@fig-case1). To obtain our air temperatures, these are stored in a different place in our "microclimate" object. Again, we have access to these calculations under our two shade levels (20% and 80%), but we'll just use our lowest shade level for now. 
+We can simulate microclimates under different scenarios in new calls to the `micro_silo` function but to some extent this can be done within a single simulation. In our case, we've run a single simulation for two heights already so we have everything we need. To obtain our air temperatures, these are stored in a different place in our "microclimate" object. Again, we have access to these calculations under our two shade levels (20% and 80%), but we'll just use our lowest shade level for now. 
 
 :::{.column-margin}
 :::{.callout-important}
@@ -211,23 +218,38 @@ Now we can have a look at what the air temperature would be 20 cm and 1.2 m abov
 
 We can immediately see from @fig-Air_temp that air temperatures closer to the ground are hotter than those higher up likely because of increased radiative heat transfer from the ground to air in close proximity and convective cooling higher in the air column.
 
+Interestingly, during these dates we had a major heatwave event that occurred between 2018-12-24 and 2019-01-07. Lets have a look at the temperatures during this period.
 
-### Step 2: Accounting for the cooling effects on grasshopper body temperature as a result of plant transpiration
+```{r, fig-Air_temp_heatwave}
+#| label: fig-Air_temp_heatwave
+#| fig-cap: "Average air temperature at a location near Renmark, South Australia. Air temperatures at 20 cm and 1.2 m above ground (and in minimum shade, 20%) are shown for a short times between 2018-12-24 and 2019-01-07."
+#| code-fold: true
+
+  air_temp2  %>% filter(dates > "2018-12-24" & dates < "2019-01-07") %>%
+  ggplot(aes(y = Temperature, x = dates, col = Height)) + 
+              geom_line() +
+              geom_hline(yintercept = 40, colour = "red", lty = 2) +
+              labs(y = "Air Temperature (°C)", x = "Date") + theme_classic() +
+              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
+                        scale_colour_viridis_d()
+```
+
+
+### Step 2: Accounting for the cooling effects of plant transpiration feeding back to grasshopper body temperature {#step2}
 
 Taking a systems approach means that we can account for the effects of other organisms on our focal species. To do this, we need to consider the biology of the species that co-exist and form part of the same system. In this case, the plants tha the grasshopper consumes which will influence the microclimate the grasshopper experiences. Plants will also respond to the environmental temperatures and this will directly and indirectly influence the grasshopper.
 
 If this is an grasshopper on a bush as in @fig-case1, the plant itself will also change its transpiration through the day. We can also obtain plant transpiration data from the microclimate model. This can be used to predict the cooling effect of the plant on the grasshopper.
 
-The microclimate model that we ran in [Step 1](#step1)
+The microclimate model that we ran in [Step 1](#step1) can now be used to predict how the grasshopper and plant will respond to the heatwave. We can then couple these responses to predict the impact of the heatwave on the grasshopper considering how the plant is also responding to heat and impacting teh body temperature of the grasshopper. Before we get temperatures for the grasshopper, we need to get the transpiration data for the plant. 
 
-```{r, microclimate_transpiration}
-#| label: microclimate_transpiration
+```{r, ecto_grasshopper}
+#| label: ecto_grasshopper
 #| echo: true
 #| warning: false
 #| message: false
 
-# Get the plant transpiration data
-  transpiration <- data.frame(micro$plant)
+# 
 
 
 ```
