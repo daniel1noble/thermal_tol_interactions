@@ -28,11 +28,11 @@ editor_options:
   chunk_output_type: console
 ---
 
-## Introduction
+# Introduction
 
 In this supplementary material, we provide extended versions, with code, of our case studies we draw upon within our manuscript to demonstrate how a systems modelling approach can be implemented in practice. Our case studies focus on plant-insect-microbe interactions, and how these interactions are influenced by extreme heat events. We provide the code for the models we use in our case studies, and the code for the simulations we run to predict the impact of heatwaves on these interactions. It is important to realize that extreme heat events are relative to the system in question. What qualifies as 'extreme' will vary across species and communities. Models and code will of course always need to be modified to suite the specific system in question and should be validated against empirical data.
 
-## Load packages
+# Load packages
 
 Our case studies all use the statistical software [R](https://www.r-project.org/). We use a number of packages to run our simulations, including [`NicheMapR`](https://mrke.github.io) [@Kearney2009b; @Kearney2013], [`microclima`](https://github.com/ilyamaclean/microclima) [@Maclean2019; @Kearney2020], and [`plantecophys`](https://github.com/RemkoDuursma/plantecophys) [@Duursma2015].  The code below loads the required packages that are needed for this tutorial.
 
@@ -84,7 +84,8 @@ gFortran can be a problem for NicheMapR so you need to set the paths properly if
 :::
 :::
 
-## Case Study 1: Simulating plant and insect interactions under heatwaves
+# Developing a systems modelling approach to predict biological responses to extreme heat
+### Case Study 1: Simulating plant and insect interactions under heatwaves
 
 Case study one explores how feedback between plants and insects can happen in response to extreme heat events. Here, we are interested in how the behaviour of grasshoppers is influenced by changes in plant transpiration which can impact microhabitat temperatures of grasshoppers (@fig-case1). While this is a simple situation it's a useful starting point to understand how a systems modelling approach can be built up to predict the impact of heatwaves on species interactions. 
 
@@ -98,7 +99,7 @@ fig_case1
 ```
 
 
-### Step 1: Predicting microclimates relevant to plants and animals: A walk through microclimate modelling {#step1}
+#### Step 1: Predicting microclimates relevant to plants and animals: A walk through microclimate modelling {#step1}
 
 To predict the impact of heatwaves on plant-insect interactions, we first need to predict the microclimate. Using biophysical models we can use coarse climate, topological, rainfall, elevation and spatial information to make predictions on what the microclimate a species is likely to experience, which can help us predict its likely body temperature (*exposure*). 
 
@@ -235,28 +236,13 @@ Interestingly, during these dates we had a major heatwave event that occurred be
 ```
 
 
-### Step 2: Using microclimates to predict body temperatures of plants and animals: example of how cooling effects of plant transpiration impact grasshopper body temperature {#step2}
+#### Step 2: Using microclimates to predict body temperatures of plants and animals: example of how cooling effects of plant transpiration impact grasshopper body temperature {#step2}
 
 Taking a systems approach means that we can account for the effects of other organisms on our focal species. To do this, we need to consider the biology of the species that co-exist and form part of the same system. In this case, the plants tha the grasshopper consumes which will influence the microclimate the grasshopper experiences. Plants will also respond to the environmental temperatures and this will directly and indirectly influence the grasshopper.
 
 If this is an grasshopper on a bush as in @fig-case1, the plant itself will also change its transpiration through the day. We can also obtain plant transpiration data from the microclimate model. This can be used to predict the cooling effect of the plant on the grasshopper.
 
 The microclimate model that we ran in [Step 1](#step1) can now be used to predict how the grasshopper and plant will respond to the heatwave. We can then couple these responses to predict the impact of the heatwave on the grasshopper considering how the plant is also responding to heat and impacting teh body temperature of the grasshopper. Before we get temperatures for the grasshopper, we need to get the transpiration data for the plant. 
-
-```{r, ecto_grasshopper}
-#| label: ecto_grasshopper
-#| echo: true
-#| warning: false
-#| message: false
-
-# 
-
-
-```
-
-
-
-
 
 We can then use this microclimate data to simulate the growth of plants and insects under different temperature conditions [@fig-case1].
 
@@ -287,7 +273,7 @@ T_RB_min <- 12.5 # degrees C, temperature at which animal will move to a basking
 
 # Behavioural traits. This tells the model what the grasshopper can do in response to heat. 
      diurn <- 1     # diurnal activity allowed (1) or not (0)? 
-   nocturn <- 1     # nocturnal activity allowed (1) or not (0)?
+   nocturn <- 0     # nocturnal activity allowed (1) or not (0)?
     crepus <- 1     # crepuscular activity allowed (1) or not (0)?
 shade_seek <- 1     # shade seeking allowed (1) or not (0)?
     burrow <- 0     # shelter in burrow allowed (1) or not (0)?
@@ -321,18 +307,28 @@ Now that we have run the ectotherm model we can plot the body temperature of the
 #| label: fig-grasshopper_temp
 #| fig-cap: "Body temperature of a grasshopper at a location near Renmark, South Australia. Body temperature of the grasshopper is shown in relation to air temperature at 20 cm and 1.2 m above ground (and in minimum shade, 20%) for a short times between 2018-12-24 and 2019-01-07."
 
-grasshopper_environ2 <- grasshopper_environ %>% 
-                        filter(dates > "2018-12-24" & dates < "2019-01-07")  %>% select(dates, TA, TC, ACT)         %>%
-                pivot_longer(cols = c(TA, TC), 
-                         names_to = "Temps", 
-                        values_to = "Temperature")  %>% 
-                mutate(Temps = ifelse(Temps == "TA", "Air Temperature", "Body Temperature"))
+grasshopper_environ2 <- grasshopper_environ                                                           %>% 
+                        filter(dates > "2018-12-24" & dates < "2019-01-07")                           %>% 
+                        select(dates, TA, TC, ACT)                                                    %>%
+                        pivot_longer(     cols = c(TA, TC), 
+                                      names_to = "Temps", 
+                                     values_to = "Temperature")                                       %>% 
+                        mutate(Temps = ifelse(Temps == "TA", "Air Temperature", "Body Temperature"))
 
   ggplot(grasshopper_environ2) + 
-              geom_line(aes(y = Temperature, x = dates, col = Temps), show.legend = TRUE) + geom_point(aes(y = ACT, x = dates, fill = ACT)) +
+              geom_line(aes(y = Temperature, x = dates, col = Temps), show.legend = TRUE) + 
+              geom_point(aes(y = ACT, x = dates, fill = factor(ACT)), shape = 21, size = 4) +
               labs(y = "Temperature (°C)", x = "Date") + theme_classic() +
               theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
-              scale_colour_viridis_d()
+              scale_colour_viridis_d() +
+              scale_fill_manual(values = c("0" = "blue", 
+                                           "1" = "green", 
+                                           "2" = "orange"),
+                                labels = c("Inactive", "Basking", "Foraging")) +
+              labs(fill = "Behaviour")
+              
 
 
 ```
+
+# Using a systems modelling approach ti develop solutions to extreme heat events
