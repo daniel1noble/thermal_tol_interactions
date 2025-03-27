@@ -178,7 +178,7 @@ We can simulate microclimates under different scenarios in new calls to the `mic
 
 :::{.column-margin}
 :::{.callout-important}
-It's important to recognize that the microclimate object has a lot of relevant information that we can use in our simulations. Keep this in mind while exploring the documentation. We'll come back to this later on.
+It's important to recognize that the microclimate object has a lot of relevant information that we can use in our simulations. Keep this in mind while exploring the [documentation](https://rdrr.io/github/mrke/NicheMapR/man/). We'll come back to this later on.
 :::
 :::
 
@@ -236,18 +236,98 @@ Interestingly, during these dates we had a major heatwave event that occurred be
 ```
 
 
-#### Step 2: Using microclimates to predict body temperatures of plants and animals: example of how cooling effects of plant transpiration impact grasshopper body temperature {#step2}
+#### Step 2: Cross-talk between plant and animal systems: Incorporating cooling effects of plant transpiration to estimate grasshopper body temperature {#step2}
 
-Taking a systems approach means that we can account for the effects of other organisms on our focal species. To do this, we need to consider the biology of the species that co-exist and form part of the same system. In this case, the plants tha the grasshopper consumes which will influence the microclimate the grasshopper experiences. Plants will also respond to the environmental temperatures and this will directly and indirectly influence the grasshopper.
+Taking a systems approach means that we can account for the effects of other organisms on our focal species. To do this, we need to consider the biology of the species that co-exist and form part of the same system. 
 
-If this is an grasshopper on a bush as in @fig-case1, the plant itself will also change its transpiration through the day. We can also obtain plant transpiration data from the microclimate model. This can be used to predict the cooling effect of the plant on the grasshopper.
+In this case, the plants that the grasshopper consumes which will influence the microclimate the grasshopper experiences (@fig-case1). Plants will also respond to the environmental temperatures, and this will directly and indirectly influence the grasshopper. We can also establish this feedback. For example, plants will change their transpiration through the day and this can impact local temperatures experienced by grasshoppers (@fig-case1). 
 
-The microclimate model that we ran in [Step 1](#step1) can now be used to predict how the grasshopper and plant will respond to the heatwave. We can then couple these responses to predict the impact of the heatwave on the grasshopper considering how the plant is also responding to heat and impacting teh body temperature of the grasshopper. Before we get temperatures for the grasshopper, we need to get the transpiration data for the plant. 
+The microclimate model that we ran in [Step 1](#step1) can now be used to predict how the plant and grasshopper will respond to the heatwave. We can then couple these responses to predict the impact of the heatwave on the grasshopper considering how the plant is also responding to heat and subsequently affecting the body temperature of the grasshopper. 
 
-We can then use this microclimate data to simulate the growth of plants and insects under different temperature conditions [@fig-case1].
+Before we can estimate the temperatures for the grasshopper, we need to use a biophysical model to predict what the plant is doing. We can then use this 'new' microclimate data to simulate the growth of insects under different temperature conditions, changing what would happen if plants respond differently [@fig-case1].
 
-Now, lets run the ectotherm model for a grasshopper. This allows us to take in the microclimate and use it to calculate the body temperature of the grasshopper. The ectotherm model also allows us to incorperate relevant behavuioural plasticity in response to extreme heat, which we'll do. 
+Let's use our mircoclimate simulations to predict the plant leaf and air temperatures at the relevant heights.
 
+First, the traits of the leaf must be defined. An ellipsoid shape is used in this simulation. Specification of the mass and the ratios of the linear dimensions of the shape (here, semi-minor axes relative to the semi-major axis) together with the density (default value 1 g cm${^3}$) allows the geometric functions in the ectotherm model to compute the absolute dimensions and surface areas. 
+
+Evaporative exchange is driven by the stomatal conductance parameters, which can be specified for the abaxial and adaxial sides of the leaf as well as the overall base leaf conductance through the cuticle. The 'pct_wet' parameter is set to 0.
+
+Radiative exchange parameters can be set including the emissivities of the leaf and the substrate, the solar absorptivities of the leaf, the configuration factors to the sky and ground, the percentage of the leaf conducting to the ground and the orientation to the sun.
+
+```{r, microclimate_plant}
+#| label: microclimate_plant
+#| echo: true
+#| warning: false
+#| message: false
+
+  # Load the microclimate object
+    load(here("output", "microclim", "microclimate.RDa"))
+
+  # First, lets extract the relevant information from the microclimate object
+      PDIFs <- micro$diffuse_frac       # use variable diffuse fraction
+        P_a <- get_pressure(micro$elev) # air pressure, Pa
+        P_a <- rep(P_a, nrow(micro$metout))   # create hourly vector
+      dates <- micro$dates              # dates
+
+  # Set leaf functional traits
+         live <- 0      # don't simulate behaviour or respiration
+         leaf <- 1      # use the stomatal conductance formulation for evaporation
+         Ww_g <- 1      # wet weight, g
+        shape <- 2      # 0=plate, 1=cylinder, 2=ellipsoid
+      shape_b <- 0.0025 # ratio of b axis:a axis for ellipsoid 
+      shape_c <- 0.1176 # ratio of c axis:a axis for ellipsoid 
+      g_vs_ab <- 0.4    # leaf vapour conductance, abaxial (bottom of leaf), mol/m2/s
+      g_vs_ad <- 0.0    # leaf vapour conductance, adaxial (top of leaf), mol/m2/s
+  g_vs_ab_max <- 0.4    # leaf vapour conductance, abaxial (bottom of leaf), mol/m2/s
+  g_vs_ad_max <- 0.0    # leaf vapour conductance, adaxial (top of leaf), mol/m2/s
+  epsilon_sub <- 0.95   # emissivity of the substrate (-)
+  epsilon_sky <- 1      # emissivity of the sky (-), accounted for already in 'TSKY' output from microclimate model so make it 1
+    epsilon_L <- 0.97   # emissivity of the leaf (-)
+      alpha_L <- 0.5    # solar absorptivity of the leaf (-)
+       fatosk <- 0.5    # radiation configuration factor to sky (-)
+       fatosb <- 0.5    # radiation configuration factor to substrate (-)
+ conv_enhance <- 1.4    # convective enhancement factor (-)
+     pct_cond <- 0      # percent of leaf conducting to the ground (%)
+       postur <- 3      # leaf oriented horizontally, not tracking sun
+          M_1 <- 0      # make metabolic rate zero
+
+# Set up vapour conductance vectors and simulate stomatal closure at night
+                              f_open <- rep(1, nrow(micro$metout))
+  f_open[micro$metout[,"ZEN"] == 90] <- 0      # close stomata when the sun is set
+                            g_vs_abs <- g_vs_ab * f_open 
+                            g_vs_ads <- g_vs_ad * f_open
+
+# Run the heat-budget model for the plant leaf. Note that the microclimate object is used to get the relevant environmental temperatures to make the calculations of leaf temperature
+    plant <- ectotherm(  leaf = leaf, 
+                         live = live,
+                         Ww_g = Ww_g, 
+                        shape = shape, 
+                      shape_b = shape_b, 
+                      shape_c = shape_c, 
+                      g_vs_ab = g_vs_abs, 
+                      g_vs_ad = g_vs_ads, 
+                  g_vs_ab_max = g_vs_ab_max, 
+                  g_vs_ad_max = g_vs_ad_max, 
+                  epsilon_sub = epsilon_sub, 
+                  epsilon_sky = epsilon_sky,
+                      epsilon = epsilon_L, 
+                    alpha_max = alpha_L, 
+                    alpha_min = alpha_L,
+                          M_1 = M_1,
+                       fatosk = fatosk, 
+                       fatosb = fatosb, 
+                 conv_enhance = conv_enhance, 
+                     pct_cond = pct_cond, 
+                       postur = postur,
+                       preshr = P_a, 
+                         PDIF = PDIFs)
+
+# Extract the microclimate temperatures. Becasue this was simulated for a plot the 'body tempertaure'is the leaf temperature and is stored as 'TC' in the environ object
+      environ <- as.data.frame(plant$environ)
+       T_leaf <- environ$TC         
+```
+
+Now, lets run the ectotherm model for a grasshopper. This allows us to take in the microclimate and use it to calculate the body temperature of the grasshopper. The ectotherm model also allows us to incorporate relevant behavioural plasticity in response to extreme heat, which we'll do. 
 
 ```{r, ecto_grasshopper}
 #| label: ecto_grasshopper
@@ -326,9 +406,6 @@ grasshopper_environ2 <- grasshopper_environ                                     
                                            "2" = "orange"),
                                 labels = c("Inactive", "Basking", "Foraging")) +
               labs(fill = "Behaviour")
-              
-
-
 ```
 
-# Using a systems modelling approach ti develop solutions to extreme heat events
+# Using a systems modelling approach to help develop solutions to extreme heat events
