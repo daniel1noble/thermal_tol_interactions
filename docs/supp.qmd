@@ -246,11 +246,11 @@ The microclimate model that we ran in [Step 1](#step1) can now be used to predic
 
 Before we can estimate the temperatures for the grasshopper, we need to use a biophysical model to predict what the plant is doing. We can then use this 'new' microclimate data to simulate the growth of insects under different temperature conditions, changing what would happen if plants respond differently [@fig-case1].
 
-Let's use our mircoclimate simulations to predict the plant leaf and air temperatures at the relevant heights.
+Let's use our microclimate simulations to predict the plant leaf and air temperatures at the relevant heights.
 
 First, the traits of the leaf must be defined. An ellipsoid shape is used in this simulation. Specification of the mass and the ratios of the linear dimensions of the shape (here, semi-minor axes relative to the semi-major axis) together with the density (default value 1 g cm${^3}$) allows the geometric functions in the ectotherm model to compute the absolute dimensions and surface areas. 
 
-Evaporative exchange is driven by the stomatal conductance parameters, which can be specified for the abaxial and adaxial sides of the leaf as well as the overall base leaf conductance through the cuticle. The 'pct_wet' parameter is set to 0.
+Evaporative exchange is driven by the stomatal conductance parameters, which can be specified for the abaxial and adaxial sides of the leaf as well as the overall base leaf conductance through the cuticle. The `pct_wet` parameter is set to 0.
 
 Radiative exchange parameters can be set including the emissivities of the leaf and the substrate, the solar absorptivities of the leaf, the configuration factors to the sky and ground, the percentage of the leaf conducting to the ground and the orientation to the sun.
 
@@ -327,7 +327,7 @@ Radiative exchange parameters can be set including the emissivities of the leaf 
        T_leaf <- environ$TC         
 ```
 
-Now, lets run the ectotherm model for a grasshopper. This allows us to take in the microclimate and use it to calculate the body temperature of the grasshopper. The ectotherm model also allows us to incorporate relevant behavioural plasticity in response to extreme heat, which we'll do. 
+Now, lets run the ectotherm model for a grasshopper, but instead of using the micrioclimate object as it is, lets assume that the plant environment forms the mircoclimate of the grasshopper. This allows us to take in the microclimate and use it to calculate the body temperature of the grasshopper, and eventually uinderstand how this affects growth, development etc within a dynamic energy budget model. The ectotherm model also allows us to incorporate relevant behavioural plasticity in response to extreme heat, which we'll do. 
 
 ```{r, ecto_grasshopper}
 #| label: ecto_grasshopper
@@ -335,8 +335,11 @@ Now, lets run the ectotherm model for a grasshopper. This allows us to take in t
 #| warning: false
 #| message: false
 
-# Load the microclimate object. Note ectotherm needs this to run.
-  load(here("output", "microclim", "microclimate.RDa"))
+# First, lets fix up the microclimate object so that we can use it in the ectotherm model. We need to add in the leaf temperature as the body temperature of the grasshopper. There are a couple of ways we can conceptualise this. For example, we could assume that animals are in shade and therefore infrared radiative heat (`TSKYC`) is the temperature the grasshopper experiences from their environment. Alternatively, we could assume that when sitting on a leaf the grasshopper is in direct contact with the leaf and therefore the leaf temperature is the body temperature. 
+            
+            micro$metout[,"TC"] <- micro
+  grasshopper$TC <- T_leaf
+  grasshopper$dates <- micro$dates
 
 # Parameters for the grasshopper
     Ww_g <- 0.2  # g, body mass
