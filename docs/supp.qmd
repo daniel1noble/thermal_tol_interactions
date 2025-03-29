@@ -57,7 +57,8 @@ source(here("R", "func.R"))
 :::{.callout-note}
 gFortran can be a problem for NicheMapR so you need to set the paths properly if you are getting errors. Follow details [here](https://stackoverflow.com/questions/69639782/installing-gfortran-on-macbook-with-apple-m1-chip-for-use-in-r). The following code will help you set the paths properly.
 
-```{r}
+```{r, nichmapr}
+#| label: nichmapr
 #| echo: true
 #| eval: false
 #| results: hide
@@ -160,9 +161,11 @@ We can now plot the below ground temperatures to see the thermal profiles at dif
   soil_temp$dates <- micro$dates            # Add in the dates
 
 # Re-arrange for plotting
-  soil_temp2 <- soil_temp %>% 
-                select(D0cm,  D50cm, dates) %>%
-                pivot_longer(cols = c(D0cm,  D50cm), names_to = "Depth", values_to = "Temperature")
+       soil_temp2 <- soil_temp %>% 
+                     select(D0cm,  D50cm, dates) %>%
+                     pivot_longer(cols = c(D0cm,  D50cm), 
+                              names_to = "Depth", 
+                             values_to = "Temperature")
 
 # Plot soil temps
   ggplot(soil_temp2) + 
@@ -322,9 +325,32 @@ Radiative exchange parameters can be set including the emissivities of the leaf 
                        preshr = P_a, 
                          PDIF = PDIFs)
 
+# Save model
+  save(plant, file = here("output", "microclim", "plant_micro.RDa"))
+
 # Extract the microclimate temperatures. Becasue this was simulated for a plot the 'body tempertaure'is the leaf temperature and is stored as 'TC' in the environ object
-      environ <- as.data.frame(plant$environ)
-       T_leaf <- environ$TC         
+            environ_plant <- as.data.frame(plant$environ)
+      environ_plant$dates <- micro$dates  # For clarirty add in dates from microclimate that ecto model uses
+```
+
+
+```{r, fig-plant_temp}
+#| label: fig-plant_temp
+#| fig-cap: "Leaf temperature of a plant at a location near Renmark, South Australia. Leaf temperature is shown in relation to air temperature at 1.2 m above ground (and in minimum shade, 40%) between 2018-12-24 and 2019-01-07."
+#| code-fold: true
+
+  environ_plant2 <- environ_plant %>% filter(dates > "2018-12-24" & dates < "2019-01-07") %>%
+              select(dates, TA, TC) %>%
+              pivot_longer(cols = c(TA, TC), 
+                           names_to = "Temps", 
+                           values_to = "Temperature") %>% 
+              mutate(Temps = ifelse(Temps == "TA", "Air Temperature", "Leaf Temperature"))
+
+  ggplot(environ_plant2) + 
+              geom_line(aes(y = Temperature, x = dates, col = Temps), show.legend = TRUE) + 
+              labs(y = "Temperature (°C)", x = "Date") + theme_classic() +
+              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
+              scale_colour_viridis_d()
 ```
 
 Now, lets run the ectotherm model for a grasshopper, but instead of using the micrioclimate object as it is, lets assume that the plant environment forms the mircoclimate of the grasshopper. This allows us to take in the microclimate and use it to calculate the body temperature of the grasshopper, and eventually uinderstand how this affects growth, development etc within a dynamic energy budget model. The ectotherm model also allows us to incorporate relevant behavioural plasticity in response to extreme heat, which we'll do. 
@@ -337,9 +363,9 @@ Now, lets run the ectotherm model for a grasshopper, but instead of using the mi
 
 # First, lets fix up the microclimate object so that we can use it in the ectotherm model. We need to add in the leaf temperature as the body temperature of the grasshopper. There are a couple of ways we can conceptualise this. For example, we could assume that animals are in shade and therefore infrared radiative heat (`TSKYC`) is the temperature the grasshopper experiences from their environment. Alternatively, we could assume that when sitting on a leaf the grasshopper is in direct contact with the leaf and therefore the leaf temperature is the body temperature. 
             
-            micro$metout[,"TC"] <- micro
-  grasshopper$TC <- T_leaf
-  grasshopper$dates <- micro$dates
+            #micro$metout[,"TC"] <- micro
+             #    grasshopper$TC <- T_leaf
+             # grasshopper$dates <- micro$dates
 
 # Parameters for the grasshopper
     Ww_g <- 0.2  # g, body mass
@@ -380,6 +406,8 @@ grasshopper <- ectotherm(Ww_g = Ww_g,
                        burrow = burrow,
                      pct_cond = pct_cond
 )
+
+# Get the resulting heat budget calculations for the grasshopper
       grasshopper_environ <- as.data.frame(grasshopper$environ)
 grasshopper_environ$dates <- micro$dates
 ```
@@ -420,6 +448,7 @@ A systems modelling approach can also be used to design possible solutions by un
 #| echo: true
 #| warning: false
 #| message: false
+#| eval: false
 
 # Lets reload our microclimate object so we can use it again
   load(here("output", "microclim", "microclimate.RDa"))
