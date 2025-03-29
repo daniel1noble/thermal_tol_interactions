@@ -243,9 +243,9 @@ Interestingly, during these dates we had a major heatwave event that occurred be
 
 Taking a systems approach means that we can account for the effects of other organisms on our focal species. To do this, we need to consider the biology of the species that co-exist and form part of the same system. 
 
-In this case, the plants that the grasshopper consumes which will influence the microclimate the grasshopper experiences (@fig-case1). Plants will also respond to the environmental temperatures, and this will directly and indirectly influence the grasshopper. We can also establish this feedback. For example, plants will change their transpiration through the day and this can impact local temperatures experienced by grasshoppers (@fig-case1). 
+In this case, the plants that the grasshopper consumes will influence the microclimate the grasshopper experiences (@fig-case1). Plants will also respond to the thermal environmental, and this will directly and indirectly influence the grasshopper. For example, plants will change their transpiration through the day and this can impact local temperatures experienced by grasshoppers (@fig-case1). 
 
-The microclimate model that we ran in [Step 1](#step1) can now be used to predict how the plant and grasshopper will respond to the heatwave. We can then couple these responses to predict the impact of the heatwave on the grasshopper considering how the plant is also responding to heat and subsequently affecting the body temperature of the grasshopper. 
+The microclimate model that we ran in [Step 1](#step1) can now be used to predict how the plant and grasshopper will respond to the heatwave. **Remember, we just used weather data to calculate air temperatures expected at 0.2 and 1.2m in both 20% and 80% shade. We can use this microclimate data to estimate leaf temperatures for a plant and then use the information on plant temperatures to feedback into the calculations of grasshopper body temperatures.**
 
 Before we can estimate the temperatures for the grasshopper, we need to use a biophysical model to predict what the plant is doing. We can then use this 'new' microclimate data to simulate the growth of insects under different temperature conditions, changing what would happen if plants respond differently [@fig-case1].
 
