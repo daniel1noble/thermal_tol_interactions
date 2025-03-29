@@ -412,3 +412,53 @@ grasshopper_environ2 <- grasshopper_environ                                     
 ```
 
 # Using a systems modelling approach to help develop solutions to extreme heat events
+
+A systems modelling approach can also be used to design possible solutions by understanding better how 'thermal interventions' affect heat experienced by organisms and how it influences growth, survival and reproduction. For example, we can manipulate rainfall at a particular time to simulate artficial watering that might be a possible intervention used during extreme heat. The added water can be used to make calculations of heat exchange, temperatures and transpiration under heat events. We can also optimise the amount of time to balance costs and benefits of watering.
+
+```{r, microclimate_water}
+#| label: microclimate_water
+#| echo: true
+#| warning: false
+#| message: false
+
+# Lets reload our microclimate object so we can use it again
+  load(here("output", "microclim", "microclimate.RDa"))
+
+# Lets now create a couple scenerios. This includes: 1) high shade conidtions with no water, 2) low shade conditions with no water, 3) high shade conditions with water and 4) low shade conditions with water.
+    # First, get high and low shade conditions from our origial simulation
+     micro_lowshade_nowater <- micro$metout
+    micro_highshade_nowater <- micro$shadmet
+
+
+RAINFALL <- micro_lowshade_nowater$RAINFALL # extract rainfall from previous sim
+dates2 <- micro_highshade_orig$dates2
+dates <- micro_highshade_orig$dates
+
+
+
+plot(dates2, RAINFALL, type = "h")
+date_waters <- as.character(seq(as.POSIXct("2019-01-01"), as.POSIXct("2019-01-31"),
+by = "days"))
+
+# Now lets add in the water. We can do this by adding a rainfall event to the microclimate object. This is done by creating a new vector of rainfall and then adding it to the microclimate object.
+      water <- 10 # mm water to add
+  RAINFALL2 <- RAINFALL
+RAINFALL2[as.character(dates2) %in% date_waters] <- water
+plot(dates2, RAINFALL2, type = "h")
+# Create hourly values
+rainhour <- unlist(lapply(RAINFALL2, function(x) c(x, rep(0,
+23))))
+maxshade <- 90 # maximum shade available
+micro_highshade_water <- micro_silo(loc = loc, dstart = dstart,
+dfinish = dfinish, Usrhyt = Usrhyt, microclima = microclima,
+maxshade = maxshade, PC = PC, SP = SP, rainhourly = 1, rainhour = rainhour,
+email = "m.kearney@unimelb.edu.au")
+micro_highshade_orig <- micro_highshade_water # save a copy because will be modifiying it maxshade <- 5 # maximum shade available
+micro_lowshade_water <- micro_silo(loc = loc, dstart = dstart,
+dfinish = dfinish, Usrhyt = Usrhyt, microclima = 1, maxshade = maxshade,
+PC = PC, SP = SP, rainhourly = 1, rainhour = rainhour, email = "m.kearney@unimelb.edu.au")
+micro_lowshade_water_orig <- micro_lowshade_water # save a copy because will be modifiying it later
+save(micro_highshade_water, file = "micro_highshade_water.Rda")
+save(micro_lowshade_water, file = "micro_lowshade_water.Rda")
+
+```
