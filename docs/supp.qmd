@@ -435,7 +435,9 @@ grasshopper_environ2 <- grasshopper_environ                                     
               scale_fill_manual(values = c("0" = "blue", 
                                            "1" = "green", 
                                            "2" = "orange"),
-                                labels = c("Inactive", "Basking", "Foraging")) +
+                                labels = c("0" = "Inactive", 
+                                           "1" = "Basking", 
+                                           "2" = "Foraging")) +
               labs(fill = "Behaviour")
 ```
 
