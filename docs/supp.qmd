@@ -28,11 +28,11 @@ editor_options:
   chunk_output_type: console
 ---
 
-# Introduction
+# **Introduction**
 
 In this supplementary material, we provide extended versions, with code, of our case studies we draw upon within our manuscript to demonstrate how a systems modelling approach can be implemented in practice. Our case studies focus on plant-insect-microbe interactions, and how these interactions are influenced by extreme heat events. We provide the code for the models we use in our case studies, and the code for the simulations we run to predict the impact of heatwaves on these interactions. It is important to realize that extreme heat events are relative to the system in question. What qualifies as 'extreme' will vary across species and communities. Models and code will of course always need to be modified to suite the specific system in question and should be validated against empirical data.
 
-# Load packages
+# **Load packages**
 
 Our case studies all use the statistical software [R](https://www.r-project.org/). We use a number of packages to run our simulations, including [`NicheMapR`](https://mrke.github.io) [@Kearney2009b; @Kearney2013], [`microclima`](https://github.com/ilyamaclean/microclima) [@Maclean2019; @Kearney2020], and [`plantecophys`](https://github.com/RemkoDuursma/plantecophys) [@Duursma2015].  The code below loads the required packages that are needed for this tutorial.
 
@@ -85,32 +85,9 @@ gFortran can be a problem for NicheMapR so you need to set the paths properly if
 :::
 :::
 
-# Developing a systems modelling approach to predict biological responses to extreme heat
-### Case Study 1: Simulating plant and insect interactions under heatwaves
+# **Predicting relevant microclimates to organisms: A walk through microclimate modelling** {#section1}
 
-Case study one explores how feedback between plants and insects can happen in response to extreme heat events. Here, we are interested in how the behaviour of grasshoppers is influenced by changes in plant transpiration which can impact microhabitat temperatures of grasshoppers (@fig-case1). While this is a simple situation it's a useful starting point to understand how a systems modelling approach can be built up to predict the impact of heatwaves on species interactions. 
-
-```{r, fig-case1}
-#| label: fig-case1
-#| echo: false
-#| fig-cap: "Grasshopper and plant interactions under heatwaves. Grasshoppers feeding on leaves of a bush in Calperum Station, South Australia. Complex leaf structure provides shade and cooler microclimate for grasshoppers. Leaves exposed to hot temperatures close their stomata to conserve water reducing transpiration and photosynthesis. Leaves that are not exposed to direct sunlight can keep their stomata open and continue photosynthesis while also transpiring and providing cooler microhabitats that grasshoppers can exploit through thermoregulatory behaviours. Importantly, stomatal behaviour is mediated by drought conditions. More stomata will be closed during drought to conserve water and this will impact the cooling effect of the plant on the grasshopper."
-
-fig_case1 <- image_read(here("figs", "figS1.png"))
-fig_case1
-```
-
-
-#### Step 1: Predicting microclimates relevant to plants and animals: A walk through microclimate modelling {#step1}
-
-To predict the impact of heatwaves on plant-insect interactions, we first need to predict the microclimate. Using biophysical models we can use coarse climate, topological, rainfall, elevation and spatial information to make predictions on what the microclimate a species is likely to experience, which can help us predict its likely body temperature (*exposure*). 
-
-:::{.column-margin}
-:::{.callout-important}
-It is important to recognize that these are predictions. As with any model, they need field validation [@De_Frenne2024]. Nonetheless, they provide an important tool in our systems modelling framework to help us understand how heatwaves are likely to affect species interactions.
-:::
-:::
-
-To model the microclimate, we can use [`NicheMapR`](https://mrke.github.io) and the [`microclima`](https://github.com/ilyamaclean/microclima) package to predict the microclimate at a given location. 
+Broad-scale climate data is extremely coarse relative to the types of conditions experienced by organisms in their natural environment at fine spatial and temporal scales. Using biophysical models we can use coarse climate, topological, rainfall, elevation and spatial information to make predictions on what the microclimate a species is likely to experience, which can help us predict its likely body temperature (*exposure*). As such, it's important to be able to down-scale climatic data to microclimate conditions that maybe relevant to organisms. To model the microclimate, we can use [`NicheMapR`](https://mrke.github.io) and the [`microclima`](https://github.com/ilyamaclean/microclima) package to predict the microclimate at a given location. This section will demonstrate some ways that we can achieve this. 
 
 There are various climate datasets that can be used to predict the microclimate but for simplicity we'll use weather data from 1889 to yesterday from https://www.longpaddock.qld.gov.au/silo/. 
 
@@ -175,13 +152,13 @@ We can now plot the below ground temperatures to see the thermal profiles at dif
                         scale_colour_viridis_d()
 ```
 
-If we want to use air temperatures because our organism does not burrow, as in the case for our grasshopper case study (@fig-case1), then we can extract air temperatures at different heights above ground that we estimated (20 cm and 1.2 m) (@fig-Air_temp). Of course, we could calculate temperatures for other heights as well, but this is the space most relevant to our system (@fig-case1). This information is also stored in our 'microclimate' object.
+If we want to use air temperatures because our organism does not burrow, as in the case for our grasshopper case study we will describe below (@fig-case1), then we can extract air temperatures at different heights above ground that we estimated (20 cm and 1.2 m) (@fig-Air_temp). Of course, we could calculate temperatures for other heights as well, but this is the space most relevant to our system (@fig-case1). This information is also stored in our 'microclimate' object.
 
 We can simulate microclimates under different scenarios in new calls to the `micro_silo` function but to some extent this can be done within a single simulation. In our case, we've run a single simulation for two heights already so we have everything we need. To obtain our air temperatures, these are stored in a different place in our "microclimate" object. Again, we have access to these calculations under our two shade levels (20% and 80%), but we'll just use our lowest shade level for now. 
 
 :::{.column-margin}
 :::{.callout-important}
-It's important to recognize that the microclimate object has a lot of relevant information that we can use in our simulations. Keep this in mind while exploring the [documentation](https://rdrr.io/github/mrke/NicheMapR/man/). We'll come back to this later on.
+The microclimate object has a lot of relevant information that we can use in our simulations. Keep this in mind while exploring the [documentation](https://rdrr.io/github/mrke/NicheMapR/man/). We'll come back to this later on.
 :::
 :::
 
@@ -238,18 +215,38 @@ Interestingly, during these dates we had a major heatwave event that occurred be
                         scale_colour_viridis_d()
 ```
 
+:::{.column-margin}
+:::{.callout-important}
+It is important to recognize that these are predictions. As with any model, they need field validation [@De_Frenne2024]. Nonetheless, they provide an important tool in our systems modelling framework to help us understand how heatwaves are likely to affect species interactions.
+:::
+::: 
 
-#### Step 2: Cross-talk between plant and animal systems: Incorporating cooling effects of plant transpiration to estimate grasshopper body temperature {#step2}
+# **Developing a systems modelling approach to predict biological responses to extreme heat**
+## **Case Study 1: Simulating plant and insect interactions under heatwaves**
 
-Taking a systems approach means that we can account for the effects of other organisms on our focal species. To do this, we need to consider the biology of the species that co-exist and form part of the same system. 
+Case study one explores how feedback between plants and insects can happen in response to extreme heat events. Here, we are interested in how the behaviour and body temperature of grasshoppers is influenced by changes in plant transpiration which can impact microhabitat temperatures of grasshoppers (@fig-case1). While this is a simple situation it's a useful starting point to understand how a systems modelling approach can be built up to predict the impact of heatwaves on species interactions. 
+
+```{r, fig-case1}
+#| label: fig-case1
+#| echo: false
+#| fig-cap: "Grasshopper and plant interactions under heatwaves. Grasshoppers feeding on leaves of a bush in Calperum Station, South Australia. Complex leaf structure provides shade and cooler microclimate for grasshoppers. Leaves exposed to hot temperatures close their stomata to conserve water reducing transpiration and photosynthesis. Leaves that are not exposed to direct sunlight can keep their stomata open and continue photosynthesis while also transpiring and providing cooler microhabitats that grasshoppers can exploit through thermoregulatory behaviours. Importantly, stomatal behaviour is mediated by drought conditions. More stomata will be closed during drought to conserve water and this will impact the cooling effect of the plant on the grasshopper."
+
+fig_case1 <- image_read(here("figs", "figS1.png"))
+fig_case1
+```
+
+
+### **Step 1: Predicting temperatures experienced by plants that form the grasshopper microclimate** {#step1}
+
+To predict the impact of heatwaves on plant-insect interactions, we first need to predict how the microclimate that each organism experiences translates into body temperatures.  Taking a systems approach means that we can account for the effects of other organisms on our focal species. To do this, we need to consider the biology of the species that co-exist. 
 
 In this case, the plants that the grasshopper consumes will influence the microclimate the grasshopper experiences (@fig-case1). Plants will also respond to the thermal environmental, and this will directly and indirectly influence the grasshopper. For example, plants will change their transpiration through the day and this can impact local temperatures experienced by grasshoppers (@fig-case1). 
 
-The microclimate model that we ran in [Step 1](#step1) can now be used to predict how the plant and grasshopper will respond to the heatwave. **Remember, we just used weather data to calculate air temperatures expected at 0.2 and 1.2m in both 20% and 80% shade. We can use this microclimate data to estimate leaf temperatures for a plant and then use the information on plant temperatures to feedback into the calculations of grasshopper body temperatures.**
+The microclimate model that we ran in [Section 1](#section1) can now be used to predict how the plant and grasshopper will respond to the heatwave. **Remember, we just used weather data to calculate air temperatures expected at 0.2 and 1.2m in both 20% and 80% shade. We can use this microclimate data to estimate leaf temperatures for a plant and then use the information on plant temperatures to feedback into the calculations of grasshopper body temperature.**
 
 Before we can estimate the temperatures for the grasshopper, we need to use a biophysical model to predict what the plant is doing. We can then use this 'new' microclimate data to simulate the growth of insects under different temperature conditions, changing what would happen if plants respond differently [@fig-case1].
 
-Let's use our microclimate simulations to predict the plant leaf and air temperatures at the relevant heights.
+Let's use our microclimate simulations to predict the plant leaf and air temperatures at the relevant heights to grasshoppers.
 
 First, the traits of the leaf must be defined. An ellipsoid shape is used in this simulation. Specification of the mass and the ratios of the linear dimensions of the shape (here, semi-minor axes relative to the semi-major axis) together with the density (default value 1 g cm${^3}$) allows the geometric functions in the ectotherm model to compute the absolute dimensions and surface areas. 
 
@@ -353,6 +350,8 @@ Radiative exchange parameters can be set including the emissivities of the leaf 
               scale_colour_viridis_d()
 ```
 
+### **Step 2: Cross-talk between plant and animal systems: Incorporating cooling effects of plant transpiration to estimate grasshopper body temperature** {#step2}
+
 Now, lets run the ectotherm model for a grasshopper, but instead of using the micrioclimate object as it is, lets assume that the plant environment forms the mircoclimate of the grasshopper. This allows us to take in the microclimate and use it to calculate the body temperature of the grasshopper, and eventually uinderstand how this affects growth, development etc within a dynamic energy budget model. The ectotherm model also allows us to incorporate relevant behavioural plasticity in response to extreme heat, which we'll do. 
 
 ```{r, ecto_grasshopper}
@@ -441,7 +440,7 @@ grasshopper_environ2 <- grasshopper_environ                                     
               labs(fill = "Behaviour")
 ```
 
-# Using a systems modelling approach to help develop solutions to extreme heat events
+# **Using a systems modelling approach to help develop solutions to extreme heat events**
 
 A systems modelling approach can also be used to design possible solutions by understanding better how 'thermal interventions' affect heat experienced by organisms and how it influences growth, survival and reproduction. For example, we can manipulate rainfall at a particular time to simulate artficial watering that might be a possible intervention used during extreme heat. The added water can be used to make calculations of heat exchange, temperatures and transpiration under heat events. We can also optimise the amount of time to balance costs and benefits of watering.
 
