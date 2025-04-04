@@ -264,10 +264,10 @@ Radiative exchange parameters can be set including the emissivities of the leaf 
     load(here("output", "microclim", "microclimate.RDa"))
 
   # First, lets extract the relevant information from the microclimate object
-      PDIFs <- micro$diffuse_frac       # use variable diffuse fraction
-        P_a <- get_pressure(micro$elev) # air pressure, Pa
+      PDIFs <- micro$diffuse_frac             # use variable diffuse fraction
+        P_a <- get_pressure(micro$elev)       # air pressure, Pa
         P_a <- rep(P_a, nrow(micro$metout))   # create hourly vector
-      dates <- micro$dates              # dates
+      dates <- micro$dates                    # dates
 
   # Set leaf functional traits
          live <- 0      # don't simulate behaviour or respiration
