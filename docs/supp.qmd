@@ -332,7 +332,7 @@ Radiative exchange parameters can be set including the emissivities of the leaf 
 
 ```{r, fig-plant_temp}
 #| label: fig-plant_temp
-#| fig-cap: "Leaf temperature of a plant at a location near Renmark, South Australia. Leaf temperature is shown in relation to air temperature at 1.2 m above ground (and in minimum shade, 40%) between "2019-01-15" and "2019-01-31"."
+#| fig-cap: "Leaf temperature of a plant at a location near Renmark, South Australia. Leaf temperature is shown in relation to air temperature at 1.2 m above ground (and in minimum shade, 40%) between 2019-01-15 and 2019-01-31."
 #| code-fold: true
   
   # Load the plant object
@@ -421,7 +421,7 @@ Now, lets have a look at the leat temperature when stomaltal conduction behaviou
 
 ```{r, fig-plant_temp2}
 #| label: fig-plant_temp2
-#| fig-cap: "Leaf temperature of a plant at a location near Renmark, South Australia. Leaf temperature is shown in relation to air temperature at 1.2 m above ground (and in minimum shade, 40%) between "2019-01-15" and "2019-01-31"."
+#| fig-cap: "Leaf temperature of a plant at a location near Renmark, South Australia. Leaf temperature is shown in relation to air temperature at 1.2 m above ground (and in minimum shade, 40%) between 2019-01-15 and 2019-01-31."
 #| code-fold: true
   
   # Load the plant object
@@ -514,7 +514,7 @@ Now that we have run the ectotherm model we can plot the body temperature of the
 
 ```{r, fig-grasshopper_temp}
 #| label: fig-grasshopper_temp
-#| fig-cap: "Body temperature of a grasshopper at a location near Renmark, South Australia. Body temperature of the grasshopper is shown in relation to air temperature at 20 cm and 1.2 m above ground (and in minimum shade, 20%) for a short times between "2019-01-15" and "2019-01-31"."
+#| fig-cap: "Body temperature of a grasshopper at a location near Renmark, South Australia. Body temperature of the grasshopper is shown in relation to air temperature at 20 cm and 1.2 m above ground (and in minimum shade, 20%) for a short times between 2019-01-15 and 2019-01-31."
 
 # Load grasshopper object
   load(here("output", "microclim", "grasshopper_micro.RDa"))
