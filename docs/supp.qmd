@@ -356,6 +356,101 @@ Radiative exchange parameters can be set including the emissivities of the leaf 
               scale_colour_viridis_d()
 ```
 
+We will now use the `plantecophys` package to calculate the leaf temperature and transpiration of the plant. This will allow us to understand how the plant is responding to the heatwave and how this might influence the grasshopper. The `plantecophys` package allows us to get more realistic stomatal behaviour via the `Photosyn` function. This code runs `Photosyn` assuming the leaf temperature calculated with the ectotherm model to start with.
+
+```{r}
+#| label: plant_stomatal
+#| echo: true
+#| warning: false
+#| message: false
+
+# Include simulated stomatal conductance from plantecophys
+  UMOLPERJ <- 4.57                                                   # mu_mol photons / J
+WETAIR_out <- WETAIR(db = plant$metout[,"TALOC"], rh = plant$metout[,"RHLOC"], bp = P_a)
+    VPD_Pa <- WETAIR_out$esat - WETAIR_out$e
+ photo_out <- Photosyn(Tleaf = plant$environ[,"TC"],                 # Leaf temperature (C)
+                          g1 = 5.2,                                  # Parameter of Ball-Berry model
+                          Ca = 400,                                  # Atmospheric CO2 concentration (ppm)
+                         VPD = VPD_Pa/1000,                          # Vapour pressure deficit (kPa)
+                      vpdmin = 0.5,                                  # lower threshold on VPD
+                        PPFD = plant$metout[,"SOLR"] * UMOLPERJ * 1, # mu mol m-2 s-1
+                        Patm = P_a/1000                              # Atmospheric pressure (kPa)
+                      )
+g_vs_abs_pho <- photo_out$GS
+```
+
+Now recalculate leaf temperature using these stomatal conductance values from `Photosyn`. Note that we have re-written the `g_vs_abs_pho` to capture the stomatal conductance from `Photosyn`. We just replace this in the plant biophysical model.
+
+```{r, plant_stomatal2}
+#| label: plant_stomatal2
+#| echo: true
+#| warning: false
+#| message: false
+
+# Rerun the models. Note that the paramaters as the same as  
+plant2 <- ectotherm( leaf = leaf, 
+                     live = live,
+                     Ww_g = Ww_g, 
+                    shape = shape, 
+                  shape_b = shape_b, 
+                  shape_c = shape_c, 
+                  g_vs_ab = g_vs_abs_pho, 
+                  g_vs_ad = g_vs_ads, 
+              g_vs_ab_max = g_vs_ab_max, 
+              g_vs_ad_max = g_vs_ad_max, 
+              epsilon_sub = epsilon_sub, 
+              epsilon_sky = epsilon_sky,
+                  epsilon = epsilon_L, 
+                alpha_max = alpha_L, 
+                alpha_min = alpha_L,
+                      M_1 = M_1,
+                   fatosk = fatosk, 
+                   fatosb = fatosb, 
+             conv_enhance = conv_enhance, 
+                 pct_cond = pct_cond, 
+                   postur = postur,
+                   preshr = P_a, 
+                    PDIF = PDIFs)
+# Save model
+  save(plant2, file = here("output", "microclim", "plant2_micro.RDa"))
+#environ <- as.data.frame(plant2$environ)
+#T_leaf_plantecophys <- environ$TC
+```
+
+Now, lets have a look at the leat temperature when stomaltal conduction behaviour is incorperated.
+
+```{r, fig-plant_temp2}
+#| label: fig-plant_temp2
+#| fig-cap: "Leaf temperature of a plant at a location near Renmark, South Australia. Leaf temperature is shown in relation to air temperature at 1.2 m above ground (and in minimum shade, 40%) between "2019-01-15" and "2019-01-31"."
+#| code-fold: true
+  
+  # Load the plant object
+    load(here("output", "microclim", "plant_micro.RDa"))
+    load(here("output", "microclim", "plant2_micro.RDa"))
+  
+  # Extract the microclimate temperatures. Becasue this was simulated for a plot the 'body tempertaure'is the leaf temperature and is stored as 'TC' in the environ object
+            environ_plant_plantecophys2 <- as.data.frame(plant2$environ)
+      environ_plant_plantecophys2$dates <- micro$dates  # For clarirty add in dates from microclimate that ecto model uses
+
+  environ_plant_plantecophys <- environ_plant_plantecophys2 %>% filter(dates > "2019-01-15" & dates < "2019-01-31") %>%
+              dplyr::select(dates, TC) %>%
+              pivot_longer(cols = c(TC), 
+                           names_to = "Temps", 
+                           values_to = "Temperature") %>% 
+              mutate(Temps = ifelse(Temps == "TC",  "Leaf Temperature (Stomatal Conductance)"))
+
+  # Combine the two dataframes environ_plant_plantecophys and environ_plant2
+  new_environ_plant2 <- rbind(environ_plant_plantecophys, environ_plant2)
+
+  ggplot(new_environ_plant2) + 
+              geom_line(aes(y = Temperature, x = dates, col = Temps), show.legend = TRUE) +
+              labs(y = "Temperature (°C)", x = "Date") + theme_classic() +
+              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
+              scale_colour_viridis_d()
+```
+
+Heer we can see that stomatal closure in teh middle of the day causes the leaf temperatures to rise substantially compared to if they were always open and transpiring, which would result in evaporative cooling. This is important because it means that the grasshopper will be exposed to higher temperatures. 
+
 ### **Step 2: Cross-talk between plant and animal systems: Incorporating cooling effects of plant transpiration to estimate grasshopper body temperature** {#step2}
 
 Now, lets run the ectotherm model for a grasshopper, but instead of using the micrioclimate object as it is, lets assume that the plant environment forms the mircoclimate of the grasshopper. This allows us to take in the microclimate and use it to calculate the body temperature of the grasshopper, and eventually uinderstand how this affects growth, development etc within a dynamic energy budget model. The ectotherm model also allows us to incorporate relevant behavioural plasticity in response to extreme heat, which we'll do. 
