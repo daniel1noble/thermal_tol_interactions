@@ -49,7 +49,79 @@ Our case studies all use the statistical software [R](https://www.r-project.org/
 
 # Load required libraries after the installation
 pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable, NicheMapR, terra, microclima, plantecophys, magick, here, ggrepel, lutz)
+
+```
+
+```{r, func}
+#| label: func
+#| echo: false
+#| warning: false
+#| message: false
+#| 
 source(here("R", "func.R"))
+```
+
+
+Throughout we'll also use some helper functions. These can be added to your working environment by running the code below.
+
+```{r, functions}
+#| label: functions
+#| echo: true
+#| warning: false
+#| message: false
+#| eval: false
+
+
+#' @title convert_doy
+#' @description Convert day of year (DOY) to date, month-day, ymd, or julian date
+#' @param doy Numeric vector of day of year
+#' @param year Numeric vector of year
+#' @param format_type Character vector of format type. Default is "date"
+#' @return Date, month, month-day, ymd, or julian date
+#' @examples
+#' convert_doy(120, 2024, "date") # "2024-04-29"
+#' convert_doy(120, 2024, "month_day") # "April 29"	
+#' convert_doy(120, 2024, "ymd") # "2024-04-29"
+
+convert_doy <- function(doy, year, format_type = "date") {
+  # Convert DOY to Date
+  date <- as.Date(doy - 1, origin = paste0(year, "-01-01"))
+  
+  # Return different formats based on format_type
+  switch(format_type,
+         "date" = date,                     # Default: Date format
+         "month_day" = format(date, "%B %d"), # "April 29"
+		 "month" = format(date, "%B"), # "April"
+         "ymd" = format(date, "%Y-%m-%d"),    # "2024-04-29"
+         "julian" = format(date, "%Y%j"),     # "2024120"
+         stop("Invalid format_type. Choose from 'date', 'month_day', 'ymd', or 'julian'.")
+  )
+}
+
+#' @title convert_time
+#' @description Convert decimal time to hh:mm, hh:mm:ss, or 12-hour format
+#' @param time_minutes Numeric vector of decimal time in minutes
+#' @param format_type Character vector of format type. Default is "hh:mm"
+#' @return Time in hh:mm, hh:mm:ss, or 12-hour format
+#' @examples
+#' convert_time(13.5, "hh:mm") # "13:30"
+#' convert_time(13.5, "hh:mm:ss") # "13:30:00"
+#' convert_time(13.5, "12-hour") # "1:30 PM"
+
+convert_time_for_plot <- function(time_minutes, format_type = "decimal") {
+  # Extract hours and minutes
+  hours <- time_minutes %/% 60  
+  minutes <- time_minutes %% 60  
+
+  # Format output based on format_type
+  switch(format_type,
+         "decimal" = hours + minutes / 60,  # e.g., 13.5 for 13:30
+         "POSIXct" = as.POSIXct(sprintf("%02d:%02d", hours, minutes), format="%H:%M", tz="UTC"),  # e.g., "13:30:00 UTC"
+         "hms" = hms::hms(hours * 3600 + minutes * 60),  # e.g., 13:30:00
+         stop("Invalid format_type. Choose from 'decimal', 'POSIXct', or 'hms'.")
+  )
+}
+
 
 ```
 
@@ -87,13 +159,13 @@ gFortran can be a problem for NicheMapR so you need to set the paths properly if
 
 # **Predicting relevant microclimates to organisms: A walk through microclimate modelling** {#section1}
 
-Broad-scale climate data is extremely coarse relative to the types of conditions experienced by organisms in their natural environment. Using biophysical models we can use coarse climate, topological, rainfall, elevation and spatial information to make predictions on what the microclimate a species is likely to experience, which can help us predict its likely body temperature (*exposure*). In combination with an understanding of the species' biology we can simulate realistic scenarios that are relevant to the species in question.
+Broad-scale climate data is extremely coarse relative to the types of conditions experienced by organisms in their natural environment. Using biophysical models we can use coarse climate, topological, rainfall, elevation and spatial information to make predictions on what the microclimate a species is likely to experience, which can help us predict its body temperature (*exposure*). In combination with an understanding of the species' biology we can simulate realistic scenarios that are relevant to the species in question.
 
 As a first step, it's important to be able to down-scale climatic data to microclimate conditions relevant to organisms. To model the microclimate, we can use the [`NicheMapR`](https://mrke.github.io) and the [`microclima`](https://github.com/ilyamaclean/microclima) packages. This section will demonstrate some ways that we can achieve this and make predictions for locations relevant to organisms of interest. 
 
 There are various climate datasets that can be used to predict the microclimate but for simplicity we'll use weather data from 1889 to yesterday from https://www.longpaddock.qld.gov.au/silo/. 
 
-The code below shows how to predict the microclimate at a location close to Renmark, South Australia (Calperum Station). It uses the weather data to calculate various microclimates relevant at various locations and conditions relevant to an organism. For example, it will compute temperatures at depths below ground (e.g., 0 and 50cm at or below the ground as we do here) and above also above ground (20 cm and 1.2 m air temperature above ground). 
+The code below shows how to predict various microclimates at a location close to Renmark, South Australia (Calperum Station). For example, it will compute temperatures at depths below ground (e.g., 0 and 50cm at or below the ground) and also above ground (20 cm and 1.2 m air temperature above ground). These might be relevant places for our organisms of interest, but we could be more thorough and simulate at other heights and locations if required. 
 
 ```{r, microclimate_soil}
 #| label: microclimate_soil
@@ -125,18 +197,18 @@ The code below shows how to predict the microclimate at a location close to Renm
 
 ```
 
-We can now plot the below ground temperatures to see the thermal profiles at different depths. Organisms can exploit this variation, especially if they can burrow (@fig-soil_temp). We can see that surface temperatures are much more heterogeneous than those at 50 cm below ground. This is because the surface is more exposed to solar radiation and can heat up more quickly.
+We can now plot the below ground temperatures to see the thermal profiles at different depths. Organisms can exploit this variation, especially if they can burrow (@fig-soil_temp). We can see that surface temperatures are much more heterogeneous than those at 50 cm below ground. This is because the surface is more exposed to solar radiation and can heat up more quickly. Note that the temperatures assume the area is 40% exposed to the sun.
 
 ```{r, fig-soil_temp}
 #| label: fig-soil_temp
-#| fig-cap: "Average soil temperature at a location near Renmark, South Australia. Soil temperatures are simulated from the surface (0 cm) to 50 cm below ground (and in minimum shade, 20%) and shown across time (hours) between 01/01/2018 to 31/12/2019. "
+#| fig-cap: "Average soil temperature at a location near Renmark, South Australia. Soil temperatures are simulated from the surface (0 cm) to 50 cm below ground (and in minimum shade, 40%) and shown across time (hours) between 01/01/2018 to 31/12/2019. "
 #| code-fold: true
 
 # Load the microclimate object
   load(here("output", "microclim", "microclimate.RDa"))
 
-# Explore microclimate data. For ease of plotting we'll extract soil temperatures at the 20% share levels across the full set of dates we requested. 
-        soil_temp <- data.frame(micro$soil) # Note this is under 20% shade
+# Explore microclimate data. For ease of plotting we'll extract soil temperatures at the 40% shade levels across the full set of dates we requested. 
+        soil_temp <- data.frame(micro$soil) # Note this is under 40% shade
   soil_temp$dates <- micro$dates            # Add in the dates
 
 # Re-arrange for plotting
@@ -154,9 +226,9 @@ We can now plot the below ground temperatures to see the thermal profiles at dif
                         scale_colour_viridis_d()
 ```
 
-If we want to use air temperatures because our organism does not burrow, as in the case for our grasshopper case study that we will describe below (@fig-case1), then we can extract air temperatures at different heights above ground (For example, at 20 cm and 1.2 m) (@fig-Air_temp). Of course, we could calculate temperatures for other heights as well, but this is the space most relevant to our system (@fig-case1). This information is also stored in our `microclimate` object.
+If we want to use air temperatures because our organism does not burrow then we can extract air temperatures at different heights above ground (we have simulated 20 cm and 1.2 m) (@fig-Air_temp). Of course, we could calculate temperatures for other heights as well, but assume this is the space most relevant to our system (@fig-case1), which we will detail below. We can also simulate microclimates under different scenarios in new calls to the `micro_silo` function but in our case we have managed to keep it simple and do everything in a single run. 
 
-We can simulate microclimates under different scenarios in new calls to the `micro_silo` function but to some extent this can be done within a single simulation. In our case, we've run a single simulation for two heights already so we have everything we need. To obtain our air temperatures, these are stored in a different place in our `microclimate` object. Again, we have access to these calculations under two shade levels (20% and 80%), but we'll just use our lowest shade level for now. 
+Information on air temperatures at our two heights is also stored in our `microclimate` object from the simulation we ran above. To obtain our air temperatures, these are stored in a different place in our `microclimate` object. Again, we have access to these calculations under two shade levels (40% and 80%), but we'll just use our lowest shade level for now. 
 
 :::{.column-margin}
 :::{.callout-important}
@@ -175,11 +247,11 @@ The microclimate object has a lot of relevant information that we can use in our
   air_temp$dates <- micro$dates
 ```
 
-Now we can have a look at what the air temperature would be 20 cm and 1.2 m above ground, a space relevant to a grasshopper (@fig-Air_temp). We could simulate temperatures for various heights to factor in movement of the grasshopper in response to heatwaves, but we'll keep it simple for now.
+Now we can have a look at what the air temperature would be 20 cm and 1.2 m above ground (@fig-Air_temp). 
 
 ```{r, fig-Air_temp}
 #| label: fig-Air_temp
-#| fig-cap: "Average air temperature at a location near Renmark, South Australia. Air temperatures at 20 cm and 1.2 m above ground (and in minimum shade, 20%) are shown for a short times between 2019-01-15 and 2019-01-31."
+#| fig-cap: "Average air temperature at a location near Renmark, South Australia. Air temperatures at 20 cm and 1.2 m above ground (and in minimum shade, 40%) are shown for a short times between 2019-01-15 and 2019-01-31."
 #| code-fold: true
 
   air_temp2 <- air_temp                             %>% 
@@ -199,13 +271,13 @@ Now we can have a look at what the air temperature would be 20 cm and 1.2 m abov
               
 ```
 
-We can immediately see from @fig-Air_temp that air temperatures closer to the ground are hotter than those higher up likely because of increased radiative heat transfer from the ground to air in close proximity and convective cooling higher in the air column.
+We can immediately see from @fig-Air_temp that air temperatures closer to the ground are hotter than those higher up because of increased radiative heat transfer from the ground to air in close proximity and convective cooling higher in the air column.
 
-Interestingly, during these dates we had a major heatwave event that occurred between 2018-12-24 and 2019-01-07. Lets have a look at the temperatures during this period.
+Interestingly, between 2019-01-15 to 2019-01-31 we had a major heatwave event. Lets have a look at the temperatures during this period.
 
 ```{r, fig-Air_temp_heatwave}
 #| label: fig-Air_temp_heatwave
-#| fig-cap: "Average air temperature at a location near Renmark, South Australia. Air temperatures at 20 cm and 1.2 m above ground (and in minimum shade, 20%) are shown for a short times between 2019-01-15 and 2019-01-31."
+#| fig-cap: "Average air temperature at a location near Renmark, South Australia. Air temperatures at 20 cm and 1.2 m above ground (and in minimum shade, 40%) are shown for a short times between 2019-01-15 and 2019-01-31."
 #| code-fold: true
 
   air_temp2  %>% filter(dates > "2019-01-15" & dates < "2019-01-31") %>%
@@ -222,6 +294,8 @@ Interestingly, during these dates we had a major heatwave event that occurred be
 It is important to recognize that these are predictions. As with any model, they need field validation [@De_Frenne2024]. Nonetheless, they provide an important tool in our systems modelling framework to help us understand how heatwaves are likely to affect species interactions.
 :::
 ::: 
+
+Now that we've explored the various temperatures predicted in our microclimate model, we can use this information to predict the body temperatures of organisms. We can also use this information to predict how these organisms will respond to extreme heat events.
 
 # **Developing a systems modelling approach to predict biological responses to extreme heat**
 ## **Case Study 1: Simulating plant and insect interactions under heatwaves**
@@ -244,7 +318,7 @@ To predict the impact of heatwaves on plant-insect interactions, we first need t
 
 In this case, the plants that the grasshopper consumes will influence the microclimate the grasshopper experiences (@fig-case1). Plants will also respond to the thermal environmental, and this will directly and indirectly influence the grasshopper. For example, plants will change their transpiration through the day and this can impact local temperatures experienced by grasshoppers (@fig-case1). 
 
-The microclimate model that we ran in [Section 1](#section1) can now be used to predict how the plant and grasshopper will respond to the heatwave. **Remember, we just used weather data to calculate air temperatures expected at 0.2 and 1.2m in both 20% and 80% shade. We can use this microclimate data to estimate leaf temperatures for a plant and then use the information on plant temperatures to feedback into the calculations of grasshopper body temperature.**
+The microclimate model that we ran in [Section 1](#section1) can now be used to predict how the plant and grasshopper will respond to the heatwave. **Remember, we just used weather data to calculate air temperatures expected at 0.2 and 1.2m in both 40% and 80% shade. We can use this microclimate data to estimate leaf temperatures for a plant and then use the information on plant temperatures to feedback into the calculations of grasshopper body temperature.**
 
 Before we can estimate the temperatures for the grasshopper, we need to use a biophysical model to predict what the plant is doing. We can then use this 'new' microclimate data to simulate the growth of insects under different temperature conditions, changing what would happen if plants respond differently [@fig-case1].
 
@@ -348,13 +422,13 @@ Radiative exchange parameters can be set including the emissivities of the leaf 
               pivot_longer(cols = c(TA, TC), 
                            names_to = "Temps", 
                            values_to = "Temperature") %>% 
-              mutate(Temps = ifelse(Temps == "TA", "Air Temperature (1.2 m)", "Leaf Temperature (Stomata Open) (20% shade)"))
+              mutate(Temps = ifelse(Temps == "TA", "Air Temperature (1.2 m) (40% shade)", "Leaf Temperature (Stomata Open) (40% shade)"))
 
   # Plot it out
   ggplot(environ_plant2) + 
               geom_line(aes(y = Temperature, x = dates, col = Temps), show.legend = TRUE) + 
               labs(y = "Temperature (°C)", x = "Date") + theme_classic() +
-              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
+              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "top") + 
               scale_colour_viridis_d()
 ```
 
@@ -418,7 +492,7 @@ plant2 <- ectotherm( leaf = leaf,
 
 ```
 
-Now, lets have a look at the leat temperature when stomaltal conduction behaviour is incorperated.
+Now, lets have a look at the leat temperature when stomatal conduction behaviour is incorperated.
 
 ```{r, fig-plant_temp2}
 #| label: fig-plant_temp2
@@ -439,7 +513,7 @@ Now, lets have a look at the leat temperature when stomaltal conduction behaviou
               pivot_longer(cols = c(TC), 
                            names_to = "Temps", 
                            values_to = "Temperature") %>% 
-              mutate(Temps = ifelse(Temps == "TC",  "Leaf Temperature (Stomatal Closure) (20% shade)"))
+              mutate(Temps = ifelse(Temps == "TC",  "Leaf Temperature (Stomatal Closure) (40% shade)"))
 
   # Combine the two dataframes environ_plant_plantecophys and environ_plant2
   new_environ_plant2 <- rbind(environ_plant_plantecophys, environ_plant2)
@@ -447,7 +521,7 @@ Now, lets have a look at the leat temperature when stomaltal conduction behaviou
   ggplot(new_environ_plant2) + 
               geom_line(aes(y = Temperature, x = dates, col = Temps), show.legend = TRUE) +
               labs(y = "Temperature (°C)", x = "Date") + theme_classic() +
-              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
+              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),legend.position = "top", legend.text = element_text(size = 6)) + 
               scale_colour_viridis_d()
 ```
 
@@ -463,12 +537,22 @@ Now, lets run the ectotherm model for a grasshopper, but instead of using the mi
 #| warning: false
 #| message: false
 
-# First, lets fix up the microclimate object so that we can use it in the ectotherm model. We need to add in the leaf temperature as the body temperature of the grasshopper. There are a couple of ways we can conceptualise this. For example, we could assume that animals are in shade and therefore infrared radiative heat (`TSKYC`) is the temperature the grasshopper experiences from their environment. Alternatively, we could assume that when sitting on a leaf the grasshopper is in direct contact with the leaf and therefore the leaf temperature is the body temperature. 
-            
-             # micro$metout[,"TC"] <- micro
-             #      grasshopper$TC <- T_leaf
-             #   grasshopper$dates <- micro$dates
+# First, lets fix up the microclimate object so that we can use it in the ectotherm model. We need to add in the leaf temperature as the microclimate for the grasshopper. There are a couple of ways we can conceptualise this. For example, we could assume that animals are in shade and therefore infrared radiative heat (`TSKYC`) is the temperature the grasshopper experiences from their environment. Alternatively, we could assume that when sitting on a leaf the grasshopper is in direct contact with the leaf and therefore the leaf temperature is the microclimate experienced by the grasshopper. We therefore need to treat the temperatures of the leaf as the environmental temperatures experienced by the grasshopper. Then, we feed this new microclimate into the grasshopper biophysical model to predict its body temperature. 
 
+  # Re-load the original micro object. We'll modify this now
+    load(here("output", "microclim", "microclimate.RDa"))          
+
+  # Get some key mircoclimate details of the plants from the model that considers the behaviour of the stomata and update the mircoclimate. We'll do this for the 40% shade condition (metout).
+  
+  # First, assume that the air temp at the location is close to or equivilant to the temp of the plant leaf. Update miroclimate accordingly that will be used for grasshopper.
+  micro$metout[,"TALOC"] <- environ_plant_plantecophys2[,"TC"]
+             
+  # Second, lets update the relative humidity.
+  micro$metout[,"RHLOC"] <- environ_plant_plantecophys2[,"RELHUM"]
+             
+  # Third, lets also update the IR profiles. 
+    micro$metout[,"TSKYC"] <- environ_plant_plantecophys2[,"TSKY"]   
+             
 # Parameters for the grasshopper
     Ww_g <- 0.2  # g, body mass
    shape <- 1    # cylinder
@@ -509,6 +593,7 @@ grasshopper <- ectotherm(Ww_g = Ww_g,
                      pct_cond = pct_cond
 )
 
+# Save the grasshopper object
 save(grasshopper, file = here("output", "microclim", "grasshopper_micro.RDa"))
 ```
 
@@ -516,7 +601,7 @@ Now that we have run the ectotherm model we can plot the body temperature of the
 
 ```{r, fig-grasshopper_temp}
 #| label: fig-grasshopper_temp
-#| fig-cap: "Body temperature of a grasshopper at a location near Renmark, South Australia. Body temperature of the grasshopper is shown in relation to air temperature at 20 cm and 1.2 m above ground (and in minimum shade, 20%) for a short times between 2019-01-15 and 2019-01-31."
+#| fig-cap: "Body temperature of a grasshopper at a location near Renmark, South Australia. Body temperature of the grasshopper is shown in relation to air temperature at 1.2 m above ground (and in minimum shade, 40%) for a short times between 2019-01-15 and 2019-01-31."
 
 # Load grasshopper object
   load(here("output", "microclim", "grasshopper_micro.RDa"))
