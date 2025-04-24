@@ -338,17 +338,19 @@ Radiative exchange parameters can be set including the emissivities of the leaf 
   # Load the plant object
     load(here("output", "microclim", "plant_micro.RDa"))
   
-  # Extract the microclimate temperatures. Becasue this was simulated for a plot the 'body tempertaure'is the leaf temperature and is stored as 'TC' in the environ object
+  # Extract the microclimate temperatures. Because this was simulated for a plant the 'body tempertaure'is the leaf temperature and is stored as 'TC' in the environ object
             environ_plant <- as.data.frame(plant$environ)
-      environ_plant$dates <- micro$dates  # For clarirty add in dates from microclimate that ecto model uses
+      environ_plant$dates <- micro$dates  # For clarity add in dates from microclimate that ecto model uses
 
+  # Re-organise the data for plotting
   environ_plant2 <- environ_plant %>% filter(dates > "2019-01-15" & dates < "2019-01-31") %>%
               select(dates, TA, TC) %>%
               pivot_longer(cols = c(TA, TC), 
                            names_to = "Temps", 
                            values_to = "Temperature") %>% 
-              mutate(Temps = ifelse(Temps == "TA", "Air Temperature", "Leaf Temperature (Stomata Open)"))
+              mutate(Temps = ifelse(Temps == "TA", "Air Temperature (1.2 m)", "Leaf Temperature (Stomata Open) (20% shade)"))
 
+  # Plot it out
   ggplot(environ_plant2) + 
               geom_line(aes(y = Temperature, x = dates, col = Temps), show.legend = TRUE) + 
               labs(y = "Temperature (°C)", x = "Date") + theme_classic() +
@@ -413,8 +415,7 @@ plant2 <- ectotherm( leaf = leaf,
                     PDIF = PDIFs)
 # Save model
   save(plant2, file = here("output", "microclim", "plant2_micro.RDa"))
-#environ <- as.data.frame(plant2$environ)
-#T_leaf_plantecophys <- environ$TC
+
 ```
 
 Now, lets have a look at the leat temperature when stomaltal conduction behaviour is incorperated.
@@ -428,16 +429,17 @@ Now, lets have a look at the leat temperature when stomaltal conduction behaviou
     load(here("output", "microclim", "plant_micro.RDa"))
     load(here("output", "microclim", "plant2_micro.RDa"))
   
-  # Extract the microclimate temperatures. Becasue this was simulated for a plot the 'body tempertaure'is the leaf temperature and is stored as 'TC' in the environ object
+  # Extract the microclimate temperatures. Because this was simulated for a plant the 'body tempertaure'is the leaf temperature and is stored as 'TC' in the environ object. Note now that this new biophysical model has stomatal behaviour incorporated in the new plant2 object.
             environ_plant_plantecophys2 <- as.data.frame(plant2$environ)
       environ_plant_plantecophys2$dates <- micro$dates  # For clarirty add in dates from microclimate that ecto model uses
 
+  # Re-organise the data for plotting
   environ_plant_plantecophys <- environ_plant_plantecophys2 %>% filter(dates > "2019-01-15" & dates < "2019-01-31") %>%
               dplyr::select(dates, TC) %>%
               pivot_longer(cols = c(TC), 
                            names_to = "Temps", 
                            values_to = "Temperature") %>% 
-              mutate(Temps = ifelse(Temps == "TC",  "Leaf Temperature (Stomatal Closure)"))
+              mutate(Temps = ifelse(Temps == "TC",  "Leaf Temperature (Stomatal Closure) (20% shade)"))
 
   # Combine the two dataframes environ_plant_plantecophys and environ_plant2
   new_environ_plant2 <- rbind(environ_plant_plantecophys, environ_plant2)
@@ -449,7 +451,7 @@ Now, lets have a look at the leat temperature when stomaltal conduction behaviou
               scale_colour_viridis_d()
 ```
 
-Heer we can see that stomatal closure in teh middle of the day causes the leaf temperatures to rise substantially compared to if they were always open and transpiring, which would result in evaporative cooling. This is important because it means that the grasshopper will be exposed to higher temperatures. 
+Here, we can see that stomatal closure in the middle of the day causes the leaf temperatures to rise substantially compared to if they were always open and transpiring (i.e., evaporative cooling). This is important because it means that the grasshopper will be exposed to higher temperatures when plant stomata close midday. 
 
 ### **Step 2: Cross-talk between plant and animal systems: Incorporating cooling effects of plant transpiration to estimate grasshopper body temperature** {#step2}
 
