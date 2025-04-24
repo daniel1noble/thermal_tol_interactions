@@ -347,7 +347,7 @@ Radiative exchange parameters can be set including the emissivities of the leaf 
               pivot_longer(cols = c(TA, TC), 
                            names_to = "Temps", 
                            values_to = "Temperature") %>% 
-              mutate(Temps = ifelse(Temps == "TA", "Air Temperature", "Leaf Temperature"))
+              mutate(Temps = ifelse(Temps == "TA", "Air Temperature", "Leaf Temperature (Stomata Open)"))
 
   ggplot(environ_plant2) + 
               geom_line(aes(y = Temperature, x = dates, col = Temps), show.legend = TRUE) + 
@@ -437,7 +437,7 @@ Now, lets have a look at the leat temperature when stomaltal conduction behaviou
               pivot_longer(cols = c(TC), 
                            names_to = "Temps", 
                            values_to = "Temperature") %>% 
-              mutate(Temps = ifelse(Temps == "TC",  "Leaf Temperature (Stomatal Conductance)"))
+              mutate(Temps = ifelse(Temps == "TC",  "Leaf Temperature (Stomatal Closure)"))
 
   # Combine the two dataframes environ_plant_plantecophys and environ_plant2
   new_environ_plant2 <- rbind(environ_plant_plantecophys, environ_plant2)
