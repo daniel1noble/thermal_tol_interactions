@@ -636,7 +636,13 @@ grasshopper_environ2 <- grasshopper_environ                                     
 
 # **Using a systems modelling approach to help develop solutions to extreme heat events**
 
-A systems modelling approach can also be used to design possible solutions by understanding better how 'thermal interventions' affect heat experienced by organisms and how it influences growth, survival and reproduction. For example, we can manipulate rainfall at a particular time to simulate artficial watering that might be a possible intervention used during extreme heat. The added water can be used to make calculations of heat exchange, temperatures and transpiration under heat events. We can also optimise the amount of time to balance costs and benefits of watering.
+A systems modelling approach can also be used to design possible solutions by understanding better how 'thermal interventions' affect heat experienced by organisms and how it influences growth, survival and reproduction. For example, we can manipulate rainfall at a particular time to simulate artificial watering which might be a possible intervention used during extreme heat. The added water can be used to make calculations of heat exchange, temperatures and transpiration under extreme heat events. We can also optimise the amount of time to balance costs and benefits of watering.
+
+## **Case Study 3: Simulating the effect of watering on plant and insect body temperatures** {#case3}
+
+Let's assume our plant species is of interest for conservation or agricultural reasons and we want to understand how watering during a heatwave might help it survive. 
+
+
 
 ```{r, microclimate_water}
 #| label: microclimate_water
