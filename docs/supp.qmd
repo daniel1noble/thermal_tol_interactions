@@ -642,6 +642,15 @@ A systems modelling approach can also be used to design possible solutions by un
 
 Let's assume our plant species is of interest for conservation or agricultural reasons and we want to understand how watering during a heatwave might help it survive. 
 
+```{r, fig-case3}
+#| label: fig-case3
+#| echo: false
+#| fig-cap: "Evaluating the impacts of 'thermal interventions' on temperatures experienced by plants and animals. Under extreme heat we might add water to the system to help keep plants cool, but such intervention may also have unexpected consequences on insects. Using a systems approach we can evaluate the impact of watering on plant and insect body temperatures. This can help us understand how to best manage the system to reduce the impacts of extreme heat on plants and insects."
+
+fig_case2 <- image_read(here("figs", "figS2.png"))
+fig_case2
+```
+
 
 
 ```{r, microclimate_water}
