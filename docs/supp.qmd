@@ -821,7 +821,7 @@ Now we have the new microclimate objects. The orginal, the 10mm and the 20mm wat
 #| warning: false
 #| message: false
 
-# Now, run the plant biophysical model using each of the three different microclimate objects.
+# Now, run the plant heat-budget model using each of the three different microclimate objects.
 
 objects <- c("microclimate.RDa", "water_10_shade.RDa", "water_20_shade.RDa")
   names <- c("real", "water_10", "water_20")
