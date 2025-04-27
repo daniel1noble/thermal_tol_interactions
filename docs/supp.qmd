@@ -190,6 +190,7 @@ The code below shows how to predict various microclimates at a location close to
                       microclima = 1,            # Use mircoclima 
                               PC = -1500,        # Water potential for stomatal closure
                               SP = 10,           # Stability parameter for stomatal closure
+                              
                            email = "daniel.noble@anu.edu.au") # Replace with your email
 
 # Save the microclimate object for later in case we need it again as it avoids needing to rerun.                           
@@ -640,7 +641,7 @@ A systems modelling approach can also be used to design possible solutions by un
 
 ## **Case Study 3: Simulating the effect of watering on plant and insect body temperatures** {#case3}
 
-Let's assume our plant species is of interest for conservation or agricultural reasons and we want to understand how watering during a heatwave might help it survive. 
+Let's assume our plant species is of interest for conservation or agricultural reasons and we want to understand how watering during a heatwave might help it survive (@fig-case3). 
 
 ```{r, fig-case3}
 #| label: fig-case3
@@ -651,22 +652,107 @@ fig_case2 <- image_read(here("figs", "figS2.png"))
 fig_case2
 ```
 
+Below, we load in our original microclimate object. We can now use this to simulate the effect of watering on the microclimate. First, lets just look at the rainfall that occured over the period of interest (@fig-water). The rainfall data is stored in the `microclimate` object and is provided as a daily value (rather than hourly as for temperature). 
 
-
-```{r, microclimate_water}
-#| label: microclimate_water
+```{r, fig-water}
+#| label: fig-water
+#| fig-cap: "Rainfall events over time for A) over years and B) only during the heat wave event from 2019-01-15 to 2019-01-31."
+#| code-fold: true
 #| echo: true
-#| warning: false
-#| message: false
-#| eval: false
 
 # Lets reload our microclimate object so we can use it again
   load(here("output", "microclim", "microclimate.RDa"))
 
-# Lets now create a couple scenerios. This includes: 1) high shade conidtions with no water, 2) low shade conditions with no water, 3) high shade conditions with water and 4) low shade conditions with water.
-    # First, get high and low shade conditions from our origial simulation
-     micro_lowshade_nowater <- micro$metout
-    micro_highshade_nowater <- micro$shadmet
+# Lets plot out the actual rainfall data for the location. This is the rainfall data that was used in the microclimate model. 
+            rainfall_actual <- data.frame(micro$RAINFALL)
+      rainfall_actual$dates <- as.POSIXct(micro$dates2)
+  
+# Plot the rainfall data each day through time
+
+  p1 <- ggplot(rainfall_actual) + 
+              geom_line(aes(y = micro.RAINFALL, x = dates), col = "blue") +
+              geom_hline(yintercept = 10, colour = "red", lty = 2) +
+              labs(y = "Rainfall (mm)", x = "Date") + theme_classic() +
+              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
+              scale_colour_viridis_d()
+
+# Now a plot of ran over the heat wave even just to zoom in
+
+   p2 <-  rainfall_actual %>% filter(dates > "2019-01-15" & dates < "2019-01-31")  %>% 
+  ggplot() + 
+              geom_line(aes(y = micro.RAINFALL, x = dates), col = "blue") +
+              geom_hline(yintercept = 10, colour = "red", lty = 2) +
+              labs(y = "Rainfall (mm)", x = "Date") + theme_classic() +
+              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
+              scale_colour_viridis_d()
+
+# Combine the two plots
+
+p1 + p2 + plot_layout(ncol = 1) + plot_annotation(tag_levels = "A") +
+  theme(plot.tag = element_text(size = 12, face = "bold"))
+
+```
+
+It's clear that we had very little water during the heatwave event. If this was an agriculturally important species, we might than as the question "how would the temperature of the plants change if we added water to the system?". Remember, stomatal closure during the heat wave event meant that the leaf temperatures were much higher than the air temperature (@fig-plant_temp2). Spraying water will cool the plants through evaportive cooling, but by how much can we expect it to do that? Well, we can use the microclimate model to simulate this.
+
+
+```{r, watering}
+#| label: watering
+#| echo: true
+#| warning: false
+#| message: false
+
+# Lets assume we are planning on adding 10mm or 20 mm of water to the system to see how much it makes a difference on plant leaf temperaures. 
+  rainfall_10 <- 10 # mm water to add
+  rainfall_20 <- 20 # mm water to add
+
+# Specify the dates we are going to add water. 
+    date_waters <- as.character(seq(as.POSIXct("2019-01-01"), as.POSIXct("2019-01-31"), by = "days"))
+
+# Lets create a new vector of rainfall and then add it to the microclimate object. This is done by creating a new vector of rainfall and then adding it to the microclimate object.
+      RAINFALL <- micro$RAINFALL                        # extract rainfall from previous sim
+     RAINFALL2 <- RAINFALL                              # copy reainfall into a new vector
+  RAINFALL2[as.character(micro$dates2) %in% date_waters] <- rainfall_10 # add 10mm of water
+     RAINFALL3 <- RAINFALL                              # copy reainfall into a new vector
+  RAINFALL3[as.character(micro$dates2) %in% date_waters] <- rainfall_20 # add 20mm of water
+
+```
+
+
+Now we have created two new rainfall vectors simulating different amounts of water added to the system during the heatwave event. Lets have a look at the new rainfall data.
+
+```{r, fig-water2}
+#| label: fig-water2
+#| fig-cap: "Rainfall events over time for A) over years and B) only during the heat wave event from 2019-01-15 to 2019-01-31."
+#| code-fold: true
+#| echo: true 
+
+rainfall_actual$rainfall_10 <- RAINFALL2
+rainfall_actual$rainfall_20 <- RAINFALL3
+rainfall_actual2 <- rainfall_actual %>% filter(dates > "2019-01-15" & dates < "2019-01-31") %>% 
+  select(dates, micro.RAINFALL, rainfall_10, rainfall_20) %>%
+  pivot_longer(cols = c(micro.RAINFALL, rainfall_10, rainfall_20), 
+               names_to = "Rainfall", 
+               values_to = "Rainfall_mm") %>% 
+  mutate(Rainfall = ifelse(Rainfall == "micro.RAINFALL", "Original Rainfall", 
+                           ifelse(Rainfall == "rainfall_10", "Watering (10 mm)", 
+                                  ifelse(Rainfall == "rainfall_20", "Watering (20 mm)", NA))))
+# Plot the rainfall data each day through time
+  ggplot(rainfall_actual2) + 
+              geom_line(aes(y = Rainfall_mm, x = dates, col = Rainfall), show.legend = TRUE) +
+              geom_hline(yintercept = 10, colour = "red", lty = 2) +
+              labs(y = "Rainfall (mm)", x = "Date") + theme_classic() +
+              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
+              scale_colour_viridis_d()
+
+```
+
+
+```{r}
+# Create hourly values. We need to do this because, as you will remember, the microclimate model uses daily rainfall values.
+```
+
+```{r}
 
 
 RAINFALL <- micro_lowshade_nowater$RAINFALL # extract rainfall from previous sim
