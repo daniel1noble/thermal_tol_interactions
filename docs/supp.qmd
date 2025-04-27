@@ -723,13 +723,16 @@ Now we have created two new rainfall vectors simulating different amounts of wat
 
 ```{r, fig-water2}
 #| label: fig-water2
-#| fig-cap: "Rainfall events over time for A) over years and B) only during the heat wave event from 2019-01-15 to 2019-01-31."
+#| fig-cap: "Rainfall events over time with two watering scenrios (10 mm and 20mm of water applied) during a heat wave event 2019-01-15 to 2019-01-31 (red dashed lines)."
 #| code-fold: true
 #| echo: true 
 
+# Add in rainfall manipulations to columns
 rainfall_actual$rainfall_10 <- RAINFALL2
 rainfall_actual$rainfall_20 <- RAINFALL3
-rainfall_actual2 <- rainfall_actual %>% filter(dates > "2019-01-15" & dates < "2019-01-31") %>% 
+
+# Re-arrange data for plotting
+rainfall_actual2 <- rainfall_actual  %>% 
   select(dates, micro.RAINFALL, rainfall_10, rainfall_20) %>%
   pivot_longer(cols = c(micro.RAINFALL, rainfall_10, rainfall_20), 
                names_to = "Rainfall", 
@@ -739,8 +742,9 @@ rainfall_actual2 <- rainfall_actual %>% filter(dates > "2019-01-15" & dates < "2
                                   ifelse(Rainfall == "rainfall_20", "Watering (20 mm)", NA))))
 # Plot the rainfall data each day through time
   ggplot(rainfall_actual2) + 
+              geom_vline(xintercept = as.POSIXct("2019-01-01"), linetype = "dashed", color = "red") +
+              geom_vline(xintercept = as.POSIXct("2019-01-31"), linetype = "dashed", color = "red") +
               geom_line(aes(y = Rainfall_mm, x = dates, col = Rainfall), show.legend = TRUE) +
-              geom_hline(yintercept = 10, colour = "red", lty = 2) +
               labs(y = "Rainfall (mm)", x = "Date") + theme_classic() +
               theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
               scale_colour_viridis_d()
@@ -753,7 +757,7 @@ rainfall_actual2 <- rainfall_actual %>% filter(dates > "2019-01-15" & dates < "2
 ```
 
 ```{r}
-
+#| eval: false
 
 RAINFALL <- micro_lowshade_nowater$RAINFALL # extract rainfall from previous sim
 dates2 <- micro_highshade_orig$dates2
