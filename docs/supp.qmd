@@ -751,43 +751,202 @@ rainfall_actual2 <- rainfall_actual  %>%
 
 ```
 
+Now, for 40% shade we can use the argument `rainhourly = 1` to create hourly values and then feedl in what the rainfall. 
 
-```{r}
+```{r, water_micoclimate}
+#| label: water_micoclimate
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
 # Create hourly values. We need to do this because, as you will remember, the microclimate model uses daily rainfall values.
+
+# Create hourly values
+rainhour_10 <- unlist(lapply(RAINFALL2, function(x) c(x, rep(0,23))))
+
+rainhour_20 <- unlist(lapply(RAINFALL3, function(x) c(x, rep(0,23))))
+
+# Now lets run the microclimate model with the new rainfall data. We will do this for both 10mm and 20mm of water added to the system.
+
+#Set up the location and parameters for the microclimate model again. 
+    longlat = c(140.79970255974192, -34.159176277782564) 
+     dstart = "01/01/2018" # Start year
+    dfinish = "31/12/2019" # End year
+   minshade = 40           # Minimum shade, %
+   maxshade = 80           # Maximum shade, %
+     Usrhyt = 0.2          # Height above ground, m 
+     Refhyt = 1.2          # Height of reference air temperature, m
+ microclima = 1            # Use mircoclima 
+         PC = -1500        # Water potential for stomatal closure
+         SP = 10
+
+# run the microclimate model for 10mm of water
+rain_10_shade <- micro_silo(loc = longlat, 
+                         dstart = dstart,
+                        dfinish = dfinish, 
+                         Usrhyt = Usrhyt, 
+                     microclima = microclima, 
+                       maxshade = maxshade, 
+                             PC = PC, 
+                             SP = SP, 
+                     rainhourly = 1, 
+                       rainhour = rainhour_10,
+                          email = "daniel.noble@edu.au")
+
+# run the microclimate model for 20mm of water
+rain_20_shade <- micro_silo(loc = longlat, 
+                         dstart = dstart,
+                        dfinish = dfinish, 
+                         Usrhyt = Usrhyt, 
+                     microclima = microclima, 
+                       maxshade = maxshade, 
+                             PC = PC, 
+                             SP = SP, 
+                     rainhourly = 1, 
+                       rainhour = rainhour_20,
+                          email = "daniel.noble@edu.au")
+
+# Save the microclimate objects
+save(rain_10_shade, file = here("output", "microclim", "water_10_shade.RDa"))
+save(rain_20_shade, file = here("output", "microclim", "water_20_shade.RDa"))
+
 ```
 
-```{r}
+Now we have the new microclimate objects. The orginal, the 10mm and the 20mm watering events to calculate body and plant leaf temperature to compare how much this impacts body temperatures experienced.
+
+```{r, water_plant}
+#| label: water_plant
+#| echo: true
 #| eval: false
+#| warning: false
+#| message: false
 
-RAINFALL <- micro_lowshade_nowater$RAINFALL # extract rainfall from previous sim
-dates2 <- micro_highshade_orig$dates2
-dates <- micro_highshade_orig$dates
+# Now, run the plant biophysical model using each of the three different microclimate objects.
+
+objects <- c("microclimate.RDa", "water_10_shade.RDa", "water_20_shade.RDa")
+  names <- c("real", "water_10", "water_20")
+
+# Set leaf functional traits
+         live <- 0      # don't simulate behaviour or respiration
+         leaf <- 1      # use the stomatal conductance formulation for evaporation
+         Ww_g <- 1      # wet weight, g
+        shape <- 2      # 0=plate, 1=cylinder, 2=ellipsoid
+      shape_b <- 0.0025 # ratio of b axis:a axis for ellipsoid 
+      shape_c <- 0.1176 # ratio of c axis:a axis for ellipsoid 
+      g_vs_ab <- 0.4    # leaf vapour conductance, abaxial (bottom of leaf), mol/m2/s
+      g_vs_ad <- 0.0    # leaf vapour conductance, adaxial (top of leaf), mol/m2/s
+  g_vs_ab_max <- 0.4    # leaf vapour conductance, abaxial (bottom of leaf), mol/m2/s
+  g_vs_ad_max <- 0.0    # leaf vapour conductance, adaxial (top of leaf), mol/m2/s
+  epsilon_sub <- 0.95   # emissivity of the substrate (-)
+  epsilon_sky <- 1      # emissivity of the sky (-), accounted for already in 'TSKY' output from microclimate model so make it 1
+    epsilon_L <- 0.97   # emissivity of the leaf (-)
+      alpha_L <- 0.5    # solar absorptivity of the leaf (-)
+       fatosk <- 0.5    # radiation configuration factor to sky (-)
+       fatosb <- 0.5    # radiation configuration factor to substrate (-)
+ conv_enhance <- 1.4    # convective enhancement factor (-)
+     pct_cond <- 0      # percent of leaf conducting to the ground (%)
+       postur <- 3      # leaf oriented horizontally, not tracking sun
+          M_1 <- 0      # make metabolic rate zero
 
 
+# Loop through the objects and run the plant heat-budget model
+for(i in 1:length(objects)){
 
-plot(dates2, RAINFALL, type = "h")
-date_waters <- as.character(seq(as.POSIXct("2019-01-01"), as.POSIXct("2019-01-31"),
-by = "days"))
+  # Load the microclimate object
+    load(here("output", "microclim", objects[i]))
 
-# Now lets add in the water. We can do this by adding a rainfall event to the microclimate object. This is done by creating a new vector of rainfall and then adding it to the microclimate object.
-      water <- 10 # mm water to add
-  RAINFALL2 <- RAINFALL
-RAINFALL2[as.character(dates2) %in% date_waters] <- water
-plot(dates2, RAINFALL2, type = "h")
-# Create hourly values
-rainhour <- unlist(lapply(RAINFALL2, function(x) c(x, rep(0,
-23))))
-maxshade <- 90 # maximum shade available
-micro_highshade_water <- micro_silo(loc = loc, dstart = dstart,
-dfinish = dfinish, Usrhyt = Usrhyt, microclima = microclima,
-maxshade = maxshade, PC = PC, SP = SP, rainhourly = 1, rainhour = rainhour,
-email = "m.kearney@unimelb.edu.au")
-micro_highshade_orig <- micro_highshade_water # save a copy because will be modifiying it maxshade <- 5 # maximum shade available
-micro_lowshade_water <- micro_silo(loc = loc, dstart = dstart,
-dfinish = dfinish, Usrhyt = Usrhyt, microclima = 1, maxshade = maxshade,
-PC = PC, SP = SP, rainhourly = 1, rainhour = rainhour, email = "m.kearney@unimelb.edu.au")
-micro_lowshade_water_orig <- micro_lowshade_water # save a copy because will be modifiying it later
-save(micro_highshade_water, file = "micro_highshade_water.Rda")
-save(micro_lowshade_water, file = "micro_lowshade_water.Rda")
+# First, lets extract the relevant information from the microclimate object to get plant stomatal conductance sorted.
+      PDIFs <- micro$diffuse_frac             # use variable diffuse fraction
+        P_a <- get_pressure(micro$elev)       # air pressure, Pa
+        P_a <- rep(P_a, nrow(micro$metout))   # create hourly vector
+      dates <- micro$dates            
+ 
+# Set up vapour conductance vectors and simulate stomatal closure at night
+                              f_open <- rep(1, nrow(micro$metout))
+  f_open[micro$metout[,"ZEN"] == 90] <- 0      # close stomata when the sun is set
+                            g_vs_abs <- g_vs_ab * f_open 
+                            g_vs_ads <- g_vs_ad * f_open
 
+
+# Run the heat-budget model for the plant leaf. Note that the microclimate object is used to get the relevant environmental temperatures to make the calculations of leaf temperature
+    plant <- ectotherm(  leaf = leaf, 
+                         live = live,
+                         Ww_g = Ww_g, 
+                        shape = shape, 
+                      shape_b = shape_b, 
+                      shape_c = shape_c, 
+                      g_vs_ab = g_vs_abs, 
+                      g_vs_ad = g_vs_ads, 
+                  g_vs_ab_max = g_vs_ab_max, 
+                  g_vs_ad_max = g_vs_ad_max, 
+                  epsilon_sub = epsilon_sub, 
+                  epsilon_sky = epsilon_sky,
+                      epsilon = epsilon_L, 
+                    alpha_max = alpha_L, 
+                    alpha_min = alpha_L,
+                          M_1 = M_1,
+                       fatosk = fatosk, 
+                       fatosb = fatosb, 
+                 conv_enhance = conv_enhance, 
+                     pct_cond = pct_cond, 
+                       postur = postur,
+                       preshr = P_a, 
+                         PDIF = PDIFs)
+# Save the plant object
+  save(plant, file = here("output", "microclim", paste0("plant_", names[i], "_micro.RDa")))
+
+}
+
+```
+
+We've now used the heat budget model aplying each of the three different miroclimate objects to calculate the leaf temperature of the plant. We can now plot this out to see how the watering events affect leaf temperature.
+
+```{r}
+#| label: fig-plant_temp3
+#| fig-cap: "Leaf temperature of a plant at a location near Renmark, South Australia. Leaf temperature is shown in relation to air temperature at 1.2 m above ground (and in minimum shade, 40%) between 2019-01-15 and 2019-01-31 for three different watering scenarios (original rainfall, 10 mm and 20 mm of water added)."
+#| code-fold: true
+
+# Extract the microclimate temperatures. Because this was simulated for a plant the 'body tempertaure'is the leaf temperature and is stored as 'TC' in the environ object
+
+    # Load plant microclimate object with orginal rainfall
+        load(here("output", "microclim", "plant_real_micro.RDa"))
+    # Extract and store leaf temps
+            environ_plant <- as.data.frame(plant$environ)
+
+# Extract the same data but for the other two watering scenarios
+  # Load plant microclimate object with 10mm of water
+        load(here("output", "microclim", "plant_water_10_micro.RDa"))
+    # Extract and store leaf temps
+            environ_plant_10 <- as.data.frame(plant$environ)
+
+  # Load plant microclimate object with 20mm of water
+        load(here("output", "microclim", "plant_water_20_micro.RDa"))
+    # Extract and store leaf temps
+            environ_plant_20 <- as.data.frame(plant$environ)
+
+# Now, lets bind these data.frames together and re-organise the data for plotting
+  environ_plant2 <- bind_rows(real = environ_plant, water_10 = environ_plant_10, water_20 = environ_plant_20, .id = "df_name") 
+
+# Extract and stores dates
+      environ_plant2$dates <- rep(micro$dates, 3) 
+
+# Now create a column that names each scenario
+    environ_plant2 <- environ_plant2  %>% 
+                     mutate(df_name = ifelse(df_name == "real", "Original Rainfall", 
+                                           ifelse(df_name == "water_10", "Watering (10 mm)", 
+                                                  ifelse(df_name == "water_20", "Watering (20 mm)", NA))))    
+
+# Now lets plot the leaf temperature of the plant over time for each of the three different watering scenarios
+  environ_plant2 <- environ_plant2 %>% filter(dates > "2019-01-15" & dates < "2019-01-31") %>%
+              dplyr::select(dates, TC, df_name) %>%
+              pivot_longer(cols = c(TC), 
+                           names_to = "Temps", 
+                           values_to = "Temperature") %>% 
+              mutate(Temps = ifelse(Temps == "TC",  "Leaf Temperature (40% shade)"))
+
+  ggplot(environ_plant2) + 
+              geom_line(aes(y = Temperature, x = dates, col = df_name), show.legend = TRUE) +
+              labs(y = "Temperature (°C)", x = "Date") + theme_classic() +
+              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "top") + 
+              scale_colour_viridis_d()
 ```
