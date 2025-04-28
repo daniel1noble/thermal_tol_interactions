@@ -754,7 +754,7 @@ rainfall_actual2 <- rainfall_actual  %>%
 
 ```
 
-Now, for 40% shade we can use the argument `rainhourly = 1` to create hourly values and then feedl in what the rainfall. 
+Now, for 40% shade we can use the argument `rainhourly = 1` to create hourly values and then feed in the rainfall. 
 
 ```{r, water_micoclimate}
 #| label: water_micoclimate
@@ -766,7 +766,6 @@ Now, for 40% shade we can use the argument `rainhourly = 1` to create hourly val
 
 # Create hourly values, but water during the peak of the day for one hour (12:00-13:00)
 rainhour_10 <- unlist(lapply(RAINFALL2, function(x) c(rep(0,11), x, rep(0,12))))
-
 rainhour_20 <- unlist(lapply(RAINFALL3, function(x) c(rep(0,11), x, rep(0,12))))
 
 # Now lets run the microclimate model with the new rainfall data. We will do this for both 10mm and 20mm of water added to the system.
