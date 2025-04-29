@@ -637,7 +637,7 @@ grasshopper_environ2 <- grasshopper_environ                                     
 
 ## **Case Study 2: Understanding the effects of leaf mirochabitat on insect life-cyles: Linking mircoclimates with dynamic energy budgets** {#case2}
 
-Our next case study will explore how the microclimate of a plant leaf can influence the life-cycle of an insect. In this case, we will use a dynamic energy budget model to understand how the microclimate of a plant leaf can influence the growth and development of an insect.
+Our next case study will explore how the microclimate produced by a plant leaf can influence the life-cycle of an insect. In this case, we will use a dynamic energy budget model to understand how the microclimate of a plant leaf can influence the growth and development of an insect.
 
 
 
@@ -859,6 +859,8 @@ Now we have the new microclimate objects. The orginal, the 10mm and the 20mm wat
        postur <- 3      # leaf oriented horizontally, not tracking sun
           M_1 <- 0      # make metabolic rate zero
 
+# Load in the plant heat budget
+  load(here("output", "microclim", "plant_micro.RDa"))
 
 # Loop through the objects and run the plant heat-budget model
 for(i in 1:length(objects)){
@@ -883,7 +885,7 @@ for(i in 1:length(objects)){
   UMOLPERJ <- 4.57                                                   # mu_mol photons / J
 WETAIR_out <- WETAIR(db = micro$metout[,"TALOC"], rh = micro$metout[,"RHLOC"], bp = P_a)
     VPD_Pa <- WETAIR_out$esat - WETAIR_out$e
- photo_out <- Photosyn(Tleaf = micro$environ[,"TC"],                 # Leaf temperature (C)
+ photo_out <- Photosyn(Tleaf = plant$environ[,"TC"],                 # Leaf temperature (C)
                           g1 = 5.2,                                  # Parameter of Ball-Berry model
                           Ca = 400,                                  # Atmospheric CO2 concentration (ppm)
                          VPD = VPD_Pa/1000,                          # Vapour pressure deficit (kPa)
@@ -953,7 +955,8 @@ We've now used the heat budget model applying each of the three different mirocl
   environ_plant2 <- bind_rows(real = environ_plant, water_10 = environ_plant_10, water_20 = environ_plant_20, .id = "df_name") 
 
 # Extract and stores dates
-      environ_plant2$dates <- rep(dates, 3) 
+    load(here("output", "microclim", "microclimate.RDa"))
+      environ_plant2$dates <- rep(micro$dates, 3) 
 
 # Now create a column that names each scenario
     environ_plant2 <- environ_plant2  %>% 
