@@ -635,6 +635,13 @@ grasshopper_environ2 <- grasshopper_environ                                     
               labs(fill = "Behaviour")
 ```
 
+## **Case Study 2: Understanding the effects of leaf mirochabitat on insect life-cyles: Linking mircoclimates with dynamic energy budgets** {#case2}
+
+Our next case study will explore how the microclimate of a plant leaf can influence the life-cycle of an insect. In this case, we will use a dynamic energy budget model to understand how the microclimate of a plant leaf can influence the growth and development of an insect.
+
+
+
+
 # **Using a systems modelling approach to help develop solutions to extreme heat events**
 
 A systems modelling approach can also be used to design possible solutions by understanding better how 'thermal interventions' affect heat experienced by organisms and how it influences growth, survival and reproduction. For example, we can manipulate rainfall at a particular time to simulate artificial watering which might be a possible intervention used during extreme heat. The added water can be used to make calculations of heat exchange, temperatures and transpiration under extreme heat events. We can also optimise the amount of time to balance costs and benefits of watering.
@@ -872,6 +879,19 @@ for(i in 1:length(objects)){
                             g_vs_abs <- g_vs_ab * f_open 
                             g_vs_ads <- g_vs_ad * f_open
 
+# Include simulated stomatal conductance from plantecophys
+  UMOLPERJ <- 4.57                                                   # mu_mol photons / J
+WETAIR_out <- WETAIR(db = micro$metout[,"TALOC"], rh = micro$metout[,"RHLOC"], bp = P_a)
+    VPD_Pa <- WETAIR_out$esat - WETAIR_out$e
+ photo_out <- Photosyn(Tleaf = micro$environ[,"TC"],                 # Leaf temperature (C)
+                          g1 = 5.2,                                  # Parameter of Ball-Berry model
+                          Ca = 400,                                  # Atmospheric CO2 concentration (ppm)
+                         VPD = VPD_Pa/1000,                          # Vapour pressure deficit (kPa)
+                      vpdmin = 0.5,                                  # lower threshold on VPD
+                        PPFD = micro$metout[,"SOLR"] * UMOLPERJ * 1, # mu mol m-2 s-1
+                        Patm = P_a/1000                              # Atmospheric pressure (kPa)
+                      )
+g_vs_abs_pho <- photo_out$GS
 
 # Run the heat-budget model for the plant leaf. Note that the microclimate object is used to get the relevant environmental temperatures to make the calculations of leaf temperature
     plant <- ectotherm(  leaf = leaf, 
@@ -880,7 +900,7 @@ for(i in 1:length(objects)){
                         shape = shape, 
                       shape_b = shape_b, 
                       shape_c = shape_c, 
-                      g_vs_ab = g_vs_abs, 
+                      g_vs_ab = g_vs_abs_pho, 
                       g_vs_ad = g_vs_ads, 
                   g_vs_ab_max = g_vs_ab_max, 
                   g_vs_ad_max = g_vs_ad_max, 
