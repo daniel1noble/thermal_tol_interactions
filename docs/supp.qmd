@@ -165,7 +165,7 @@ As a first step, it's important to be able to down-scale climatic data to microc
 
 There are various climate datasets that can be used to predict the microclimate but for simplicity we'll use weather data from 1889 to yesterday from https://www.longpaddock.qld.gov.au/silo/. 
 
-The code below shows how to predict various microclimates at a location close to Renmark, South Australia (Calperum Station). For example, it will compute temperatures at depths below ground (e.g., 0 and 50cm at or below the ground) and also above ground (20 cm and 1.2 m air temperature above ground). These might be relevant places for our organisms of interest, but we could be more thorough and simulate at other heights and locations if required. 
+The code below shows how to predict various microclimates at a location close to Renmark, South Australia (Calperum Station). For example, it will compute temperatures at depths below ground (e.g., 0 and 50cm at or below the ground) and also above ground (20 cm and 2 m air temperature above ground). These might be relevant places for our organisms of interest, but we could be more thorough and simulate at other heights and locations if required. 
 
 ```{r, microclimate_soil}
 #| label: microclimate_soil
@@ -186,7 +186,6 @@ The code below shows how to predict various microclimates at a location close to
                         minshade = 40,           # Minimum shade, %
                         maxshade = 80,           # Maximum shade, %
                           Usrhyt = 0.2,          # Height above ground, m 
-                          Refhyt = 1.2,          # Height of reference air temperature, m
                       microclima = 1,            # Use mircoclima 
                               PC = -1500,        # Water potential for stomatal closure
                               SP = 10,           # Stability parameter for stomatal closure
@@ -227,7 +226,7 @@ We can now plot the below ground temperatures to see the thermal profiles at dif
                         scale_colour_viridis_d()
 ```
 
-If we want to use air temperatures because our organism does not burrow then we can extract air temperatures at different heights above ground (we have simulated 20 cm and 1.2 m) (@fig-Air_temp). Of course, we could calculate temperatures for other heights as well, but assume this is the space most relevant to our system (@fig-case1), which we will detail below. We can also simulate microclimates under different scenarios in new calls to the `micro_silo` function but in our case we have managed to keep it simple and do everything in a single run. 
+If we want to use air temperatures because our organism does not burrow then we can extract air temperatures at different heights above ground (we have simulated 20 cm and 2 m) (@fig-Air_temp). Of course, we could calculate temperatures for other heights as well, but assume this is the space most relevant to our system (@fig-case1), which we will detail below. We can also simulate microclimates under different scenarios in new calls to the `micro_silo` function but in our case we have managed to keep it simple and do everything in a single run. 
 
 Information on air temperatures at our two heights is also stored in our `microclimate` object from the simulation we ran above. To obtain our air temperatures, these are stored in a different place in our `microclimate` object. Again, we have access to these calculations under two shade levels (40% and 80%), but we'll just use our lowest shade level for now. 
 
@@ -243,16 +242,16 @@ The microclimate object has a lot of relevant information that we can use in our
 #| warning: false
 #| message: false
 
-# Get the above ground temperatures at 20 cm and 1.2 m
+# Get the above ground temperatures at 20 cm and 2 m
         air_temp <- data.frame(micro$metout)
   air_temp$dates <- micro$dates
 ```
 
-Now we can have a look at what the air temperature would be 20 cm and 1.2 m above ground (@fig-Air_temp). 
+Now we can have a look at what the air temperature would be 20 cm and 2 m above ground (@fig-Air_temp). 
 
 ```{r, fig-Air_temp}
 #| label: fig-Air_temp
-#| fig-cap: "Average air temperature at a location near Renmark, South Australia. Air temperatures at 20 cm and 1.2 m above ground (and in minimum shade, 40%) are shown for a short times between 2019-01-15 and 2019-01-31."
+#| fig-cap: "Average air temperature at a location near Renmark, South Australia. Air temperatures at 20 cm and 2 m above ground (and in minimum shade, 40%) are shown for a short times between 2019-01-15 and 2019-01-31."
 #| code-fold: true
 
   air_temp2 <- air_temp                             %>% 
@@ -260,7 +259,7 @@ Now we can have a look at what the air temperature would be 20 cm and 1.2 m abov
                 pivot_longer(cols = c(TALOC,  TAREF), 
                          names_to = "Height", 
                         values_to = "Temperature")  %>% 
-                mutate(Height = ifelse(Height == "TALOC", "20 cm", "1.2 m"))
+                mutate(Height = ifelse(Height == "TALOC", "20 cm", "2 m"))
 
 # Plot soil temps
   air_temp2  %>% filter(dates > "2019-01-15" & dates < "2019-01-31") %>%
@@ -278,7 +277,7 @@ Interestingly, between 2019-01-15 to 2019-01-31 we had a major heatwave event. L
 
 ```{r, fig-Air_temp_heatwave}
 #| label: fig-Air_temp_heatwave
-#| fig-cap: "Average air temperature at a location near Renmark, South Australia. Air temperatures at 20 cm and 1.2 m above ground (and in minimum shade, 40%) are shown for a short times between 2019-01-15 and 2019-01-31."
+#| fig-cap: "Average air temperature at a location near Renmark, South Australia. Air temperatures at 20 cm and 2 m above ground (and in minimum shade, 40%) are shown for a short times between 2019-01-15 and 2019-01-31."
 #| code-fold: true
 
   air_temp2  %>% filter(dates > "2019-01-15" & dates < "2019-01-31") %>%
@@ -319,7 +318,7 @@ To predict the impact of heatwaves on plant-insect interactions, we first need t
 
 In this case, the plants that the grasshopper consumes will influence the microclimate the grasshopper experiences (@fig-case1). Plants will also respond to the thermal environmental, and this will directly and indirectly influence the grasshopper. For example, plants will change their transpiration through the day and this can impact local temperatures experienced by grasshoppers (@fig-case1). 
 
-The microclimate model that we ran in [Section 1](#section1) can now be used to predict how the plant and grasshopper will respond to the heatwave. **Remember, we just used weather data to calculate air temperatures expected at 0.2 and 1.2m in both 40% and 80% shade. We can use this microclimate data to estimate leaf temperatures for a plant and then use the information on plant temperatures to feedback into the calculations of grasshopper body temperature.**
+The microclimate model that we ran in [Section 1](#section1) can now be used to predict how the plant and grasshopper will respond to the heatwave. **Remember, we just used weather data to calculate air temperatures expected at 0.2 and 2m in both 40% and 80% shade. We can use this microclimate data to estimate leaf temperatures for a plant and then use the information on plant temperatures to feedback into the calculations of grasshopper body temperature.**
 
 Before we can estimate the temperatures for the grasshopper, we need to use a biophysical model to predict what the plant is doing. We can then use this 'new' microclimate data to simulate the growth of insects under different temperature conditions, changing what would happen if plants respond differently [@fig-case1].
 
@@ -374,7 +373,7 @@ Radiative exchange parameters can be set including the emissivities of the leaf 
                             g_vs_abs <- g_vs_ab * f_open 
                             g_vs_ads <- g_vs_ad * f_open
 
-# Run the heat-budget model for the plant leaf. Note that the microclimate object is used to get the relevant environmental temperatures to make the calculations of leaf temperature
+# Run the heat-budget model for the plant leaf. Note that the microclimate object is used to get the relevant environmental temperatures to make the calculations of leaf temperature (by default, ectotherm expects an object in the environment called 'micro' and uses it to obtain the relevant environmental data, but this can be overridden).
     plant <- ectotherm(  leaf = leaf, 
                          live = live,
                          Ww_g = Ww_g, 
@@ -407,7 +406,7 @@ Radiative exchange parameters can be set including the emissivities of the leaf 
 
 ```{r, fig-plant_temp}
 #| label: fig-plant_temp
-#| fig-cap: "Leaf temperature of a plant at a location near Renmark, South Australia. Leaf temperature is shown in relation to air temperature at 1.2 m above ground (and in minimum shade, 40%) between 2019-01-15 and 2019-01-31."
+#| fig-cap: "Leaf temperature of a plant at a location near Renmark, South Australia. Leaf temperature is shown in relation to air temperature at 2 m above ground (and in minimum shade, 40%) between 2019-01-15 and 2019-01-31."
 #| code-fold: true
   
   # Load the plant object
@@ -423,7 +422,7 @@ Radiative exchange parameters can be set including the emissivities of the leaf 
               pivot_longer(cols = c(TA, TC), 
                            names_to = "Temps", 
                            values_to = "Temperature") %>% 
-              mutate(Temps = ifelse(Temps == "TA", "Air Temperature (1.2 m) (40% shade)", "Leaf Temperature (Stomata Open) (40% shade)"))
+              mutate(Temps = ifelse(Temps == "TA", "Air Temperature (2 m) (40% shade)", "Leaf Temperature (Stomata Open) (40% shade)"))
 
   # Plot it out
   ggplot(environ_plant2) + 
@@ -493,11 +492,11 @@ plant2 <- ectotherm( leaf = leaf,
 
 ```
 
-Now, lets have a look at the leat temperature when stomatal conduction behaviour is incorperated.
+Now, lets have a look at the leaf temperature when stomatal closure behaviour is incorporated.
 
 ```{r, fig-plant_temp2}
 #| label: fig-plant_temp2
-#| fig-cap: "Leaf temperature of a plant at a location near Renmark, South Australia. Leaf temperature is shown in relation to air temperature at 1.2 m above ground (and in minimum shade, 40%) between 2019-01-15 and 2019-01-31."
+#| fig-cap: "Leaf temperature of a plant at a location near Renmark, South Australia. Leaf temperature is shown in relation to air temperature at 2 m above ground (and in minimum shade, 40%) between 2019-01-15 and 2019-01-31 for two scenarios, one where stomata are open all day, and one where stomatal closure is driven by photosynthetically active radiation intensity and vapour pressure."
 #| code-fold: true
   
   # Load the plant object
@@ -530,7 +529,7 @@ Here, we can see that stomatal closure in the middle of the day causes the leaf 
 
 ### **Step 2: Cross-talk between plant and animal systems: Incorporating cooling effects of plant transpiration to estimate grasshopper body temperature** {#step2}
 
-Now, lets run the ectotherm model for a grasshopper, but instead of using the micrioclimate object as it is, lets assume that the plant environment forms the mircoclimate of the grasshopper. This allows us to take in the microclimate and use it to calculate the body temperature of the grasshopper, and eventually uinderstand how this affects growth, development etc within a dynamic energy budget model. The ectotherm model also allows us to incorporate relevant behavioural plasticity in response to extreme heat, which we'll do. 
+Now, lets run the ectotherm model for a grasshopper, but instead of using the microclimate object as it is, lets assume that the plant environment forms the microclimate of the grasshopper. This allows us to take in the microclimate and use it to calculate the body temperature of the grasshopper, and eventually understand how this affects growth, development etc within a dynamic energy budget model. The ectotherm model also allows us to incorporate relevant behavioural plasticity in response to extreme heat, which we'll do. 
 
 ```{r, ecto_grasshopper}
 #| label: ecto_grasshopper
@@ -602,7 +601,7 @@ Now that we have run the ectotherm model we can plot the body temperature of the
 
 ```{r, fig-grasshopper_temp}
 #| label: fig-grasshopper_temp
-#| fig-cap: "Body temperature of a grasshopper at a location near Renmark, South Australia. Body temperature of the grasshopper is shown in relation to air temperature at 1.2 m above ground (and in minimum shade, 40%) for a short times between 2019-01-15 and 2019-01-31."
+#| fig-cap: "Body temperature of a grasshopper at a location near Renmark, South Australia. Body temperature of the grasshopper is shown in relation to air temperature at 2 m above ground (and in minimum shade, 40%) for a short times between 2019-01-15 and 2019-01-31."
 
 # Load grasshopper object
   load(here("output", "microclim", "grasshopper_micro.RDa"))
@@ -733,7 +732,7 @@ Now we have created two new rainfall vectors simulating different amounts of wat
 
 ```{r, fig-water2}
 #| label: fig-water2
-#| fig-cap: "Rainfall events over time with two watering scenrios (10 mm and 20mm of water applied) during a heat wave event 2019-01-15 to 2019-01-31 (red dashed lines)."
+#| fig-cap: "Rainfall events over time with two watering scenarios (10 mm and 20mm of water applied) during a heat wave event 2019-01-15 to 2019-01-31 (red dashed lines)."
 #| code-fold: true
 #| echo: true 
 
@@ -771,9 +770,9 @@ Now, for 40% shade we can use the argument `rainhourly = 1` to create hourly val
 #| message: false
 # Create hourly values. We need to do this because, as you will remember, the microclimate model uses daily rainfall values.
 
-# Create hourly values, but water during the peak of the day for one hour (12:00-13:00)
-rainhour_10 <- unlist(lapply(RAINFALL2, function(x) c(rep(0,11), x, rep(0,12))))
-rainhour_20 <- unlist(lapply(RAINFALL3, function(x) c(rep(0,11), x, rep(0,12))))
+# Create hourly values, but water during at midnight for one hour (00:00-01:00) (midnight is used to avoid changes too rapid for the integrator to solve).
+rainhour_10 <- unlist(lapply(RAINFALL2, function(x) c(rep(0,23), x)))
+rainhour_20 <- unlist(lapply(RAINFALL3, function(x) c(rep(0,23), x)))
 
 # Now lets run the microclimate model with the new rainfall data. We will do this for both 10mm and 20mm of water added to the system.
 
@@ -784,7 +783,6 @@ rainhour_20 <- unlist(lapply(RAINFALL3, function(x) c(rep(0,11), x, rep(0,12))))
    minshade = 40           # Minimum shade, %
    maxshade = 80           # Maximum shade, %
      Usrhyt = 0.2          # Height above ground, m 
-     Refhyt = 1.2          # Height of reference air temperature, m
  microclima = 1            # Use mircoclima 
          PC = -1500        # Water potential for stomatal closure
          SP = 10
@@ -823,7 +821,7 @@ save(rain_20_shade, file = here("output", "microclim", "water_20_shade.RDa"))
 
 ```
 
-Now we have the new microclimate objects. The orginal, the 10mm and the 20mm watering events to calculate body and plant leaf temperature to compare how much this impacts body temperatures experienced.
+Now we have the new microclimate objects. The original, the 10mm and the 20mm watering events to calculate body and plant leaf temperature to compare how much this impacts body temperatures experienced.
 
 ```{r, water_plant}
 #| label: water_plant
@@ -930,10 +928,10 @@ We've now used the heat budget model applying each of the three different mirocl
 
 ```{r}
 #| label: fig-plant_temp3
-#| fig-cap: "Leaf temperature of a plant at a location near Renmark, South Australia. Leaf temperature is shown in relation to air temperature at 1.2 m above ground (and in minimum shade, 40%) between 2019-01-15 and 2019-01-31 for three different watering scenarios (original rainfall, 10 mm and 20 mm of water added)."
+#| fig-cap: "Leaf temperature of a plant at a location near Renmark, South Australia. Leaf temperature is shown in relation to air temperature at 2 m above ground (and in minimum shade, 40%) between 2019-01-15 and 2019-01-31 for three different watering scenarios (original rainfall, 10 mm and 20 mm of water added)."
 #| code-fold: true
 
-# Extract the microclimate temperatures. Because this was simulated for a plant the 'body tempertaure'is the leaf temperature and is stored as 'TC' in the environ object
+# Extract the microclimate temperatures. Because this was simulated for a plant the 'body tempertature' is the leaf temperature and is stored as 'TC' in the environ object
 
     # Load plant microclimate object with orginal rainfall
         load(here("output", "microclim", "plant_real_micro.RDa"))
