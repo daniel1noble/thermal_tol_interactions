@@ -658,7 +658,7 @@ fig_case2 <- image_read(here("figs", "figS2.png"))
 fig_case2
 ```
 
-Below, we load in our original microclimate object. We can now use this to simulate the effect of watering on the microclimate. First, lets just look at the rainfall that occured over the period of interest (@fig-water). The rainfall data is stored in the `microclimate` object and is provided as a daily value (rather than hourly as for temperature). 
+Below, we load in our original microclimate object. We can now use this to simulate the effect of watering on the microclimate. First, lets just look at the rainfall that occurred over the period of interest (@fig-water). The rainfall data is stored in the `microclimate` object and is provided as a daily value (rather than hourly as for temperature). 
 
 ```{r, fig-water}
 #| label: fig-water
@@ -792,12 +792,14 @@ rain_10_shade <- micro_silo(loc = longlat,
                          dstart = dstart,
                         dfinish = dfinish, 
                          Usrhyt = Usrhyt, 
-                     microclima = microclima, 
+                     microclima = microclima,
+                       minshade = minshade,
                        maxshade = maxshade, 
                              PC = PC, 
                              SP = SP, 
                      rainhourly = 1, 
                        rainhour = rainhour_10,
+                           #rain = RAINFALL2,
                           email = "daniel.noble@edu.au")
 
 # Save the microclimate object
@@ -809,6 +811,7 @@ rain_20_shade <- micro_silo(loc = longlat,
                         dfinish = dfinish, 
                          Usrhyt = Usrhyt, 
                      microclima = microclima, 
+                       minshade = minshade,
                        maxshade = maxshade, 
                              PC = PC, 
                              SP = SP, 
@@ -924,16 +927,16 @@ g_vs_abs_pho <- photo_out$GS
 
 ```
 
-We've now used the heat budget model applying each of the three different miroclimate objects to calculate the leaf temperature of the plant. We can now plot this out to see how the watering events affect leaf temperature.
+We've now used the heat budget model applying each of the three different microclimate objects to calculate the leaf temperature of the plant. We can now plot this out to see how the watering events affect leaf temperature.
 
 ```{r}
 #| label: fig-plant_temp3
 #| fig-cap: "Leaf temperature of a plant at a location near Renmark, South Australia. Leaf temperature is shown in relation to air temperature at 2 m above ground (and in minimum shade, 40%) between 2019-01-15 and 2019-01-31 for three different watering scenarios (original rainfall, 10 mm and 20 mm of water added)."
 #| code-fold: true
 
-# Extract the microclimate temperatures. Because this was simulated for a plant the 'body tempertature' is the leaf temperature and is stored as 'TC' in the environ object
+# Extract the microclimate temperatures. Because this was simulated for a plant the 'body temperature' is the leaf temperature and is stored as 'TC' in the environ object
 
-    # Load plant microclimate object with orginal rainfall
+    # Load plant microclimate object with original rainfall
         load(here("output", "microclim", "plant_micro_micro.RDa"))
     # Extract and store leaf temps
             environ_plant <- as.data.frame(plant$environ)
