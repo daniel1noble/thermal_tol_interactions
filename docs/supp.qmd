@@ -934,18 +934,16 @@ We've now used the heat budget model applying each of the three different mirocl
 # Extract the microclimate temperatures. Because this was simulated for a plant the 'body tempertature' is the leaf temperature and is stored as 'TC' in the environ object
 
     # Load plant microclimate object with orginal rainfall
-        load(here("output", "microclim", "plant_real_micro.RDa"))
+        load(here("output", "microclim", "plant_micro_micro.RDa"))
     # Extract and store leaf temps
             environ_plant <- as.data.frame(plant$environ)
-
 # Extract the same data but for the other two watering scenarios
   # Load plant microclimate object with 10mm of water
-        load(here("output", "microclim", "plant_water_10_micro.RDa"))
+        load(here("output", "microclim", "plant_rain_10_shade_micro.RDa"))
     # Extract and store leaf temps
             environ_plant_10 <- as.data.frame(plant$environ)
-
   # Load plant microclimate object with 20mm of water
-        load(here("output", "microclim", "plant_water_20_micro.RDa"))
+        load(here("output", "microclim", "plant_rain_20_shade_micro.RDa"))
     # Extract and store leaf temps
             environ_plant_20 <- as.data.frame(plant$environ)
 
