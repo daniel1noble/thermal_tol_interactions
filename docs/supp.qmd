@@ -298,7 +298,7 @@ It is important to recognize that these are predictions. As with any model, they
 Now that we've explored the various temperatures predicted in our microclimate model, we can use this information to predict the body temperatures of organisms. We can also use this information to predict how these organisms will respond to extreme heat events.
 
 # **Developing a systems modelling approach to predict biological responses to extreme heat**
-## **Case Study 1: Simulating plant and insect interactions under heatwaves**
+## **Case Study 1: Simulating plant and insect interactions under heatwaves**{#case1}
 
 Case study one explores how feedback between plants and insects can happen in response to extreme heat events. Here, we are interested in how the behaviour and body temperature of grasshoppers is influenced by changes in plant transpiration which can impact microhabitat temperatures of grasshoppers (@fig-case1). While this is a simple situation it's a useful starting point to understand how a systems modelling approach can be built up to predict the impact of heatwaves on species interactions. 
 
@@ -995,4 +995,7 @@ environ_plant2  %>% filter(dates > "2019-01-15" & dates < "2019-01-31")  %>%
   flextable(tbl_temps)  %>% flextable::align(align = "center") %>% flextable::bold(part = "header")  %>% flextable::align(align="center")  %>% flextable::autofit()
 ```
 
-@fig-plant_temp3 shows how much watering at the various levels affects the leaf temperature of the plant during the day (between 11:00-14:00 hr). We can see that watering even just 2mm can reduce the leaf temperature by on average `r abs(tbl_temps[2,2])` $^\circ\text{C}$ (@tbl-plant_temp3). Interestingly, we can see that after 5mm of water, the leaf temperature doesn't change much. 
+@fig-plant_temp3 shows how much watering at the various levels affects the leaf temperature of the plant during the day (between 11:00-14:00 hr). We can see that watering even just 2mm can reduce the leaf temperature by on average `r abs(tbl_temps[2,2])` $^\circ\text{C}$ (@tbl-plant_temp3). Interestingly, we can see that after 5mm of water, the leaf temperature doesn't change much, suggesting that we can get away with less water. A good thing in a very arid environment!
+
+### Impacts of watering scenerios on grasshopper body temperature
+Now that we have the leaf temperature of the plant, we can use this to calculate the body temperature of the grasshopper, like we did in [case study 1](#case1). We can do this by using the ectotherm model again, but this time using the leaf temperature as the microclimate for the grasshopper.
