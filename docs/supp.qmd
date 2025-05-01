@@ -643,11 +643,16 @@ Our next case study will explore how the microclimate produced by a plant leaf c
 
 # **Using a systems modelling approach to help develop solutions to extreme heat events**
 
-A systems modelling approach can also be used to design possible solutions by understanding better how 'thermal interventions' affect heat experienced by organisms and how it influences growth, survival and reproduction. For example, we can manipulate rainfall at a particular time to simulate artificial watering which might be a possible intervention used during extreme heat. The added water can be used to make calculations of heat exchange, temperatures and transpiration under extreme heat events. We can also optimise the amount of time to balance costs and benefits of watering.
+A systems modelling approach can also be used to design possible solutions by understanding better how 'thermal interventions' affect heat experienced by organisms and how it influences growth, survival and reproduction. For example, we can manipulate rainfall at a particular time to simulate artificial watering which might be a possible intervention used during extreme heat. The added water can be used to make calculations of heat exchange, temperatures and transpiration under extreme heat events. We can also optimise the amount of water to balance costs and benefits of watering.
 
 ## **Case Study 3: Simulating the effect of watering on plant and insect body temperatures** {#case3}
 
-Let's assume our plant species is of interest for conservation or agricultural reasons and we want to understand how watering during a heatwave might help it survive (@fig-case3). 
+### Setting the scene
+
+Let's assume our plant species is of interest for conservation or agricultural reasons and we want to understand how watering during a heatwave might help it survive (@fig-case3). The challenge with watering is that often we are drought stressed in combination with the extreme heat. As such, it's ideal to reduce water use because this saves money and water. So, the questions become:
+
+1. **How much water do we need to protect the plant from extreme heat while also not overwatering?**
+2. **In addition, how does this affect pest insects that might be residing on the plant?**
 
 ```{r, fig-case3}
 #| label: fig-case3
@@ -702,8 +707,7 @@ p1 + p2 + plot_layout(ncol = 1) + plot_annotation(tag_levels = "A") +
 
 ```
 
-It's clear that we had very little water during the heatwave event. If this was an agriculturally important species, we might than as the question "how would the temperature of the plants change if we added water to the system?". Remember, stomatal closure during the heat wave event meant that the leaf temperatures were much higher than the air temperature (@fig-plant_temp2). Spraying water will cool the plants through evaportive cooling, but by how much can we expect it to do that? Well, we can use the microclimate model to simulate this.
-
+It's clear that we had very little water during the heatwave event. If this was an agriculturally important plant species, we might than as the question "how would the temperature of the plants change if we added water to the system?". Remember, stomatal closure during the heat wave event meant that the leaf temperatures were much higher than the air temperature (@fig-plant_temp2). Spraying water will cool the plants through evaportive cooling, but by how much can we expect it to do that? Well, we can use the microclimate model to simulate this. Lets set up our scenerios. 
 
 ```{r, watering}
 #| label: watering
@@ -712,6 +716,8 @@ It's clear that we had very little water during the heatwave event. If this was 
 #| message: false
 
 # Lets assume we are planning on adding 10mm or 20 mm of water to the system to see how much it makes a difference on plant leaf temperaures. 
+   rainfall_2 <- 2  # mm water to add
+   rainfall_5 <- 5  # mm water to add
   rainfall_10 <- 10 # mm water to add
   rainfall_20 <- 20 # mm water to add
 
@@ -720,11 +726,14 @@ It's clear that we had very little water during the heatwave event. If this was 
 
 # Lets create a new vector of rainfall and then add it to the microclimate object. This is done by creating a new vector of rainfall and then adding it to the microclimate object.
       RAINFALL <- micro$RAINFALL                        # extract rainfall from previous sim
-     RAINFALL2 <- RAINFALL                              # copy reainfall into a new vector
-  RAINFALL2[as.character(micro$dates2) %in% date_waters] <- rainfall_10 # add 10mm of water
-     RAINFALL3 <- RAINFALL                              # copy reainfall into a new vector
-  RAINFALL3[as.character(micro$dates2) %in% date_waters] <- rainfall_20 # add 20mm of water
-
+     RAINFALL2 <- RAINFALL                              # copy rainfall into a new vector
+  RAINFALL2[as.character(micro$dates2) %in% date_waters] <- rainfall_2 # add 2mm of water
+     RAINFALL3 <- RAINFALL                              # copy rainfall into a new vector
+  RAINFALL3[as.character(micro$dates2) %in% date_waters] <- rainfall_5 # add 5mm of water
+     RAINFALL4 <- RAINFALL                              # copy rainfall into a new vector
+  RAINFALL4[as.character(micro$dates2) %in% date_waters] <- rainfall_10 # add 5mm of water
+       RAINFALL5 <- RAINFALL                              # copy rainfall into a new vector
+  RAINFALL5[as.character(micro$dates2) %in% date_waters] <- rainfall_20 # add 5mm of water
 ```
 
 
@@ -737,18 +746,23 @@ Now we have created two new rainfall vectors simulating different amounts of wat
 #| echo: true 
 
 # Add in rainfall manipulations to columns
-rainfall_actual$rainfall_10 <- RAINFALL2
-rainfall_actual$rainfall_20 <- RAINFALL3
+rainfall_actual$rainfall_2 <- RAINFALL2
+rainfall_actual$rainfall_5 <- RAINFALL3
+rainfall_actual$rainfall_10 <- RAINFALL4
+rainfall_actual$rainfall_20 <- RAINFALL5
 
 # Re-arrange data for plotting
 rainfall_actual2 <- rainfall_actual  %>% 
-  select(dates, micro.RAINFALL, rainfall_10, rainfall_20) %>%
-  pivot_longer(cols = c(micro.RAINFALL, rainfall_10, rainfall_20), 
+  select(dates, micro.RAINFALL, rainfall_2, rainfall_5, rainfall_10, rainfall_20) %>%
+  pivot_longer(cols = c(micro.RAINFALL, rainfall_2, rainfall_5, rainfall_10, rainfall_20), 
                names_to = "Rainfall", 
                values_to = "Rainfall_mm") %>% 
   mutate(Rainfall = ifelse(Rainfall == "micro.RAINFALL", "Original Rainfall", 
                            ifelse(Rainfall == "rainfall_10", "Watering (10 mm)", 
-                                  ifelse(Rainfall == "rainfall_20", "Watering (20 mm)", NA))))
+                                  ifelse(Rainfall == "rainfall_20", "Watering (20 mm)", 
+                                         ifelse(Rainfall == "rainfall_2", "Watering (2 mm)", 
+                                                ifelse(Rainfall == "rainfall_5", "Watering (5 mm)", NA))))),
+         Rainfall = factor(Rainfall, levels = c("Original Rainfall", "Watering (2 mm)", "Watering (5 mm)", "Watering (10 mm)", "Watering (20 mm)")))
 # Plot the rainfall data each day through time
   ggplot(rainfall_actual2) + 
               geom_vline(xintercept = as.POSIXct("2019-01-01"), linetype = "dashed", color = "red") +
@@ -760,7 +774,10 @@ rainfall_actual2 <- rainfall_actual  %>%
 
 ```
 
-Now, for 40% shade we can use the argument `rainhourly = 1` to create hourly values and then feed in the rainfall. 
+
+### Calculating the different mircoclimates using the watering scenerios 
+
+We can now use the `micro_silo` function to run the microclimate model with the new rainfall data. We simply need to update the rainfall data in the `rainhour` argument. The `rainhourly` argument is set to 1 to indicate that we want to use hourly rainfall data.
 
 ```{r, water_micoclimate}
 #| label: water_micoclimate
@@ -768,11 +785,15 @@ Now, for 40% shade we can use the argument `rainhourly = 1` to create hourly val
 #| eval: false
 #| warning: false
 #| message: false
-# Create hourly values. We need to do this because, as you will remember, the microclimate model uses daily rainfall values.
 
-# Create hourly values, but water during at midnight for one hour (00:00-01:00) (midnight is used to avoid changes too rapid for the integrator to solve).
-rainhour_10 <- unlist(lapply(RAINFALL2, function(x) c(rep(0,23), x)))
-rainhour_20 <- unlist(lapply(RAINFALL3, function(x) c(rep(0,23), x)))
+# Create hourly values, but water at midnight for one hour (00:00-01:00) (midnight is used to avoid changes too rapid for the integrator to solve).
+ rainhour_2 <- unlist(lapply(RAINFALL2, function(x) c(rep(0,23), x)))
+ rainhour_5 <- unlist(lapply(RAINFALL3, function(x) c(rep(0,23), x)))
+rainhour_10 <- unlist(lapply(RAINFALL4, function(x) c(rep(0,23), x)))
+rainhour_20 <- unlist(lapply(RAINFALL5, function(x) c(rep(0,23), x)))
+
+rain_list <- list(rainhour_2, rainhour_5, rainhour_10, rainhour_20)
+names(rain_list) <- c("rainhour_2", "rainhour_5", "rainhour_10", "rainhour_20")
 
 # Now lets run the microclimate model with the new rainfall data. We will do this for both 10mm and 20mm of water added to the system.
 
@@ -787,8 +808,9 @@ rainhour_20 <- unlist(lapply(RAINFALL3, function(x) c(rep(0,23), x)))
          PC = -1500        # Water potential for stomatal closure
          SP = 10
 
-# run the microclimate model for 10mm of water
-rain_10_shade <- micro_silo(loc = longlat, 
+for(i in 1:length(rain_list)){
+  # run the microclimate model for different watering regimes and save the output.
+         rain <- micro_silo(loc = longlat, 
                          dstart = dstart,
                         dfinish = dfinish, 
                          Usrhyt = Usrhyt, 
@@ -798,33 +820,18 @@ rain_10_shade <- micro_silo(loc = longlat,
                              PC = PC, 
                              SP = SP, 
                      rainhourly = 1, 
-                       rainhour = rainhour_10,
-                           #rain = RAINFALL2,
+                       rainhour = rain_list[[i]],
                           email = "daniel.noble@edu.au")
 
 # Save the microclimate object
-save(rain_10_shade, file = here("output", "microclim", "water_10_shade.RDa"))
-
-# run the microclimate model for 20mm of water
-rain_20_shade <- micro_silo(loc = longlat, 
-                         dstart = dstart,
-                        dfinish = dfinish, 
-                         Usrhyt = Usrhyt, 
-                     microclima = microclima, 
-                       minshade = minshade,
-                       maxshade = maxshade, 
-                             PC = PC, 
-                             SP = SP, 
-                     rainhourly = 1, 
-                       rainhour = rainhour_20,
-                          email = "daniel.noble@edu.au")
-
-# Save the microclimate objects
-save(rain_20_shade, file = here("output", "microclim", "water_20_shade.RDa"))
+save(rain, file = here("output", "microclim", paste0(names(rain_list)[i], "_shade.RDa")))
+}
 
 ```
 
-Now we have the new microclimate objects. The original, the 10mm and the 20mm watering events to calculate body and plant leaf temperature to compare how much this impacts body temperatures experienced.
+Now we have the new microclimate objects. The original, 2, 5, 10 and 20mm watering events. We have access to temperatures in the air and soil as well as high shade (80%) and low shade (40%). Let's how feed this into our plant heat-budget model to predict the leaf temperature of the plant.
+
+### Calculating the plant leaf temperature using the watering scenerios
 
 ```{r, water_plant}
 #| label: water_plant
@@ -835,8 +842,8 @@ Now we have the new microclimate objects. The original, the 10mm and the 20mm wa
 
 # Now, run the plant heat-budget model using each of the three different microclimate objects.
 
- objects <- c("microclimate.RDa", "water_10_shade.RDa", "water_20_shade.RDa")
-   names <- c("micro", "rain_10_shade", "rain_20_shade")
+ objects <- c("microclimate.RDa", "rainhour_2_shade.RDa", "rainhour_5_shade.RDa", "rainhour_10_shade.RDa", "rainhour_20_shade.RDa")
+   names <- c("micro", rep("rain", 4)) # Name of the microclimate objects on load. Original mirciclimate object named "micro" and the rest "rain" because the object saved at each run of loop is "rain"
 
 # Set leaf functional traits
          live <- 0      # don't simulate behaviour or respiration
@@ -921,53 +928,71 @@ g_vs_abs_pho <- photo_out$GS
                        preshr = P_a, 
                          PDIF = PDIFs)
 # Save the plant object
-  save(plant, file = here("output", "microclim", paste0("plant_", names[i], "_micro.RDa")))
+  save(plant, file = here("output", "microclim", paste0("plant_", gsub(".RDa", "", objects[i]), "_micro.RDa")))
 
 }
 
 ```
 
+### Impacts of watering scenerios on leaf temperature
+
 We've now used the heat budget model applying each of the three different microclimate objects to calculate the leaf temperature of the plant. We can now plot this out to see how the watering events affect leaf temperature.
 
 ```{r}
 #| label: fig-plant_temp3
-#| fig-cap: "Leaf temperature of a plant at a location near Renmark, South Australia. Leaf temperature is shown in relation to air temperature at 2 m above ground (and in minimum shade, 40%) between 2019-01-15 and 2019-01-31 for three different watering scenarios (original rainfall, 10 mm and 20 mm of water added)."
+#| fig-cap: "Leaf temperature of a plant at a location near Renmark, South Australia. Leaf temperature is shown in relation to air temperature at 2 m above ground (and in minimum shade, 40%) between 2019-01-15 and 2019-01-31 for three different watering scenarios (original rainfall, 2, 5, 10 and 20 mm of water added)."
 #| code-fold: true
 
 # Extract the microclimate temperatures. Because this was simulated for a plant the 'body temperature' is the leaf temperature and is stored as 'TC' in the environ object
 
-    # Load plant microclimate object with original rainfall
-        load(here("output", "microclim", "plant_micro_micro.RDa"))
-    # Extract and store leaf temps
-            environ_plant <- as.data.frame(plant$environ)
-# Extract the same data but for the other two watering scenarios
-  # Load plant microclimate object with 10mm of water
-        load(here("output", "microclim", "plant_rain_10_shade_micro.RDa"))
-    # Extract and store leaf temps
-            environ_plant_10 <- as.data.frame(plant$environ)
-  # Load plant microclimate object with 20mm of water
-        load(here("output", "microclim", "plant_rain_20_shade_micro.RDa"))
-    # Extract and store leaf temps
-            environ_plant_20 <- as.data.frame(plant$environ)
+objects <- c("plant_microclimate_micro.RDa", "plant_rainhour_2_shade_micro.RDa", "plant_rainhour_5_shade_micro.RDa", "plant_rainhour_10_shade_micro.RDa", "plant_rainhour_20_shade_micro.RDa")
+listnames <- c("envron_plant", "environ_plant_2", "environ_plant_5", "environ_plant_10", "environ_plant_20")
+
+environ_plant <- list()
+for(i in 1:length(objects)){
+# Load the plant object
+        load(here("output", "microclim", objects[i]))
+        environ_plant[[i]] <- as.data.frame(plant$environ)
+}
+names(environ_plant) <- listnames
 
 # Now, lets bind these data.frames together and re-organise the data for plotting
-  environ_plant2 <- bind_rows(real = environ_plant, water_10 = environ_plant_10, water_20 = environ_plant_20, .id = "df_name") 
+  environ_plant2 <- plyr::ldply(environ_plant) 
 
 # Extract and stores dates
-    load(here("output", "microclim", "microclimate.RDa"))
-      environ_plant2$dates <- rep(micro$dates, 3) 
+      environ_plant2$dates <- rep(dates, 5) 
 
 # Now create a column that names each scenario
     environ_plant2 <- environ_plant2  %>% 
-                     mutate(df_name = ifelse(df_name == "real", "Original Rainfall", 
-                                           ifelse(df_name == "water_10", "Watering (10 mm)", 
-                                                  ifelse(df_name == "water_20", "Watering (20 mm)", NA))))    
+                     mutate(.id = ifelse(.id == "envron_plant", "Original Rainfall", 
+                                        ifelse(.id == "environ_plant_2", "Watering (2 mm)", 
+                                              ifelse(.id == "environ_plant_5", "Watering (5 mm)", 
+                                                    ifelse(.id == "environ_plant_10", "Watering (10 mm)",  
+                                                          ifelse(.id == "environ_plant_20", "Watering (20 mm)", NA)))))) 
 
 # Now lets plot the leaf temperature of the plant over time for each of the three different watering scenarios
 environ_plant2  %>% filter(dates > "2019-01-15" & dates < "2019-01-31")  %>% 
   ggplot() + 
-              geom_line(aes(y = TC, x = dates, col = df_name), show.legend = TRUE) +
+              geom_line(aes(y = TC, x = dates, col = .id), show.legend = TRUE) +
               labs(y = "Temperature (°C)", x = "Date") + theme_classic() +
               theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "top") + 
-              scale_colour_viridis_d()
+              scale_colour_viridis_d() + theme(legend.title = element_blank()) 
+
 ```
+
+
+```{r, tbl-plant_temp3}
+#| label: tbl-plant_temp3
+#| tbl-cap: "Mean leaf temperature differences between the original rainfall and the watering scenarios (2, 5, 10 and 20 mm of water added) during the heat wave event (2019-01-15 to 2019-01-31) between the hours 11:00 and 16:00 hr."
+#| echo: false
+
+# Have a look at the temperature reductions
+  tbl_temps <- environ_plant2 %>% filter(dates > "2019-01-15" & dates < "2019-01-31" & TIME > 11 & TIME < 16) %>% mutate(.id = ordered(.id, levels = c("Original Rainfall", "Watering (2 mm)", "Watering (5 mm)", "Watering (10 mm)", "Watering (20 mm)"))) %>%
+  group_by(.id) %>% summarise(mean_temp = mean(TC, na.rm = TRUE)) %>% 
+  mutate(temp_diff = round(mean_temp - mean_temp[.id == "Original Rainfall"],2)) %>% 
+  select(.id, temp_diff)  %>% data.frame()  %>%  rename(c("Watering Scenario" = ".id", "Mean Leaf Temperature Difference (°C)" = "temp_diff"))
+  
+  flextable(tbl_temps)  %>% flextable::align(align = "center") %>% flextable::bold(part = "header")  %>% flextable::align(align="center")  %>% flextable::autofit()
+```
+
+@fig-plant_temp3 shows how much watering at the various levels affects the leaf temperature of the plant during the day (between 11:00-14:00 hr). We can see that watering even just 2mm can reduce the leaf temperature by on average `r abs(tbl_temps[2,2])` $^\circ\text{C}$ (@tbl-plant_temp3). Interestingly, we can see that after 5mm of water, the leaf temperature doesn't change much. 
