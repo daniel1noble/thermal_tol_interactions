@@ -636,7 +636,14 @@ grasshopper_environ2 <- grasshopper_environ                                     
 
 ## **Case Study 2: Understanding the effects of leaf mirochabitat on insect life-cyles: Linking mircoclimates with dynamic energy budgets** {#case2}
 
-Our next case study will explore how the microclimate produced by a plant leaf can influence the life-cycle of an insect. In this case, we will use a dynamic energy budget model to understand how the microclimate of a plant leaf can influence the growth and development of an insect.
+Our next case study will explore how the microclimate produced by a plant leaf can influence the life-cycle of an insect. In this case, we will use a dynamic energy budget model to understand how the microclimate of a plant leaf can influence the growth and development of a grasshopper. Here, we will introduce a Dynamic Energy Budget (DEB) model which now takes as input the mircoclimate produced by the plant to predcit body temperatures, development, growth and reproduction of the grasshopper. The DEB model also allows us to incorperate the heat wave event.
+
+Dynamic Energy Budget (DEB) models are a powerful tool for understanding how organisms allocate energy to growth, reproduction and maintenance. DEB models are based on the idea that organisms have a fixed amount of energy that they can allocate to different processes. This means that if an organism is using more energy for one process, it will have less energy available for other processes. 
+
+To parameterise a DEB model it requires a set of parameters that are derived from empirical data on growth and metabolism. While DEB models are parameter rich, key parameters have been estimated for > 3000 species already [@Marques2018; @Kooijman2021]. New analytical approaches using phylogenetic imputation methods can be used to predict DEB parameters for over 1.3 million species providing immense opportunities to model how heat will affect life-cycles of multi-species assemblages (see https://deb.bolding-bruggeman.com, @Bruggeman2009). 
+
+
+
 
 
 
@@ -736,7 +743,6 @@ It's clear that we had very little water during the heatwave event. If this was 
   RAINFALL5[as.character(micro$dates2) %in% date_waters] <- rainfall_20 # add 5mm of water
 ```
 
-
 Now we have created two new rainfall vectors simulating different amounts of water added to the system during the heatwave event. Lets have a look at the new rainfall data.
 
 ```{r, fig-water2}
@@ -773,7 +779,6 @@ rainfall_actual2 <- rainfall_actual  %>%
               scale_colour_viridis_d()
 
 ```
-
 
 ### Calculating the different mircoclimates using the watering scenerios 
 
@@ -999,3 +1004,5 @@ environ_plant2  %>% filter(dates > "2019-01-15" & dates < "2019-01-31")  %>%
 
 ### Impacts of watering scenerios on grasshopper body temperature
 Now that we have the leaf temperature of the plant, we can use this to calculate the body temperature of the grasshopper, like we did in [case study 1](#case1). We can do this by using the ectotherm model again, but this time using the leaf temperature as the microclimate for the grasshopper.
+
+# References
