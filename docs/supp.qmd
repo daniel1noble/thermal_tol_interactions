@@ -850,6 +850,8 @@ Now that we have run the DEB model we can have a look at whether the life-cycles
 #| fig-cap: "Life-cycle of a grasshopper at a location near Renmark, South Australia. Life-cycle of the grasshopper is shown in under two scenarios, one where stomata are open all day, and one where stomatal closure is driven by photosynthetically active radiation intensity and vapour pressure."
 #| code-fold: true
 #| echo: true
+#| warning: false
+#| message: false
 
 # Load in the DEB model for scenerio 1
   load(here("output", "microclim", "grasshopper_stomata_open_DEB.RDa"))
@@ -860,7 +862,7 @@ Now that we have run the DEB model we can have a look at whether the life-cycles
 
 # Create the life cycle plot
 p1 <- ggplot() +
-geom_line(data = ecto$environ, aes(x = datetime, y = TC*10), col = 'lightgrey', size = 0.5) +
+geom_line(data = ecto$environ, aes(x = datetime, y = TC*10), col = 'lightgrey', linewidth = 0.5) +
 ylim(-10, 500) +
 geom_line(data = ecto$environ, aes(x = datetime, y = SHADE), col = "forestgreen") +
 geom_line(data = debout, aes(x = datetime, y = WETMASS * 1000), col = "black") +
