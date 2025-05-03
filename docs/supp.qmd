@@ -648,7 +648,7 @@ Dynamic Energy Budget (DEB) models are a powerful tool for understanding how org
 
 ### Grasshopper development and reproduction under heatwaves when plants don't respond
 
-To setup our DEB model we first need to set the DEB model paarameters. Grasshoppers are slightly mor complicated because of the differing life-stages but we can use an existing DEB model for the grasshopper Warramaba virgo. The DEB model parameters are available in the `sims` folder of the repository. We'll load these parameters into R and then set the initial conditions for the DEB model.
+To setup our DEB model we first need to set the DEB model paarameters. Grasshoppers are slightly mor complicated because of the differing life-stages but we can use an existing DEB model for the grasshopper *Warramaba virgo*, and use a model developed by @Llandres2015. Thankfully, @Llandres2015 have already estimated the DEB parameters for us so we'll use these. The DEB model parameters are available in the `sims` folder of the repository. We'll load these parameters into R and then set the initial conditions for the DEB model.
 
 ```{r, deb_grasshopper_params}
 #| label: deb_grasshopper_params
@@ -756,12 +756,12 @@ for(i in 1:length(plant_micro)){
      micro$shadsoil[, "D0cm"] <- plant$soilpot[,"PT0cm"]
 
 # Get dates from microclimate object
-dates <- micro$dates # dates, hourly
+ dates <- micro$dates  # dates, hourly
 dates2 <- micro$dates2 # dates, daily
 
 # Set starting date by truncating microclimate model output
 oviposition_date <- '2018-03-31 23:00:00'
-            subs <- which(dates > as.POSIXct(oviposition_date))
+            subs <- which( dates > as.POSIXct(oviposition_date))
            subs2 <- which(dates2 > as.POSIXct(oviposition_date))
 
 # Now run the DEB life-cyle model for the grasshopper
@@ -1256,4 +1256,4 @@ environ_plant2  %>% filter(dates > "2019-01-15" & dates < "2019-01-31")  %>%
 ### Impacts of watering scenerios on grasshopper body temperature
 Now that we have the leaf temperature of the plant, we can use this to calculate the body temperature of the grasshopper, like we did in [case study 1](#case1). We can do this by using the ectotherm model again, but this time using the leaf temperature as the microclimate for the grasshopper.
 
-# References
+# **References**
