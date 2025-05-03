@@ -853,9 +853,9 @@ Now that we have run the DEB model we can have a look at whether the life-cycles
 
 # Load in the DEB model for scenerio 1
   load(here("output", "microclim", "grasshopper_stomata_open_DEB.RDa"))
-  datetime <- dates[subs]
-       sub <- which(datetime > as.POSIXct('2018-03-31') & datetime < as.POSIXct('2019-04-30'))
-  debout <- data.frame(ecto$debout)
+         datetime <- dates[subs]
+              sub <- which(datetime > as.POSIXct('2018-03-31') & datetime < as.POSIXct('2019-04-30'))
+           debout <- data.frame(ecto$debout)
   debout$datetime <- datetime
 
 # Create the life cycle plot
@@ -873,8 +873,29 @@ geom_line(data = debout %>% filter(STAGE == 5), aes(x = datetime, y = WETMASS * 
 geom_line(data = debout %>% filter(STAGE == 6), aes(x = datetime, y = WETMASS * 1000), col = "pink", linewidth =2) +
 labs(title = "Predicted Grasshopper life-cycle under stomata open", y = "Wet mass (mg/Tb * 10)", x = "Date") + theme_classic()
 
+# Now for scenerio 2
 
+load(here("output", "microclim", "grasshopper_stomata_closed_DEB.RDa"))
+           debout <- data.frame(ecto$debout)
+  debout$datetime <- datetime
 
+# Create the life cycle plot
+p2 <- ggplot() +
+geom_line(data = ecto$environ, aes(x = datetime, y = TC*10), col = 'lightgrey', size = 0.5) +
+ylim(-10, 500) +
+geom_line(data = ecto$environ, aes(x = datetime, y = SHADE), col = "forestgreen") +
+geom_line(data = debout, aes(x = datetime, y = WETMASS * 1000), col = "black") +
+geom_line(data = debout %>% filter(STAGE == 0), aes(x = datetime, y = WETMASS * 1000), col = "darkgrey", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 1), aes(x = datetime, y = WETMASS * 1000), col = "lightgreen", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 2), aes(x = datetime, y = WETMASS * 1000), col = "green", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 3), aes(x = datetime, y = WETMASS * 1000), col = "tan", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 4), aes(x = datetime, y = WETMASS * 1000), col = "brown", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 5), aes(x = datetime, y = WETMASS * 1000), col = "orange", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 6), aes(x = datetime, y = WETMASS * 1000), col = "pink", linewidth =2) +
+labs(title = "Predicted Grasshopper life-cycle under stomata closed", y = "Wet mass (mg/Tb * 10)", x = "Date") + theme_classic()
+
+p1/p2 + plot_layout(ncol = 1) + plot_annotation(tag_levels = "A") +
+  theme(plot.tag = element_text(size = 12, face = "bold"))
 
 ```
 
