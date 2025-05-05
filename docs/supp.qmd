@@ -968,7 +968,7 @@ Let's turn this into a function that we can use in simulations.
 #' @param time Time step
 #' @return     Next years population size
 ricker <- function(N0, r, sd_r, K, time){
-  N0 * exp(log(rnorm(1, r, sd_r))) * (1 - (N0/K))
+  N0 * exp(rnorm(1, r, sd_r)*(1 - (N0/K)))
 }
 
 ## Create a function to do a stochastic simulation of the Ricker model
@@ -1009,7 +1009,7 @@ set.seed(123) # Set seed for reproducibility
       N0 <- 1000     # Initial population size
 r_closed <- 1.503123 # Intrinsic growth (DEB model) with stoma closed
   r_open <- 0.069320 # Intrinsic growth (DEB model) with stoma closed
-    sd_r <- 0.25     # Standard deviation of the growth rate
+    sd_r <- 0.15     # Standard deviation of the growth rate
        K <- 10000    # Carrying capacity
     time <- 10       # Time steps
    nreps <- 1000     # Number of replicates
@@ -1020,19 +1020,38 @@ N_closed <- sim_ricker(N0, r_closed, sd_r, K, time, nreps)
 
 # Create a data frame to store the results
 sims_closed <- pivot_longer(as.data.frame(N_closed), 
-                      cols = everything(), 
-                      names_to = "sim", 
-                      values_to = "N")  %>% mutate(time = rep(1:time, each = nreps))
+                            cols = everything(), 
+                        names_to = "sim", 
+                       values_to = "N")  %>% 
+               mutate(time = rep(1:time, each = nreps))
 
 sims_open <- pivot_longer(as.data.frame(N_open), 
-                      cols = everything(), 
-                      names_to = "sim", 
-                      values_to = "N")  %>% mutate(time = rep(1:time, each = nreps))
+                            cols = everything(), 
+                        names_to = "sim", 
+                       values_to = "N")  %>% 
+             mutate(time = rep(1:time, each = nreps))
+
+```
+
+```{r}
+#| label: fig-ricker_simulation
+#| fig-cap: "Population dynamics of a grasshopper at a location near Renmark, South Australia. Population dynamics of the grasshopper is shown in under two scenarios, one where stomata are open all day, and one where stomatal closure is driven by photosynthetically active radiation intensity and vapour pressure."
+#| code-fold: true
+#| echo: true
+
 # Plot the results
-ggplot(sims, aes(x = time, y = N, colour = sim)) +
+p1 = ggplot(sims_closed, aes(x = time, y = N, colour = sim)) +
   geom_line() +
-  labs(title = "Ricker model simulation", x = "Time", y = "Population size (N)") + theme_classic() + theme(legend.position = "none") +
-  scale_colour_viridis_d()
+  labs(title = "Ricker model simulation (Stoma Close)", x = "Generation", y = "Population size (N)") + theme_classic() + theme(legend.position = "none") +
+  scale_colour_viridis_d() + theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14))
+
+p2 = ggplot(sims_open, aes(x = time, y = N, colour = sim)) +
+  geom_line() +
+  labs(title = "Ricker model simulation (Stoma Open)", x = "Generation", y = "Population size (N)") + theme_classic() + theme(legend.position = "none") +
+  scale_colour_viridis_d() + theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14))
+
+p1 + p2 + plot_layout(ncol = 2) + plot_annotation(tag_levels = "A") +
+  theme(plot.tag = element_text(size = 12, face = "bold"))
 
 ```
 
