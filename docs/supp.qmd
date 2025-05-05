@@ -745,6 +745,13 @@ for(i in 1:length(plant_micro)){
 # Load the microclimate object
   load(here("output", "microclim", plant_micro[i]))
 
+# Object is labelled plant2 for the plant2_micro.RDa object
+  if(plant_mirco_names[i] == "stomata_closed"){
+    plant <- plant2
+  } else {
+    plant <- plant
+  }
+
 # Use the plant microclimate data to reset the original microclimate object
   micro$metout[,"TALOC"] <- plant$environ[,"TC"]
   micro$metout[,"RHLOC"] <- plant$metout [,"RHLOC"]
@@ -752,14 +759,14 @@ for(i in 1:length(plant_micro)){
     micro$soil[, "D0cm"] <- plant$environ[,"TC"]
 
 # We'll also this time update the shade soil temp and moisture so that grasshoppers can take advantage of other aspects of the microclimate.
-     micro$shadmet [, "TSKYC"]<- plant$shadmet[,"TSKYC"] 
+     micro$shadmet [,"TSKYC"] <- plant$shadmet[,"TSKYC"] 
      micro$shadsoil[, "D0cm"] <- plant$soilpot[,"PT0cm"]
 
 # Get dates from microclimate object
  dates <- micro$dates  # dates, hourly
 dates2 <- micro$dates2 # dates, daily
 
-# Set starting date by truncating microclimate model output
+# Set starting date by truncating microclimate model output to when grasshoppers are epected to oviposit eggs. This is the date when the life cylce of the insect is expected to start.
 oviposition_date <- '2018-03-31 23:00:00'
             subs <- which( dates > as.POSIXct(oviposition_date))
            subs2 <- which(dates2 > as.POSIXct(oviposition_date))
