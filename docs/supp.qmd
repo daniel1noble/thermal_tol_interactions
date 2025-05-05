@@ -919,7 +919,7 @@ We can see from @fig-grasshopper_lifecycle that the life-cyle of the grasshopper
 #| tbl-cap: "Predicted life-cycle traits of a grasshopper at a location near Renmark, South Australia. Life-cycle traits of the grasshopper are shown in under two scenarios, one where stomata are open all day, and one where stomatal closure is driven by photosynthetically active radiation intensity and vapour pressure."
 
 # Traits we want to extract from the DEB model
- traits <- c("FECUNDITY", "CLUTCHES", "LifeSpan") 
+ traits <- c("FECUNDITY", "CLUTCHES", "LifeSpan", "R0") 
 
 # Load in the DEB model for scenerio 1
 load(here("output", "microclim", "grasshopper_stomata_open_DEB.RDa"))
@@ -932,12 +932,109 @@ life_cycle_closed <- data.frame(ecto$yearout)[,traits]
 # Create a table of the life-cycle traits
 flextable::flextable(rbind(life_cycle_open, life_cycle_closed)) %>%
   flextable::set_header_labels(values = c("FECUNDITY" = "Fecundity", 
-                               "CLUTCHES" = "Clutches", 
-                               "LifeSpan" = "Life Span")) %>%
+                                           "CLUTCHES" = "Clutches", 
+                                           "LifeSpan" = "Life Span",
+                                           "Lamda Max" = "R0")) %>%
   flextable::set_table_properties(layout = "autofit")
 
 ```
 
+### **Population dynamics of grasshoppers under two plant response scenerios**
+
+As we have seen in the previous section, the life-cycle of the grasshopper is different when we consider the behaviour of the plant stomata and this has noticable effects on vital rates. We can use this information to parameterise a simple stochastic population models to understand how population dynamics of the grasshopper might change.
+
+We can use a simple Ricker model, which we'll use to simulate the population dynamics of the grasshopper. The Ricker model is a simple model that describes how populations grow over time. The model is given by the equation:
+
+$$
+N_{t+1} = N_t \cdot e^{r(1 - \frac{N_t}{K})}
+$$
+
+where $N_t$ is the population size at time $t$, $r$ is the intrinsic growth rate, and $K$ is the carrying capacity of the environment. The model assumes that populations grow exponentially when they are small, but that growth slows down as the population approaches the carrying capacity.
+
+Let's turn this into a function that we can use in simulations.
+
+```{r, ricker_model}
+#| label: ricker_model
+#| echo: true
+#| message: false
+#| warning: false
+
+#' @title Ricker model function
+#' @description A simple Ricker model function to simulate population dynamics
+#' @param N0   Initial population size
+#' @param r    Intrinsic growth rate
+#' @param sd_r Standard deviation of the growth rate
+#' @param K    Carrying capacity
+#' @param time Time step
+#' @return     Next years population size
+ricker <- function(N0, r, sd_r, K, time){
+  N0 * exp(log(rnorm(1, r, sd_r))) * (1 - (N0/K))
+}
+
+## Create a function to do a stochastic simulation of the Ricker model
+#' @title Ricker model simulation function
+#' @description A simple Ricker model function to simulate population dynamics
+#' @param N0    Initial population size
+#' @param r     Intrinsic growth rate
+#' @param sd_r  Standard deviation of the growth rate
+#' @param K     Carrying capacity
+#' @param time  Time step
+#' @param nreps Number of replicates
+#' @return      A matrix of population sizes at each time step for nreps
+
+sim_ricker <- function(N0, r, sd_r, K, time, nreps){
+  N_array <- array(NA, dim = c(time, nreps)) # Create a vector to store the population size at each time step
+  for(j in 1:nreps){
+    for(i in 2:time){
+      N_array[1,j] <- N0
+      N_array[i,j] <- ricker(N_array[i-1, j], r, sd_r, K, time)
+    }
+  }
+  return(N_array)
+}
+
+```
+
+Recall from our previous section that we already estimated the intrinsic growth rate. Assuming we had information on the carying capacity of the enviroment and population size we can then use the Ricker model to simulate the population dynamics of the grasshopper.
+
+```{r, ricker_simulation}
+#| label: ricker_simulation
+#| echo: true
+#| message: false
+#| warning: false
+
+set.seed(123) # Set seed for reproducibility
+
+# Set up the parameters for the Ricker model
+      N0 <- 1000     # Initial population size
+r_closed <- 1.503123 # Intrinsic growth (DEB model) with stoma closed
+  r_open <- 0.069320 # Intrinsic growth (DEB model) with stoma closed
+    sd_r <- 0.25     # Standard deviation of the growth rate
+       K <- 10000    # Carrying capacity
+    time <- 10       # Time steps
+   nreps <- 1000     # Number of replicates
+
+# Lets run the simulations
+N_closed <- sim_ricker(N0, r_closed, sd_r, K, time, nreps) 
+  N_open <- sim_ricker(N0,   r_open, sd_r, K, time, nreps)
+
+# Create a data frame to store the results
+sims_closed <- pivot_longer(as.data.frame(N_closed), 
+                      cols = everything(), 
+                      names_to = "sim", 
+                      values_to = "N")  %>% mutate(time = rep(1:time, each = nreps))
+
+sims_open <- pivot_longer(as.data.frame(N_open), 
+                      cols = everything(), 
+                      names_to = "sim", 
+                      values_to = "N")  %>% mutate(time = rep(1:time, each = nreps))
+# Plot the results
+ggplot(sims, aes(x = time, y = N, colour = sim)) +
+  geom_line() +
+  labs(title = "Ricker model simulation", x = "Time", y = "Population size (N)") + theme_classic() + theme(legend.position = "none") +
+  scale_colour_viridis_d()
+
+```
 
 # **Using a systems modelling approach to help develop solutions to extreme heat events**
 
