@@ -746,7 +746,7 @@ for(i in 1:length(plant_micro)){
   load(here("output", "microclim", plant_micro[i]))
 
 # Object is labelled plant2 for the plant2_micro.RDa object
-  if(plant_mirco_names[i] == "stomata_closed"){
+  if(plant_micro[i] == "plant2_micro.RDa"){
     plant <- plant2
   } else {
     plant <- plant
@@ -907,6 +907,37 @@ p1/p2 + plot_layout(ncol = 1) + plot_annotation(tag_levels = "A") +
   theme(plot.tag = element_text(size = 12, face = "bold"))
 
 ```
+
+We can see from @fig-grasshopper_lifecycle that the life-cyle of the grasshopper is different when we consider the behaviour of the plant stomata. Notably, when stomata are closed and the leaf temperatures are higher we expect the grasshopper to move through stages faster and reproduce more (@tbl-grasshopper_lifecycle). We can have a look at the different traits expected under both scenarios.
+
+```{r, tbl-grasshopper_lifecycle}
+#| label: tbl-grasshopper_lifecycle
+#| echo: true
+#| message: false
+#| warning: false
+#| code-fold: true
+#| tbl-cap: "Predicted life-cycle traits of a grasshopper at a location near Renmark, South Australia. Life-cycle traits of the grasshopper are shown in under two scenarios, one where stomata are open all day, and one where stomatal closure is driven by photosynthetically active radiation intensity and vapour pressure."
+
+# Traits we want to extract from the DEB model
+ traits <- c("FECUNDITY", "CLUTCHES", "LifeSpan") 
+
+# Load in the DEB model for scenerio 1
+load(here("output", "microclim", "grasshopper_stomata_open_DEB.RDa"))
+  life_cycle_open <- data.frame(ecto$yearout)[,traits]
+
+# Load in the DEB model for scenerio 2
+load(here("output", "microclim", "grasshopper_stomata_closed_DEB.RDa"))
+life_cycle_closed <- data.frame(ecto$yearout)[,traits]
+
+# Create a table of the life-cycle traits
+flextable::flextable(rbind(life_cycle_open, life_cycle_closed)) %>%
+  flextable::set_header_labels(values = c("FECUNDITY" = "Fecundity", 
+                               "CLUTCHES" = "Clutches", 
+                               "LifeSpan" = "Life Span")) %>%
+  flextable::set_table_properties(layout = "autofit")
+
+```
+
 
 # **Using a systems modelling approach to help develop solutions to extreme heat events**
 
