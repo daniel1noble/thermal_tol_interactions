@@ -919,7 +919,7 @@ We can see from @fig-grasshopper_lifecycle that the life-cyle of the grasshopper
 #| tbl-cap: "Predicted life-cycle traits of a grasshopper at a location near Renmark, South Australia. Life-cycle traits of the grasshopper are shown in under two scenarios, one where stomata are open all day, and one where stomatal closure is driven by photosynthetically active radiation intensity and vapour pressure."
 
 # Traits we want to extract from the DEB model
- traits <- c("FECUNDITY", "CLUTCHES", "LifeSpan", "R0") 
+ traits <- c("FECUNDITY", "CLUTCHES", "LifeSpan", "rmax") 
 
 # Load in the DEB model for scenerio 1
 load(here("output", "microclim", "grasshopper_stomata_open_DEB.RDa"))
@@ -934,12 +934,12 @@ flextable::flextable(rbind(life_cycle_open, life_cycle_closed)) %>%
   flextable::set_header_labels(values = c("FECUNDITY" = "Fecundity", 
                                            "CLUTCHES" = "Clutches", 
                                            "LifeSpan" = "Life Span",
-                                           "Lamda Max" = "R0")) %>%
+                                           "Lamda Max" = "rmax")) %>%
   flextable::set_table_properties(layout = "autofit")
 
 ```
 
-### **Population dynamics of grasshoppers under two plant response scenerios**
+### Population dynamics of grasshoppers under two plant response scenerios
 
 As we have seen in the previous section, the life-cycle of the grasshopper is different when we consider the behaviour of the plant stomata and this has noticable effects on vital rates. We can use this information to parameterise a simple stochastic population models to understand how population dynamics of the grasshopper might change.
 
@@ -1007,33 +1007,33 @@ set.seed(123) # Set seed for reproducibility
 
 # Set up the parameters for the Ricker model
       N0 <- 1000     # Initial population size
-r_closed <- 1.503123 # Intrinsic growth (DEB model) with stoma closed
-  r_open <- 0.069320 # Intrinsic growth (DEB model) with stoma closed
+r_closed <- -1.33451 # Intrinsic growth (DEB model) with stoma closed
+  r_open <- 0.395539 # Intrinsic growth (DEB model) with stoma closed
     sd_r <- 0.15     # Standard deviation of the growth rate
        K <- 10000    # Carrying capacity
     time <- 10       # Time steps
-   nreps <- 1000     # Number of replicates
+   nsims <- 1000     # Number of simulations
 
 # Lets run the simulations
-N_closed <- sim_ricker(N0, r_closed, sd_r, K, time, nreps) 
-  N_open <- sim_ricker(N0,   r_open, sd_r, K, time, nreps)
+N_closed <- sim_ricker(N0, r_closed, sd_r, K, time, nsims) 
+  N_open <- sim_ricker(N0,   r_open, sd_r, K, time, nsims)
 
 # Create a data frame to store the results
 sims_closed <- pivot_longer(as.data.frame(N_closed), 
                             cols = everything(), 
                         names_to = "sim", 
                        values_to = "N")  %>% 
-               mutate(time = rep(1:time, each = nreps))
+               mutate(time = rep(1:time, each = nsims))
 
 sims_open <- pivot_longer(as.data.frame(N_open), 
                             cols = everything(), 
                         names_to = "sim", 
                        values_to = "N")  %>% 
-             mutate(time = rep(1:time, each = nreps))
+             mutate(time = rep(1:time, each = nsims))
 
 ```
 
-```{r}
+```{r, fig-ricker_simulation}
 #| label: fig-ricker_simulation
 #| fig-cap: "Population dynamics of a grasshopper at a location near Renmark, South Australia. Population dynamics of the grasshopper is shown in under two scenarios, one where stomata are open all day, and one where stomatal closure is driven by photosynthetically active radiation intensity and vapour pressure."
 #| code-fold: true
@@ -1054,6 +1054,8 @@ p1 + p2 + plot_layout(ncol = 2) + plot_annotation(tag_levels = "A") +
   theme(plot.tag = element_text(size = 12, face = "bold"))
 
 ```
+
+We can see from @fig-ricker_simulation that when stomata are able to respond  to close grasshoppers are expected to maintain a stable population size, whereas if we have stomata remaining open we expect the population to collapse over time as microhabiats become less suitable for growth and reproduction.
 
 # **Using a systems modelling approach to help develop solutions to extreme heat events**
 
