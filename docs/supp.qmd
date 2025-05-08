@@ -1074,6 +1074,23 @@ p1 + theme(plot.tag = element_text(size = 12, face = "bold")) + p2 + theme(plot.
 
 We can see from @fig-ricker_simulation that when stomata are able to respond by closing grasshoppers are expected to grow and maintain a stable population size, whereas if we have stomata remaining open we expect the population to collapse over time as microhabiats become less suitable for growth and reproduction. This happens because higher body temperatures that result from when stomata close better allows grasshoppers to reach optimal physiological performance.
 
+We can also re-parameterise to use a finite rate model given the grasshoppers are annual species.
+
+$$
+N_{t+1} = N_t \cdot \lambda^{(1 - \frac{N_t}{K})}
+$$
+
+where $\lambda$ is the finite rate of increase. 
+
+$$
+\lambda = e^{r_{max}}
+$$
+
+
+For the stomata-closed scenario ($\lambda$ = `r round(exp(0.395539), 2)`), the population could tolerate up to `r round((1-(1/exp(0.395539)))*100, 2)`% mortality per generation and still remain stable.
+
+For the stomata-open scenario ($\lambda$ = `r round(exp(-1.33451),2)`), the population is declining rapidly. Even with no mortality, it would require a `r abs(round((1-(1/exp(-1.33451)))*100, 2))`% increase in survival or reproduction to be viable. This suggests the population cannot persist under current conditions.
+
 # **Using a systems modelling approach to help develop solutions to extreme heat events**
 
 A systems modelling approach can also be used to design possible solutions by understanding better how 'thermal interventions' affect heat experienced by organisms and how it influences growth, survival and reproduction. For example, we can manipulate rainfall at a particular time to simulate artificial watering which might be a possible intervention used during extreme heat. The added water can be used to make calculations of heat exchange, temperatures and transpiration under extreme heat events. We can also optimise the amount of water to balance costs and benefits of watering.
