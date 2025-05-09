@@ -302,7 +302,8 @@ It is important to recognize that these are predictions. As with any model, they
 Now that we've explored the various temperatures predicted in our microclimate model, we can use this information to predict the body temperatures of organisms. We can also use this information to predict how these organisms will respond to extreme heat events.
 
 # **Developing a systems modelling approach to predict biological responses to extreme heat**
-## **Case Study 1: Simulating plant and insect interactions under heatwaves**{#case1}
+## **Simulating plant and insect interactions under heatwaves**{#case1}
+## Setting the scene
 
 Case study one explores how feedback between plants and insects can happen in response to extreme heat events. Here, we are interested in how the behaviour and body temperature of grasshoppers is influenced by changes in plant transpiration which can impact microhabitat temperatures of grasshoppers (@fig-case1). While this is a simple situation it's a useful starting point to understand how a systems modelling approach can be built up to predict the impact of heatwaves on species interactions. 
 
@@ -316,7 +317,7 @@ fig_case1
 ```
 
 
-### Step 1: Predicting temperatures experienced by plants that form the grasshopper microclimate {#step1}
+### Predicting temperatures experienced by plants that form the grasshopper microclimate {#step1}
 
 To predict the impact of heatwaves on plant-insect interactions, we first need to predict how the microclimate that each organism experiences translates into body temperatures.  Taking a systems approach means that we can account for the effects of other organisms on our focal species. To do this, we need to consider the biology of the species that co-exist. 
 
@@ -531,7 +532,7 @@ Now, lets have a look at the leaf temperature when stomatal closure behaviour is
 
 Here, we can see that stomatal closure in the middle of the day causes the leaf temperatures to rise substantially compared to if they were always open and transpiring (i.e., evaporative cooling). This is important because it means that the grasshopper will be exposed to higher temperatures when plant stomata close midday. 
 
-### Step 2: Cross-talk between plant and animal systems: Incorporating cooling effects of plant transpiration to estimate grasshopper body temperature {#step2}
+### Coupling plant and animal models: Incorporating cooling effects of plant transpiration to estimate grasshopper body temperature {#step2}
 
 Now, lets run the ectotherm model for a grasshopper, but instead of using the microclimate object as it is, lets assume that the plant environment forms the microclimate of the grasshopper. This allows us to take in the microclimate and use it to calculate the body temperature of the grasshopper, and eventually understand how this affects growth, development etc within a dynamic energy budget model. The ectotherm model also allows us to incorporate relevant behavioural plasticity in response to extreme heat, which we'll do. 
 
