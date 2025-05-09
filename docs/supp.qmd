@@ -302,8 +302,10 @@ It is important to recognize that these are predictions. As with any model, they
 Now that we've explored the various temperatures predicted in our microclimate model, we can use this information to predict the body temperatures of organisms. We can also use this information to predict how these organisms will respond to extreme heat events.
 
 # **Developing a systems modelling approach to predict biological responses to extreme heat**
-## **Simulating plant and insect interactions under heatwaves**{#case1}
-## Setting the scene
+
+## **Case Study 1: Simulating plant and insect interactions under heatwaves**{#case1}
+
+### Setting the scene
 
 Case study one explores how feedback between plants and insects can happen in response to extreme heat events. Here, we are interested in how the behaviour and body temperature of grasshoppers is influenced by changes in plant transpiration which can impact microhabitat temperatures of grasshoppers (@fig-case1). While this is a simple situation it's a useful starting point to understand how a systems modelling approach can be built up to predict the impact of heatwaves on species interactions. 
 
@@ -642,14 +644,22 @@ grasshopper_environ2 <- grasshopper_environ                                     
 ## **Case Study 2: Understanding the effects of leaf mirochabitat on insect life-cyles: Linking mircoclimates with dynamic energy budgets** {#case2}
 
 ### Setting the scene
-Our next case study will explore how the microclimate produced by a plant leaf can influence the life-cycle of an insect. In this case, we will use a dynamic energy budget model to understand how the microclimate of a plant leaf can influence the growth and development of a grasshopper. Here, we will introduce a Dynamic Energy Budget (DEB) model which now takes as input the mircoclimate produced by the plant to predcit body temperatures, development, growth and reproduction of the grasshopper. The DEB model also allows us to incorperate the heat wave event.
+Our next case study will explore how the microclimate produced by a plant leaf can influence the life-cycle of an insect. In this case, we will use a dynamic energy budget model to understand how the microclimate of a plant leaf can influence the growth and development of a grasshopper. Here, we will introduce a Dynamic Energy Budget (DEB) model which now takes as input the mircoclimate produced by the plant to predcit body temperatures, development, growth and reproduction of the grasshopper (see @fig-case2 for a simplified DEB model). The DEB model also allows us to incorperate the heat wave event.
 
 Dynamic Energy Budget (DEB) models are a powerful tool for understanding how organisms allocate energy to growth, reproduction and maintenance.  To parameterise a DEB model it requires a set of parameters that are derived from empirical data on growth and metabolism. While DEB models are parameter rich, key parameters have been estimated for > 3000 species already [@Marques2018; @Kooijman2021]. New analytical approaches using phylogenetic imputation methods can be used to predict DEB parameters for over 1.3 million species providing immense opportunities to model how heat will affect life-cycles of multi-species assemblages (see https://deb.bolding-bruggeman.com, @Bruggeman2009). 
 
+```{r, fig-case2}
+#| label: fig-case2
+#| echo: false
+#| fig-cap: "NOTE: A placeholder figure for now. It's not correct. A simple adult stage Dynamic Energy Budget (DEB) model for the grasshopper showing how food gets assimilated into reserve energy stores. The grasshopper than aloocates some fraction of the energy in reserves to maintaining body stucrture (somatic maintenance) and growth (i.e., structure) and to developing reproductive tissue (reproductive maintenance) and allocating to reproduction."
+
+fig_case2 <- image_read(here("figs", "FigS3.png"))
+fig_case2
+```
 
 ### Grasshopper development and reproduction under heatwaves when plants don't respond
 
-To setup our DEB model we first need to set the DEB model paarameters. Grasshoppers are slightly mor complicated because of the differing life-stages but we can use an existing DEB model for the grasshopper *Warramaba virgo*, and use a model developed by @Llandres2015. Thankfully, @Llandres2015 have already estimated the DEB parameters for us so we'll use these. The DEB model parameters are available in the `sims` folder of the repository. We'll load these parameters into R and then set the initial conditions for the DEB model.
+To setup our DEB model we first need to set the DEB model paarameters. Grasshoppers are slightly more complicated because of the differing life-stages but we can use an existing DEB model for the grasshopper *Warramaba virgo*, and use a model developed by @Llandres2015. Thankfully, @Llandres2015 have already estimated the DEB parameters for us so we'll use these. The DEB model parameters are available in the `sims` folder of the repository. We'll load these parameters into R and then set the initial conditions for the DEB model.
 
 ```{r, deb_grasshopper_params}
 #| label: deb_grasshopper_params
