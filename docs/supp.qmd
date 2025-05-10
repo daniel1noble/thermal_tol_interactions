@@ -1100,7 +1100,7 @@ $$
 
 For the stomata-closed scenario ($\lambda$ = `r round(exp(0.395539), 2)`), the population could tolerate up to `r round((1-(1/exp(0.395539)))*100, 2)`% mortality per generation and still remain stable.
 
-For the stomata-open scenario ($\lambda$ = `r round(exp(-1.33451),2)`), the population is declining rapidly. Even with no mortality, it would require a `r abs(round((1-(1/exp(-1.33451)))*100, 2))`% increase in survival or reproduction to be viable. This suggests the population cannot persist under current conditions.
+For the stomata-open scenario ($\lambda$ = `r round(exp(-1.33451),2)`), the population is declining rapidly. Even with no mortality, it would require a `r abs(round((1-(1/exp(-1.33451)))*100, 2))`% increase in survival or reproduction to be viable, suggesting the population cannot persist under current conditions.
 
 # **Using a systems modelling approach to help develop solutions to extreme heat events**
 
@@ -1456,7 +1456,9 @@ environ_plant2  %>% filter(dates > "2019-01-15" & dates < "2019-01-31")  %>%
 
 @fig-plant_temp3 shows how much watering at the various levels affects the leaf temperature of the plant during the day (between 11:00-14:00 hr). We can see that watering even just 2mm can reduce the leaf temperature by on average `r abs(tbl_temps[2,2])` $^\circ\text{C}$ (@tbl-plant_temp3). Interestingly, we can see that after 5mm of water, the leaf temperature doesn't change much, suggesting that we can get away with less water. A good thing in a very arid environment!
 
-### Impacts of watering scenerios on grasshopper body temperature
-Now that we have the leaf temperature of the plant, we can use this to calculate the body temperature of the grasshopper, like we did in [case study 1](#case1). We can do this by using the ectotherm model again, but this time using the leaf temperature as the microclimate for the grasshopper.
+### Impacts of watering scenerios on grasshopper life cycle
+Now that we have the leaf temperature of the plant under the various watering scenerios, we can use this to understand how the different scenerios might affect grasshopper body temperature, life cycle and population dynamics like we did in [case study 2](#case2). This is a nice demonstrations of re-applying everything we've learnt to a new problem. Again, we can do this by using the ectotherm model using the leaf temperature under the different watering scenerios as the microclimate for the grasshopper. Given the short period of thea heat wave and watering regimes we don't expect major differences but it's better to check.
+
+
 
 # **References**
