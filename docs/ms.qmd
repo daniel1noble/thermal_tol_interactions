@@ -115,6 +115,14 @@ Recent efforts to increase the biological realism of coexistence models have foc
 -The other way to model interactions us using foundational community ecology/ species abundance models see @Carrara2015. We can here model the actual abundance of a given species and it would seem more flexible to incorporate thermal tolerance infor into these models. 
 - have a close look at @Vitali2022 and @Riva2023, limitations @Terry2020
 
+
+# Integrating eco-evolutionary feedbacks within a systems-modelling framework 
+
+Extreme environments both shape organismal traits and also act as a potent selective force allowing populations to evolve. Phenotypic plasticty and adaptive evolutionary change are both crucial individual/population processes that allow systems to respond and build resilience to extreme heat. Both plasticity and evolution can be incorperated into a systems modelling framework by allowing environments to govern 'trait' development and incoperating genetic (co)variance estimates for 'traits' within these models. We speak of 'traits' broadly here because these are not always traits typically viewed by evolutionary ecologists (e.g., body mass, morphology) but rather we take a broader perspective that also includes the parameters within models that allow functional taits to emerge. 
+
+
+
+
 # Incorporating context-dependent environmental feedback to evaluate resilience to extreme heat  (Brajesh, Brendan, James, Everyone else who wants to contribute)
 - Goal of this section is to briefly focus on the BIOLOGY that will shift thermal exposure and sensitivity in plants and animals.
 - I **just** found this important paper for which a lot can be gleaned upon. Many of the important things we have been discussing are discussed in here: @Martinez-De_Leon2024, so we should be careful to make our narrative distinct. The limitation of this study is it lacks the focus on modelling frameworks, so I think us distinguishing how we link these concepts back into the model would be quite novel and distinguish ourselves from them..
