@@ -25,7 +25,7 @@ crossref:
   tbl-prefix: "Table"
 ---
 
-Daniel W.A. Noble^1^ $\dagger, \ddagger$, Belinda Medlyn^3^ $\dagger$, Margaret Mayfield^2^ $\dagger$, Ary Hoffmann^1^, James Cook^3^, Brajesh Singh^3^, Adrienne Nicotra^1,4^, Brendan Choat^3^, Owen Atkin^4^, Barry Pogson^4^, Danielle Way^4^, Alison Bentley^4^, Ian Wright^3^, Zhong-Hua Chen^3^, Steven Lade^5^, Xuemei Bai^5^, Micheal R. Kearney^2^ $\dagger$
+Daniel W.A. Noble^1^  $\ddagger$, Belinda Medlyn^3^ $\dagger$, Margaret Mayfield^2^ $\dagger$, Ary Hoffmann^1^ $\dagger$, James Cook^3^, Brajesh Singh^3^, Adrienne Nicotra^1,4^, Brendan Choat^3^, Owen Atkin^4^, Barry Pogson^4^, Danielle Way^4^, Alison Bentley^4^, Ian Wright^3^, Zhong-Hua Chen^3^ $\dagger$, Steven Lade^5^ $\dagger$, Xuemei Bai^5^ $\dagger$, Micheal R. Kearney^2^ $\ddagger$
  
 **Affiliations**:
 
@@ -35,7 +35,7 @@ Daniel W.A. Noble^1^ $\dagger, \ddagger$, Belinda Medlyn^3^ $\dagger$, Margaret 
 ^4^ Division of Plant Sciences, Research School of Biology, The Australian National University, Canberra ACT 2602, Australia\
 ^5^ Fenner School of Environment and Society, The Australian National University, Canberra ACT 2602, Australia\ 
 
-^1^ $\ddagger$ Correspondance: daniel.noble@anu.edu.au\
+^1^ $\ddagger$ Correspondance: daniel.noble@anu.edu.au & m.kearney@unimelb.edu.au\
 $\dagger$ These authors contributed equally to this work.
 
 # Abstract (Dan)
@@ -51,16 +51,16 @@ Here, we bring together and discuss modelling approaches across diverse fields t
 
 # A systems-modelling approach to modelling biotic impacts of heatwaves 
 
-@fig-fig1 illustrates how a systems-modelling approach to understanding heatwave impacts can be achieved scaling from the level of the atmosphere to microclimate, and from individuals to populations and communities. Ultimately the impacts of extreme heat events on a community are driven by responses of individuals. Therefore, to understand extreme heat impacts on a community of organisms we must characterise the proximal thermal environments – the ‘microclimates’ – experienced by individuals of different species under a given atmospheric event, which can vary dramatically both vertically and horizontally at a given time. These microclimates must then be translated into physiological and behavioural responses, including the processes of thermal damage and repair, and how individuals mitigate their exposure to extreme heat through habitat selection and other behaviours. Dynamic energy budgets translate these individual responses into growth and reproduction trajectories across life cycles to drive population and community models of the resulting interactions. In the next sections we outline new developments in how we model all the components in @fig-fig1 such that a truly systems-based approach to modelling biotic impacts of heatwaves is now possible. 
+@fig-sys illustrates how a systems-modelling approach to understanding heatwave impacts can be achieved scaling from the level of the atmosphere to microclimate, and from individuals to populations and communities. Ultimately the impacts of extreme heat events on a community are driven by responses of individuals. Therefore, to understand extreme heat impacts on a community of organisms we must characterise the proximal thermal environments – the ‘microclimates’ – experienced by individuals of different species under a given atmospheric event, which can vary dramatically both vertically and horizontally at a given time. These microclimates must then be translated into physiological and behavioural responses, including the processes of thermal damage and repair, and how individuals mitigate their exposure to extreme heat through habitat selection and other behaviours. Dynamic energy budgets translate these individual responses into growth and reproduction trajectories across life cycles to drive population and community models of the resulting interactions. In the next sections we outline new developments in how we model all the components in @fig-sys such that a truly systems-based approach to modelling biotic impacts of heatwaves is now possible. 
 
-```{r, fig-fig1}
-#| label: fig-fig1
+```{r, fig-sys}
+#| label: fig-sys
 #| fig-cap: "The proposed modelling integration developed in our Opinion submission integrates climate/biophysical models to predict temperatures species experience in their respective microhabitats. Temperatures experienced by organisms provide inputs for damage-repair and dynamic energy budget models that integrate temperature exposure with explicit physiological models that simulate development, behaviour, survival and reproduction in response to temperature across life. Physiological models can be built around the unique life cycles of the diverse species in communities capturing lagged responses to extreme heat, phenological mismatches and mechanistically informed responses to extreme heat for species of the system in question. Outputs (behaviour, growth rate/ biomass accumulation, survival and reproduction) from physiological models of individual organisms can then be integrated into population and community ecology models to predict population growth and community interactions for a given system change. We show how environment mediated feedbacks influence organism thermal exposure and sensitivity (e.g., water availability, microbiota) which can vary across different life stages and organs. The integration of existing models in this novel way will allow simulations at the organismal level to generate emergent predictions for entire communities. In turn, such simulations will allow quantitative predictions to be made on how extreme heatwaves perturb biological systems and allow for the development and implementation of strategies to enhance both biological and socioecological system resilience to extreme heat."
 
-pacman::p_load(magick, ggplot2, patchwork)
+pacman::p_load(magick, ggplot2, patchwork, here)
 
 # Load the image
-img <- image_read("../figs/Fig1.png")
+img <- image_read(here("figs", "Fig1.png"))
 plot(img)
 
 ```
@@ -126,9 +126,6 @@ $$ {#eq-breeders}
 
 where $\Delta \bar{\textbf{z}}$ is the vector of changes in the mean trait values, $\textbf{G}$ is the genetic covariance matrix and $\beta$ is the vector of standardised selection gradients. 
 
-
-
-
 # Incorporating context-dependent environmental feedback to evaluate resilience to extreme heat  (Brajesh, Brendan, James, Everyone else who wants to contribute)
 - Goal of this section is to briefly focus on the BIOLOGY that will shift thermal exposure and sensitivity in plants and animals.
 - I **just** found this important paper for which a lot can be gleaned upon. Many of the important things we have been discussing are discussed in here: @Martinez-De_Leon2024, so we should be careful to make our narrative distinct. The limitation of this study is it lacks the focus on modelling frameworks, so I think us distinguishing how we link these concepts back into the model would be quite novel and distinguish ourselves from them..
@@ -166,7 +163,7 @@ The impacts of thermal stress on ecosystems can affect not only nearby communiti
 
 Understand these relationships between people and nature requires adopting a social-ecological systems perspective, where people and nature are interdependent and intertwined [@Folke2016]. Social-ecological models aim to capture the social systems, natural systems and their interactions [@Schluter2012]. Such models can display non-trivial emergent behaviour resulting from complex interactions within the social-ecological systems. For example, responding to decreased productivity from thermal stress by farming more intensively could lead to a maladaptation or ‘lock-in’ from which it is difficult to escape [@Wise2014]. 
 
-Social-ecological models are conventionally built using process-based modelling frameworks such as agent-based models, dynamical systems models or state-and-transition models [@delgado2022routledge]. Process-based approaches are critical to understanding how emergent social-ecological phenomena develop [@brown2021can], such as tipping points, traps or other dynamics. Constructing process-based dynamical models requires knowledge and data about: the biophysical processes, which could be provided by the models from the previous sections; social processes, which could be developed from a combination of behavioural theory and empirical data; and interactions between them in the system of interest. Since obtaining all these data can be challenging, social-ecological modelling is often performed in an exploratory mode [@kwakkel2013exploratory] to anticipate possible future modes of behaviour, such as the direction of change of human behaviour and environmental state or the risk of emergent phenomena such as tipping points, rather than trying to predict specific outcomes. 
+Social-ecological models are conventionally built using process-based modelling frameworks such as agent-based models, dynamical systems models or state-and-transition models []. Process-based approaches are critical to understanding how emergent social-ecological phenomena develop [], such as tipping points, traps or other dynamics. Constructing process-based dynamical models requires knowledge and data about: the biophysical processes, which could be provided by the models from the previous sections; social processes, which could be developed from a combination of behavioural theory and empirical data; and interactions between them in the system of interest. Since obtaining all these data can be challenging, social-ecological modelling is often performed in an exploratory mode [] to anticipate possible future modes of behaviour, such as the direction of change of human behaviour and environmental state or the risk of emergent phenomena such as tipping points, rather than trying to predict specific outcomes. 
 
 :::
 
