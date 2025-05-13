@@ -124,7 +124,7 @@ $$
 \Delta \bar{\textbf{z}} = \textbf{G} \cdot \beta
 $$ {#eq-breeders}
 
-where $\Delta \bar{\textbf{z}}$ is the vector of changes in the mean trait values, $\textbf{G}$ is the genetic covariance matrix and $\beta$ is the vector of standardised selection gradients. 
+where $\Delta \bar{\textbf{z}}$ is the vector of changes in the mean trait values, $\textbf{G}$ is the genetic covariance matrix and $\beta$ is the vector of standardised directional selection gradients that regress each trait on relative fitness (i.e., $\omega = \alpha + \beta^{T}\cdot z + e$; ). While the multivariate breeders equation can be applied and is versatile it will likely only be useful for predicting short term evolutonary responses []. 
 
 # Incorporating context-dependent environmental feedback to evaluate resilience to extreme heat  (Brajesh, Brendan, James, Everyone else who wants to contribute)
 - Goal of this section is to briefly focus on the BIOLOGY that will shift thermal exposure and sensitivity in plants and animals.
@@ -190,7 +190,7 @@ We have discussed ways in which a better understanding of the impacts of extreme
 5. **Trade-offs between thermal tolerance and other traits**: We need to understand the trade-offs between thermal tolerance and other traits such as growth rate, reproduction, and competitive ability. It is fine to confer greater thermal tolerance resistance but if this comes at a cost to reproduction, growth or biomass accumulation, then it may not be beneficial (Dani, James, Brendan).
 6. **Social-ecological systems**: We need to understand how the impacts of extreme heat on ecosystems can affect the services those ecosystems provide to people and how people may respond to thermal risks to ecosystems. This requires a social-ecological systems perspective that captures the interactions between social and natural systems (Alison, Owen, Belinda, Mike).
 
-Developing a systems modelling framework will require collaboration between different research fields, including biophysics, physiology, ecology and evolutionary biology. By working collaboratively, we can develop a more calculated understanding of the impacts that extreme heat will have on plants and animals, populations, and communities along with how to mitigate these impacts to preserve socio-ecological systems now and into the future.
+Developing a systems modelling framework will require collaboration between different research fields, including biophysics, physiology, ecology and evolutionary biology. By working collaboratively, we can develop a more calculated understanding of the impacts that extreme heat will have on organisms, populations, and communities along with how to mitigate these impacts to preserve diverse systems now and into the future.
 
 # References
 
