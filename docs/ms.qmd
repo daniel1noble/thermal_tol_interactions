@@ -16,7 +16,6 @@ execute:
   echo: false
   warning: false
   error: false
-  include: false
 crossref:
   fig-title: 'Figure'
   fig-labels: arabic
@@ -55,13 +54,15 @@ Here, we bring together and discuss modelling approaches across diverse fields t
 
 ```{r, fig-sys}
 #| label: fig-sys
+#| dev: png
+#| eval: true
 #| fig-cap: "The proposed modelling integration developed in our Opinion  integrates climate/biophysical models to predict temperatures species experience in their respective microhabitats. Temperatures experienced by organisms provide inputs for damage-repair and dynamic energy budget models that integrate temperature exposure with explicit physiological models that simulate development, behaviour, survival and reproduction in response to temperature across life history stages Physiological models can be built around the unique life cycles of the diverse species in communities, capturing lagged responses to extreme heat, phenological mismatches and mechanistically informed responses to extreme heat for species of the system in question. Outputs (behaviour, growth rate/ biomass accumulation, survival and reproduction) from physiological models of individual organisms can then be integrated into population and community ecology models to predict population growth and community interactions for a given system change. We show how environment-mediated feedbacks influence organism thermal exposure and sensitivity (e.g., water availability, microbiota) which can vary across different life stages and organs. The integration of existing models in this novel way will allow simulations at the organismal level to generate emergent predictions for entire communities. In turn, such simulations will allow quantitative predictions to be made on how extreme heatwaves perturb biological systems and allow for the development and implementation of strategies to enhance both biological and socioecological system resilience to extreme heat."
 
-pacman::p_load(magick, ggplot2, patchwork, here)
+pacman::p_load(magick, ggplot2, patchwork, here, grid)
 
 # Load the image
 img <- image_read(here("figs", "Fig1.png"))
-plot(img)
+grid::grid.raster(img)
 
 ```
 
@@ -120,15 +121,15 @@ Recent efforts to increase the biological realism of coexistence models have foc
 
 Extreme environments both impact trait development and act as a potent selective force allowing populations to evolve [@Chevin2017; @Urban2024; @Hoffmann2011]. Phenotypic plasticty and adaptive evolutionary change are two processes that are expected to allow systems to respond and build resilience to extreme heat. Evolutionary responses will depend on the amount of phenotypic and genetic variation exposed to natural selection and the strength of selection on phenotypes. Extreme environments pose unique challenges for predicting evolutionary change because they are, by definiton, rare events. Adaptive evolution will therefore depend on the frequency of extreme environments and the underlying genetic correlation between traits expressed across environments [@Chevin2017]. In addition, phenotypic plasticity can result in both maladaptive and adaptive outcomes by either shielding selection on genetic variation or by facilitating persistence and selection making the relative role of plasticity and adaptive evolution to building population resilience complex [@Urban2024; @Hoffmann2022; @Ghalambor2015; @Oostra2018; @Noble2019]. 
 
-Plasticity and evolution can be incorperated into a systems modelling framework by allowing environments to govern 'trait' development (plasticity) and by incoperating selection and genetic (co)variance estimates for 'traits' within these models (evolution). We speak of 'traits' broadly here because these need not be traits typically thought of by evolutionary ecologists (e.g., body mass, morphology). Rather, 'traits' can also include the parameters within models that allow functional taits to emerge [@Sousa2010] or even function-valued traits [@Stinchcombe2012]. Plasticity can be captured by mapping trait development to the environment. In contrast, evolutionary change that considers genetic correlation between traits (i.e., constraints) can be predcited using the multivariate breeders equation [@Lande1979]:
+Plasticity and evolution can be incorperated into a systems modelling framework by allowing environments to govern 'trait' development (plasticity) and by incoperating selection and genetic (co)variance estimates for 'traits' within these models (evolution). We speak of 'traits' broadly here because these need not be traits typically thought of by evolutionary ecologists (e.g., body mass, morphology). Rather, 'traits' can also include the parameters within models that allow functional taits to emerge [@Sousa2010] or even function-valued traits [@Stinchcombe2012]. Plasticity can be captured by mapping trait development to the environment. In contrast, evolutionary change takes place in multivariate trait space where  genetic correlations between traits (i.e., constraints) and varying can be predcited using the multivariate breeders equation [@Lande1979]:
 
 $$
 \Delta \bar{\bm{z}} = \bm{G} \cdot \bm{\beta}
 $$ {#eq-breeders}
 
-where $\Delta \bar{\bm{z}}$ is the vector of changes in the mean trait values, $\bm{G}$ is the genetic covariance matrix and $\bm{\beta}$ is the vector of standardised selection gradients that regress each trait on relative fitness (i.e., $\bm{\omega} = \bm{\alpha} + \bm{\beta^{T}}\cdot \bm{z} + \bm{e}$; @Walsh2018). While the multivariate breeders equation can be applied, and is versatile, it will likely only be useful for predicting short term evolutonary responses [@Walsh2018]. 
+where $\Delta \bar{\bm{z}}$ is the vector of changes in the mean trait values, $\bm{G}$ is the genetic covariance matrix and $\bm{\beta}$ is the vector of standardised selection gradients that regress each trait on relative fitness (i.e., $\bm{\omega} = \bm{\alpha} + \bm{\beta^{T}}\cdot \bm{z} + \bm{e}$; @Walsh2018). While the multivariate breeders equation can be useful for predicting short term evolutonary responses (i.e., one or a few generations) it is likely limited in predictive power over longer timespans because of changes in heritability and selection through time [@Walsh2018; @Hoffmann2011]. 
 
-Understanding plasticty and evolution for key 'traits' relevant to the models discussed here is already being done [@Youngblood2025; ]. 
+Measuring and incorperating both plasticity and evolution into our proposed systems modelling framework is still rare and usually focused on one or a few 'traits'. Studies that have attempted to measure plasticty and evolutionary potential in traits demonstrate how such processes can shape outcomes in important ways [@Youngblood2025; @Baeza_Icaza2025; @Kearney2009a; @Ellner2011; @Pottier2022; @Leiva2024]. For example, using isogenic lines of *Drosophia melanogaster*, @Leiva2024 show evidence for genetic variation in both upper thermal limits ($CT_{max}$) and thermal sensitivity (i.e, $z$, slope from TDT curves) using a TDT framework. Simulations also show that selection on one parameter will also induce changes in the other. Additionally, thermal sensitivity in *Drosophia* species is also known to respond plastically to temperature [@Baeza_Icaza2025], and in locusts drought can also affect heat tolerance [@Youngblood2025].   
 
 # Incorporating context-dependent environmental feedback to evaluate resilience to extreme heat  (Brajesh, Brendan, James, Everyone else who wants to contribute)
 - Goal of this section is to briefly focus on the BIOLOGY that will shift thermal exposure and sensitivity in plants and animals.
@@ -204,7 +205,12 @@ Developing a systems modelling framework will require collaboration between diff
 # References
 
 ```{r, performancecurve}
-
+#| include: false
+#| echo: false
+#| message: false
+#| warning: false
+#| error: false
+#| eval: false
 ## See box 1 in Weiss-Lehman et al. 2022 for a description of the model. This could be applied to non-linear fitness effects based on optimal environment.
 
 #parameters
@@ -230,6 +236,12 @@ plot(tb,r, type = "l", ylab = "Fitness", xlab = "Environmental gradient")
 ```
 
 ```{r, skewnormal}
+#| include: false
+#| echo: false
+#| message: false
+#| warning: false
+#| error: false
+#| eval: false
 # Skew normal fitness functions from https://academic.oup.com/evolut/article/73/2/145/6882140
 #The parameter θ specifies the location, sigma the width, and alpha the skew of the fitness function. α > 0 gives a right-skewed function (positive skewness), α < 0 a left-skewed function, and α = 0 a symmetric Gaussian fitness function. Importantly, α also changes the position of the maximum value of w (despite location parameter θ being kept constant), so we will write θ0 as the value of θ that provides maximum fitness for a trait value of zero.
 
