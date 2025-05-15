@@ -1453,9 +1453,189 @@ environ_plant2  %>% filter(dates > "2019-01-15" & dates < "2019-01-31")  %>%
 
 @fig-plant_temp3 shows how much watering at the various levels affects the leaf temperature of the plant during the day (between 11:00-14:00 hr). We can see that watering even just 2mm can reduce the leaf temperature by on average `r abs(tbl_temps[2,2])` $^\circ\text{C}$ (@tbl-plant_temp3). Interestingly, we can see that after 5mm of water, the leaf temperature doesn't change much, suggesting that we can get away with less water. A good thing in a very arid environment!
 
-### Impacts of watering scenerios on grasshopper life cycle
-Now that we have the leaf temperature of the plant under the various watering scenerios, we can use this to understand how the different scenerios might affect grasshopper body temperature, life cycle and population dynamics like we did in [case study 2](#case2). This is a nice demonstrations of re-applying everything we've learnt to a new problem. Again, we can do this by using the ectotherm model using the leaf temperature under the different watering scenerios as the microclimate for the grasshopper. Given the short period of thea heat wave and watering regimes we don't expect major differences but it's better to check.
+### **Case Study 4: Impacts of watering scenerios on grasshopper life cycle** {#case4}
 
+### Setting the scene
+Now that we have the leaf temperature of the plant under the various watering scenerios, we can use this to understand how the different scenerios might affect grasshopper body temperature, life cycle and population dynamics like we did in [case study 2](#case2). This is a nice demonstrations of re-applying everything we've learnt to a new problem – a problem potentially involving the need to control and understand the probability of pest outbreaks. 
+
+We can do this by using the ectotherm model using the leaf temperature under the different watering scenerios as the microclimate for the grasshopper. Given the short period of the heat wave and watering regimes we don't expect major differences but it's better to check.
+
+### Use the different watering scenerios to look at how changes in temperature during the watering regime period affect the grasshopper life cycle 
+
+As we did before, we'll update the microclimate experienced by the grasshopper to coincide with the leaf temperature and environmental conditions of the plant (assuming grasshoppers are within the bush in 40% shade). This will then calculate what tempeartures the grasshopper experiences using a heat-budget model to predict the grasshopper body temperature. Then, we will use the heat-budget calculations to run teh Dynamic Energy Budget model for the grasshopper to predict whether this impacts life-cycle. Again, these simulations are all done at once using the `ectotherm` function.
+
+```{r, deb_grasshopper_water}
+#| label: deb_grasshopper_water
+#| echo: true
+#| warning: false
+#| message: false
+
+# First, we need to load in the  microclimates scenerios. We'll do this in a loop so that we can run the DEB model for each of the scenerios. So, here we'll just create a few vectors that cell specific objects we need.
+        plant_micro <- c("plant_microclimate_micro.RDa", "plant_rainhour_2_shade_micro.RDa", "plant_rainhour_5_shade_micro.RDa", "plant_rainhour_10_shade_micro.RDa", "plant_rainhour_20_shade_micro.RDa")
+  plant_mirco_names <- c("envron_plant", "environ_plant_2", "environ_plant_5", "environ_plant_10", "environ_plant_20")
+
+# We also need to load in the original microclimate object so that we can get the dates and other information from it. This is the original microclimate object that we used to simulate the plant microclimate. We'll also overide the `mirco` object so that the ectotherm model can use it.
+  load(here("output", "microclim", "microclimate.RDa"))
+
+# Now we can loop through the two microclimates and run the DEB model for each of them
+for(i in 1:length(plant_micro)){
+
+# Load the microclimate object
+  load(here("output", "microclim", plant_micro[i]))
+
+# Use the plant microclimate data to reset the original microclimate object
+  micro$metout[,"TALOC"] <- plant$environ[,"TC"]
+  micro$metout[,"RHLOC"] <- plant$metout [,"RHLOC"]
+  micro$metout[,"TSKYC"] <- plant$metout [,"TSKYC"]
+    micro$soil[, "D0cm"] <- plant$environ[,"TC"]
+
+# We'll also this time update the shade soil temp and moisture so that grasshoppers can take advantage of other aspects of the microclimate.
+     micro$shadmet [,"TSKYC"] <- plant$shadmet[,"TSKYC"] 
+     micro$shadsoil[, "D0cm"] <- plant$soilpot[,"PT0cm"]
+
+# Get dates from microclimate object
+ dates <- micro$dates  # dates, hourly
+dates2 <- micro$dates2 # dates, daily
+
+# Set starting date by truncating microclimate model output to when grasshoppers are epected to oviposit eggs. This is the date when the life cylce of the insect is expected to start.
+oviposition_date <- '2018-03-31 23:00:00'
+            subs <- which( dates > as.POSIXct(oviposition_date))
+           subs2 <- which(dates2 > as.POSIXct(oviposition_date))
+
+# Now run the DEB life-cyle model for the grasshopper. See Case Study 2 for more details on the parameters used in the DEB model.
+
+  ecto <- ectotherm( Ww_g = Ww_g,
+                    shape = shape,
+                  shape_b = shape_b,
+                   T_pref = T_pref,
+                  T_F_min = T_F_min,
+                  T_F_max = T_F_max,
+                  T_B_min = T_B_min,
+                 T_RB_min = T_RB_min,
+                   CT_min = CT_min,
+                   CT_max = CT_max,
+                    diurn = diurn,
+                  nocturn = nocturn,
+                   crepus = crepus,
+               shade_seek = shade_seek,
+                   burrow = burrow,
+                 pct_cond = pct_cond,
+                   nyears = ceiling(length(subs2)/365),
+                   metout = micro$metout[subs,],
+                     soil = micro$soil[subs,], 
+                  soilpot = micro$soilpot[subs,],
+                soilmoist = micro$soilmoist[subs,], 
+                    humid = micro$humid[subs,],
+                    tcond = micro$tcond[subs,], 
+                  shadmet = micro$shadmet[subs,],
+                 shadsoil = micro$shadsoil[subs,], 
+                  shadpot = micro$shadpot[subs,],
+                shadmoist = micro$shadmoist[subs,],
+                shadhumid = micro$shadhumid[subs,],
+                shadtcond = micro$shadtcond[subs,], 
+                 rainfall = micro$RAINFALL[subs2],
+                minshades = micro$minshade[subs2],
+                maxshades = micro$maxshade[subs2],
+                      DEB = 1, # turns DEB model on
+               metab_mode = 1, # turns on hemimetabolous model, abp
+                        z = z * fract,
+                    del_M = del.M,
+                     p_Xm = p.Am * 100 / 24 / kap.X,
+                    kap_X = kap.X,
+                        v = v / 24,
+                      kap = kap,
+                      p_M = p.M / 24,
+                      E_G = E.G,
+                    kap_R = kap.R,
+                      k_J = k.J  / 24,
+                     E_Hb = E.Hb * fract ^ 3,
+                     E_Hp = (E.Hj+1e-5) * fract ^ 3,
+                     E_Hj = E.Hj * fract ^ 3,
+                      h_a = h.a / (24 ^ 2),
+                      s_G = s.G,
+                      E_0 = E.0 * fract ^ 4,
+                     mu_E = mu.E,
+                      d_V = d.V,
+                      d_E = d.E,
+                    T_REF = T.ref,
+                      T_A = T.A,
+                     T_AL = T.AL,
+                     T_AH = T.AH,
+                      T_L = T.L,
+                      T_H = T.H,
+                     E_sm = E_sm,
+                   E_init = E_init,
+                 E_H_init = E_H_init,
+                   V_init = V_init,
+                    stage = stage,
+               clutchsize = clutchsize,
+                   stages = stages,
+                 S_instar = rep(s.1, stages),
+                      L_b = L.b,
+               photostart = photostart,
+              photofinish = photofinish,
+                    reset = reset,
+                 soilnode = soilnode)
+# Save the DEB model
+  save(ecto, file = here("output", "microclim", paste0("grasshopper_", plant_mirco_names[i], "_DEB.RDa")))
+}
+```
+
+Now that we have the DEB model for each of the watering scenerios, we can plot out the grasshopper life cycles for each scenerio. 
+
+
+```{r, fig-grasshopper_lifecycle}
+#| label: fig-grasshopper_lifecycle
+#| fig-cap: "Life-cycle of a grasshopper at a location near Renmark, South Australia. Life-cycle of the grasshopper is shown in under two scenarios, one where stomata are open all day, and one where stomatal closure is driven by photosynthetically active radiation intensity and vapour pressure."
+#| code-fold: true
+#| echo: true
+#| warning: false
+#| message: false
+
+# Scenerios
+   plant_mirco_names <- c("envron_plant", "environ_plant_2", "environ_plant_5", "environ_plant_10", "environ_plant_20")
+   debs <- paste0("grasshopper_", plant_mirco_names, "_DEB.RDa")
+   scenerios <- c("Original Rainfall", "Watering (2 mm)", "Watering (5 mm)", "Watering (10 mm)", "Watering (20 mm)")
+
+# Now, lets load in the DEB model for each of the scenerios and plot them out. We'll save to a list
+plot_list <- list()
+
+for(i in 1:length(debs)){
+# Load the DEB model
+  load(here("output", "microclim", debs[i]))
+  datetime <- dates[subs]
+              sub <- which(datetime > as.POSIXct('2018-03-31') & datetime < as.POSIXct('2019-04-30'))
+           debout <- data.frame(ecto$debout)
+  debout$datetime <- datetime
+    scale_factor  <-  10
+
+
+  p <- ggplot() +
+geom_line(data = ecto$environ, aes(x = datetime, y = TC*scale_factor), col = 'lightgrey', linewidth = 0.5) +
+ylim(-10, 500) +
+geom_line(data = ecto$environ, aes(x = datetime, y = SHADE), col = "forestgreen") +
+geom_line(data = debout, aes(x = datetime, y = WETMASS * 1000), col = "black") +
+geom_line(data = debout %>% filter(STAGE == 0), aes(x = datetime, y = WETMASS * 1000), col = "darkgrey", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 1), aes(x = datetime, y = WETMASS * 1000), col = "lightgreen", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 2), aes(x = datetime, y = WETMASS * 1000), col = "green", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 3), aes(x = datetime, y = WETMASS * 1000), col = "tan", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 4), aes(x = datetime, y = WETMASS * 1000), col = "brown", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 5), aes(x = datetime, y = WETMASS * 1000), col = "orange", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 6), aes(x = datetime, y = WETMASS * 1000), col = "pink", linewidth =2) +
+labs(title = scenerios[i], x = "Date") + 
+scale_y_continuous(
+    name = "Wet mass (mg)", 
+    sec.axis = sec_axis(~ . / scale_factor, name = "Body temperature (°C)")
+  )+ theme_classic()
+
+plot_list[[i]] <- p 
+
+}
+
+(plot_list[[1]] + plot_list[[2]]) / (plot_list[[3]] + plot_list[[4]]) / (plot_list[[5]] + plot_list[[6]]) + plot_layout(ncol = 1) + plot_annotation(tag_levels = "A") +
+  theme(plot.tag = element_text(size = 12, face = "bold"))
+
+```
 
 
 # **References**
