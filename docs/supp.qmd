@@ -309,7 +309,7 @@ Now that we've explored the various temperatures predicted in our microclimate m
 
 # **Developing a systems modelling approach to predict biological responses to extreme heat**
 
-## **Case Study 1: Simulating plant and insect interactions under heatwaves**{#case1}
+## **Case Study 1: Simulating plant and insect interactions under heatwaves** {#case1}
 
 ### Setting the scene
 
