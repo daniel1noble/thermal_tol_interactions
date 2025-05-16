@@ -28,6 +28,12 @@ editor_options:
   chunk_output_type: console
 ---
 
+This is the online supplementary material for the manuscript:
+
+Noble et al. 2025. **A systems-modelling approach to predict biological responses to extreme heat**. Trends in Ecology and Evolution.
+
+Please get in touch with Daniel Noble (daniel.noble@anu.edu.au) and Mike Kearney (m.kearney@unimelb.edu.au) if you have any questions about the code or the models.
+
 # **Introduction**
 
 In this supplementary material, we provide extended versions, with code, of our case studies we draw upon within our manuscript to demonstrate how a systems modelling approach can be implemented in practice. Our case studies focus on plant-insect-microbe interactions, and how these interactions are influenced by extreme heat events. We provide the code for the models we use in our case studies, and the code for the simulations we run to predict the impact of heatwaves on these interactions. Models and code will of course always need to be modified to suite the specific system in question and should be validated against empirical data. We view this tutorial as a starting point to help you understand how to implement a systems modelling approach to predict the impact of extreme heat on species interactions.
@@ -52,7 +58,7 @@ The code below loads the required packages that are needed for this tutorial.
 # devtools::install_github("ilyamaclean/microclima")
 
 # Load required libraries after the installation
-pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable, NicheMapR, terra, microclima, plantecophys, magick, here, ggrepel, lutz, R.matlab, magick, grid)
+pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable, NicheMapR, terra, microclima, plantecophys, magick, here, ggrepel, lutz, R.matlab, magick, grid, DT)
 
 ```
 
@@ -1453,7 +1459,7 @@ environ_plant2  %>% filter(dates > "2019-01-15" & dates < "2019-01-31")  %>%
 
 @fig-plant_temp3 shows how much watering at the various levels affects the leaf temperature of the plant during the day (between 11:00-14:00 hr). We can see that watering even just 2mm can reduce the leaf temperature by on average `r abs(tbl_temps[2,2])` $^\circ\text{C}$ (@tbl-plant_temp3). Interestingly, we can see that after 5mm of water, the leaf temperature doesn't change much, suggesting that we can get away with less water. A good thing in a very arid environment!
 
-### **Case Study 4: Impacts of watering scenerios on grasshopper life cycle** {#case4}
+## **Case Study 4: Impacts of watering scenerios on grasshopper life cycle** {#case4}
 
 ### Setting the scene
 Now that we have the leaf temperature of the plant under the various watering scenerios, we can use this to understand how the different scenerios might affect grasshopper body temperature, life cycle and population dynamics like we did in [case study 2](#case2). This is a nice demonstrations of re-applying everything we've learnt to a new problem – a problem potentially involving the need to control and understand the probability of pest outbreaks. 
@@ -1581,12 +1587,12 @@ oviposition_date <- '2018-03-31 23:00:00'
 }
 ```
 
-Now that we have the DEB model for each of the watering scenerios, we can plot out the grasshopper life cycles for each scenerio. 
+Now that we have the DEB model for each of the watering scenerios, we can plot out the grasshopper life cycles for each scenerio (@fig-grasshopper_lifecycle_water). 
 
 
-```{r, fig-grasshopper_lifecycle}
-#| label: fig-grasshopper_lifecycle
-#| fig-cap: "Life-cycle of a grasshopper at a location near Renmark, South Australia. Life-cycle of the grasshopper is shown in under two scenarios, one where stomata are open all day, and one where stomatal closure is driven by photosynthetically active radiation intensity and vapour pressure."
+```{r, fig-grasshopper_lifecycle_water}
+#| label: fig-grasshopper_lifecycle_water
+#| fig-cap: "Life-cycle of a grasshopper at a location near Renmark, South Australia. Life-cycle of the grasshopper is shown in under 5 different scenarios: A) Original rainfall and B) 2mm, C) 5mm, D) 10 mm and E) 20mm of watering to plants during a heat wave event. Note that the life-cycle is shown as the wet mass of the grasshopper (mg) over time (days) with different colours corresponding to different life stages. The life stages are: 0 = egg ('grey'), 1 = first instar ('forest green'), 2 = second instar ('lime green'), 3 = third instar ('tan'), 4 = fourth instar ('brown'), 5 = fifth instar ('orange'), 6 = adult ('pink')."
 #| code-fold: true
 #| echo: true
 #| warning: false
@@ -1611,9 +1617,7 @@ for(i in 1:length(debs)){
 
 
   p <- ggplot() +
-geom_line(data = ecto$environ, aes(x = datetime, y = TC*scale_factor), col = 'lightgrey', linewidth = 0.5) +
-ylim(-10, 500) +
-geom_line(data = ecto$environ, aes(x = datetime, y = SHADE), col = "forestgreen") +
+ylim(-5, 400) +
 geom_line(data = debout, aes(x = datetime, y = WETMASS * 1000), col = "black") +
 geom_line(data = debout %>% filter(STAGE == 0), aes(x = datetime, y = WETMASS * 1000), col = "darkgrey", linewidth =2) +
 geom_line(data = debout %>% filter(STAGE == 1), aes(x = datetime, y = WETMASS * 1000), col = "lightgreen", linewidth =2) +
@@ -1624,18 +1628,74 @@ geom_line(data = debout %>% filter(STAGE == 5), aes(x = datetime, y = WETMASS * 
 geom_line(data = debout %>% filter(STAGE == 6), aes(x = datetime, y = WETMASS * 1000), col = "pink", linewidth =2) +
 labs(title = scenerios[i], x = "Date") + 
 scale_y_continuous(
-    name = "Wet mass (mg)", 
-    sec.axis = sec_axis(~ . / scale_factor, name = "Body temperature (°C)")
-  )+ theme_classic()
+    name = "Wet mass (mg)")+ theme_classic()
 
 plot_list[[i]] <- p 
 
 }
 
-(plot_list[[1]] + plot_list[[2]]) / (plot_list[[3]] + plot_list[[4]]) / (plot_list[[5]] + plot_list[[6]]) + plot_layout(ncol = 1) + plot_annotation(tag_levels = "A") +
+(plot_list[[1]] + plot_list[[2]]) / (plot_list[[3]] + plot_list[[4]]) / (plot_list[[5]])  + plot_annotation(tag_levels = "A") +
   theme(plot.tag = element_text(size = 12, face = "bold"))
 
 ```
 
+Just like before we can get some key parameters from the DEB model to understand how the different watering scenerios affect the grasshopper life cycle.
 
+```{r, tbl-grasshopper_lifecycle_watering}
+#| label: tbl-grasshopper_lifecycle_watering
+#| tbl-cap: "Predicted life-cycle parameters of a grasshopper at a location near Renmark, South Australia under different watering scenerios (2, 5, 10 and 20 mm of water added) during a heat wave event. The life-cycle parameters are: A) Time to first instar (days), B) Time to adult (days), C) Time to oviposition (days), D) Time to first egg hatch (days), E) Time to first instar hatch (days), F) Time to first adult hatch (days)."
+#| echo: false
+#| code-fold: true
+#| warning: false
+#| message: false
+
+
+# Now lets extract the life-cycle parameters from the DEB model and put them into a table
+       debs <- paste0("grasshopper_", plant_mirco_names, "_DEB.RDa")
+  scenerios <- c("Original Rainfall", "Watering (2 mm)", "Watering (5 mm)", "Watering (10 mm)", "Watering (20 mm)")
+
+# Create a data.frame to store the life-cycle parameters
+  life_cycle <- data.frame()
+  
+# Loop through the DEB models and extract the life-cycle parameters
+for(i in 1:length(debs)){
+# Load the DEB model
+  load(here("output", "microclim", debs[i]))              
+           yearout <- data.frame(ecto$yearout)
+    life_cycle <- rbind(life_cycle, yearout[1,])
+}
+
+# Lets add a column for the different scenerios and re-arrange the data so it's the first column
+  life_cycle <- life_cycle %>% mutate(scenario = scenerios) %>% select(scenario, everything())
+  
+# Remove irrelevant columns
+  life_cycle <- life_cycle %>% select(-c("ANNUALACT", "Length"))
+
+  colnames(life_cycle) <- c("Watering Scenario",
+                            "Development time (days)", 
+                            "Birth day (day of year)", 
+                            "Mass at birth (g)", 
+                            "Months to maturity", 
+                            "Months to reproducton", 
+                            "Length (mm) at first reproduction", 
+                            "Total fecundity (# eggs)",
+                            "Total clutches",
+                            "Minimum reserve density (J/cm3)",
+                            "Food eaten in last year (kg)",
+                            "Total food eaten (kg)",
+                            "Minimum body temperature (°C)",
+                            "Maximum body temperature (°C)",
+                            "Maximum level of desiccation",
+                            "Maximum lifespan (days)",
+                            "Generation time (years)",
+                            "Net reproductive rate (R0)",
+                            "Intrinsic growth rate (r)"
+                            )
+
+life_cycle  %>% 
+mutate(across(where(is.numeric), sprintf, fmt = '%.2f')) %>%
+datatable(.,
+            extensions = "Buttons",
+            rownames = FALSE)
+```
 # **References**
