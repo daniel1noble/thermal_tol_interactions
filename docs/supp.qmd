@@ -1127,12 +1127,17 @@ N_{t+1}^A = N_t^A  \cdot \lambda_{A}^{\left(1 - \frac{N_t^A + \alpha N_t^B}{K_A}
 $$ {#eq-A}
 
 $$
-N_{t+1}^B = N_t^B  \cdot \lambda_{B}^{\left(1 - \frac{N_t^A + \beta N_t^B}{K_B}\right)} 
+N_{t+1}^B = N_t^B  \cdot \lambda_{B}^{\left(1 - \frac{N_t^B + \beta N_t^A}{K_B}\right)} 
 $$ {#eq-B}
 
 where $N_t^A$ and $N_t^B$ are the population sizes of species A and B at time $t$, $\lambda_A$ and $\lambda_B$ are the intrinsic growth rates of species A and B, $K_A$ and $K_B$ are the carrying capacities of species A and B, and $\alpha$ is the competition coefficient that describes how much species B affects species A, whereas $\beta$ is the competition coefficient that describes how much species A affects species B.
 
 In @eq-A, the competition coefficient $\alpha$ is a measure of the strength of the interaction between the two species. If $\alpha$ is greater than 1, it means that species B has a stronger negative effect on species A than species A has on itself. If $\alpha$ is less than 1, it means that species A has a stronger negative effect on itself than species B has on it. If $\alpha$ is equal to 1, it means that the two species have equal effects on each other. The opposite is true for $\beta$ in @eq-B.
+
+### Simulating effects of extreme heat on two species
+
+### Two-species population dynamics 
+
 
 # **Using a systems modelling approach to help develop solutions to extreme heat events**
 
