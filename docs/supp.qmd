@@ -30,7 +30,7 @@ editor_options:
 
 This is the online supplementary material for the manuscript:
 
-Noble et al. 2025. **A systems-modelling approach to predict biological responses to extreme heat**. Trends in Ecology and Evolution.
+Noble *et al.* 2025. **A systems-modelling approach to predict biological responses to extreme heat**. *Trends in Ecology and Evolution*, under review.
 
 Please get in touch with Daniel Noble (daniel.noble@anu.edu.au) and Mike Kearney (m.kearney@unimelb.edu.au) if you have any questions about the code or the models.
 
@@ -973,7 +973,7 @@ We can use a simple Ricker model [@Ricker1954a], which we'll use to simulate the
 
 $$
 N_{t+1} = N_t \cdot e^{r(1 - \frac{N_t}{K})}
-$$
+$$ {#eq-ricker_model}
 
 where $N_t$ is the population size at time $t$, $r$ is the intrinsic growth rate, and $K$ is the carrying capacity of the environment. The model assumes that populations grow exponentially when they are small, but that growth slows down as the population approaches the carrying capacity.
 
@@ -981,13 +981,13 @@ We can also re-parameterise to use a finite rate model given that the grasshoppe
 
 $$
 N_{t+1} = N_t \cdot \lambda^{(1 - \frac{N_t}{K})}
-$$
+$$ {#eq-ricker_model2}
 
 where $\lambda$ is the finite rate of increase. 
 
 $$
 \lambda = e^{r_{max}}
-$$
+$$ {#eq-ricker_lamda}
 
 Recall from our previous section that we already estimated the intrinsic growth rate. Using this information, for the stomata-closed scenario ($\lambda$ = `r round(exp(0.395539), 2)`), the population could tolerate up to `r round((1-(1/exp(0.395539)))*100, 2)`% mortality per generation and still remain stable.
 
@@ -1105,21 +1105,50 @@ p1 + theme(plot.tag = element_text(size = 12, face = "bold")) + p2 + theme(plot.
 
 We can see from @fig-ricker_simulation that when stomata are able to respond by closing grasshoppers are expected to grow and maintain a stable population size, whereas if we have stomata remaining open we expect the population to collapse over time as microhabiats become less suitable for growth and reproduction. This happens because higher body temperatures that result from when stomata close better allows grasshoppers to reach optimal physiological performance.
 
+## **Case Study 3: Heat wave impacts through small communities** {#case3}
+
+### Setting the scene
+
+A systems modelling approach naturally involves attempting to model multi-species assemblies / communities. This is challenging with large communities because of the complexity of the interactions between species. However, for simpler communities such an approach of connecting models across fields is achievable and potentially powerful in making predictions about how communities will respond to extreme heat events.
+
+In this case study, we expand on the impacts of extreme heat on a single species of grasshopper and show how this can be extended to capture interactions between three species: a plant, a grasshopper and a second competing grasshopper species that occupies the same mircohabitat. We extend our Ricker model to capture the impacts that each grasshopper species has on the other. One way to model this is to explicity translate how each species' interactions impact the population size of the other.
+
+### Some Theory
+Recall our original Ricker model (@eq-ricker_model2):
+
+$$
+N_{t+1} = N_t \cdot \lambda^{\left(1 - \frac{N_t}{K}\right)}
+$$
+
+In keeping with our notation, we can extend this model to a two-species Ricker model to include the interactions between the two grasshopper species as follows:
+
+$$
+N_{t+1}^A = N_t^A  \cdot \lambda_{A}^{\left(1 - \frac{N_t^A + \alpha N_t^B}{K_A}\right)} 
+$$ {#eq-A}
+
+$$
+N_{t+1}^B = N_t^B  \cdot \lambda_{B}^{\left(1 - \frac{N_t^A + \beta N_t^B}{K_B}\right)} 
+$$ {#eq-B}
+
+where $N_t^A$ and $N_t^B$ are the population sizes of species A and B at time $t$, $\lambda_A$ and $\lambda_B$ are the intrinsic growth rates of species A and B, $K_A$ and $K_B$ are the carrying capacities of species A and B, and $\alpha$ is the competition coefficient that describes how much species B affects species A, whereas $\beta$ is the competition coefficient that describes how much species A affects species B.
+
+In @eq-A, the competition coefficient $\alpha$ is a measure of the strength of the interaction between the two species. If $\alpha$ is greater than 1, it means that species B has a stronger negative effect on species A than species A has on itself. If $\alpha$ is less than 1, it means that species A has a stronger negative effect on itself than species B has on it. If $\alpha$ is equal to 1, it means that the two species have equal effects on each other. The opposite is true for $\beta$ in @eq-B.
+
 # **Using a systems modelling approach to help develop solutions to extreme heat events**
 
 A systems modelling approach can also be used to design possible solutions by understanding better how 'thermal interventions' affect heat experienced by organisms and how it influences growth, survival and reproduction. For example, we can manipulate rainfall at a particular time to simulate artificial watering which might be a possible intervention used during extreme heat. The added water can be used to make calculations of heat exchange, temperatures and transpiration under extreme heat events. We can also optimise the amount of water to balance costs and benefits of watering.
 
-## **Case Study 3: Simulating the effect of watering on plant and insect body temperatures** {#case3}
+## **Case Study 4: Simulating the effect of watering on plant and insect body temperatures** {#case4}
 
 ### Setting the scene
 
-Let's assume our plant species is of interest for conservation or agricultural reasons and we want to understand how watering during a heatwave might help it survive (@fig-case3). The challenge with watering is that often we are drought stressed in combination with the extreme heat. As such, it's ideal to reduce water use because this saves money and water. So, the questions become:
+Let's assume our plant species is of interest for conservation or agricultural reasons and we want to understand how watering during a heatwave might help it survive (@fig-case4). The challenge with watering is that often we are drought stressed in combination with the extreme heat. As such, it's ideal to reduce water use because this saves money and water. So, the questions become:
 
 1. **How much water do we need to protect the plant from extreme heat while also not overwatering?**
 2. **In addition, how does this affect pest insects that might be residing on the plant?**
 
-```{r, fig-case3}
-#| label: fig-case3
+```{r, fig-case4}
+#| label: fig-case4
 #| echo: false
 #| fig-cap: "Evaluating the impacts of 'thermal interventions' on temperatures experienced by plants and animals. Under extreme heat we might add water to the system to help keep plants cool, but such intervention may also have unexpected consequences on insects. Using a systems approach we can evaluate the impact of watering on plant and insect body temperatures. This can help us understand how to best manage the system to reduce the impacts of extreme heat on plants and insects."
 
@@ -1459,7 +1488,7 @@ environ_plant2  %>% filter(dates > "2019-01-15" & dates < "2019-01-31")  %>%
 
 @fig-plant_temp3 shows how much watering at the various levels affects the leaf temperature of the plant during the day (between 11:00-14:00 hr). We can see that watering even just 2mm can reduce the leaf temperature by on average `r abs(tbl_temps[2,2])` $^\circ\text{C}$ (@tbl-plant_temp3). Interestingly, we can see that after 5mm of water, the leaf temperature doesn't change much, suggesting that we can get away with less water. A good thing in a very arid environment!
 
-## **Case Study 4: Impacts of watering scenerios on grasshopper life cycle** {#case4}
+## **Case Study 5: Impacts of watering scenerios on grasshopper life cycle** {#case5}
 
 ### Setting the scene
 Now that we have the leaf temperature of the plant under the various watering scenerios, we can use this to understand how the different scenerios might affect grasshopper body temperature, life cycle and population dynamics like we did in [case study 2](#case2). This is a nice demonstrations of re-applying everything we've learnt to a new problem – a problem potentially involving the need to control and understand the probability of pest outbreaks. 
