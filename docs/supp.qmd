@@ -934,7 +934,7 @@ p1/p2 + plot_layout(ncol = 1) + plot_annotation(tag_levels = "A") +
 
 ```
 
-We can see from @fig-grasshopper_lifecycle that the life-cyle of the grasshopper is different when we consider the behaviour of the plant stomata. Notably, when stomata are closed and the leaf temperatures are higher we expect the grasshopper to move through stages faster and reproduce more (@tbl-grasshopper_lifecycle). We can have a look at the different traits expected under both scenarios.
+We can see from @fig-grasshopper_lifecycle that the life-cyle of the grasshopper is different when we consider the behaviour of the plant stomata. Notably, when stomata are closed and the leaf temperatures are higher we expect the grasshopper to move through stages faster and reproduce more (@tbl-grasshopper_lifecycle). We can have a look at the different traits expected under both scenarios. Looking at the body temperstures we see major spikes after the life cyle is complete. This is because the grasshopper has reached the end of its lifespan, so the mictoclimate predcitions after this are not relevant.
 
 ```{r, tbl-grasshopper_lifecycle}
 #| label: tbl-grasshopper_lifecycle
