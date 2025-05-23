@@ -1095,7 +1095,7 @@ closed_stoma <- image_read(here("figs", "Stomata_closed.png"))
 p1 = ggplot(sims_closed, aes(x = time, y = N, colour = sim)) +
   geom_line() +
   labs(title = "Stomata Closure", x = "Generation (time)", y = "Population size (N)") + theme_classic() + theme(legend.position = "none") +
-  scale_colour_viridis_d() + theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14)) +   annotation_custom(closed, xmin = 5, xmax = 9, ymin = 500, ymax = 8000) + ylim(0, 12000)
+  scale_colour_viridis_d() + theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14)) +   annotation_custom(closed, xmin = 5, xmax = 9, ymin = 500, ymax = 8500) + ylim(0, 12000)
   
 
 p2 = ggplot(sims_open, aes(x = time, y = N, colour = sim)) +
