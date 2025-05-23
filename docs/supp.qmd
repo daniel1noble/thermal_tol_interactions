@@ -995,9 +995,9 @@ $$
 \lambda = e^{r_{max}}
 $$ {#eq-ricker_lamda}
 
-Recall from our previous section that we already estimated the intrinsic growth rate. Using this information, for the stomata-closed scenario ($\lambda$ = `r round(exp(0.395539), 2)`), the population could tolerate up to `r round((1-(1/exp(0.395539)))*100, 2)`% mortality per generation and still remain stable.
+Recall from our previous section that we already estimated the intrinsic growth rate. Using this information, for the stomata-closed scenario ($\lambda$ = `r round(exp(1.0360276), 2)`), the population could tolerate up to `r round((1-(1/exp(1.0360276)))*100, 2)`% mortality per generation and still remain stable.
 
-In contrast, for the stomata-open scenario ($\lambda$ = `r round(exp(-1.33451),2)`), the population is declining rapidly. Even with no mortality, it would require a `r abs(round((1-(1/exp(-1.33451)))*100, 2))`% increase in survival or reproduction to be viable, suggesting the population cannot persist under current conditions.
+In contrast, for the stomata-open scenario ($\lambda$ = `r round(exp(0.4188939),2)`), the population is increasing more slowly. Even with no mortality, it would require a `r abs(round((1-(1/exp(0.4188939)))*100, 2))`% mortality per generation to remain stable..
 
 Assuming we had information on the carying capacity of the enviroment and population size we can then use the $r_{max}$ in the Ricker model to simulate the population dynamics of the grasshopper. 
 
