@@ -769,15 +769,21 @@ for(i in 1:length(plant_micro)){
     plant <- plant
   }
 
-# Use the plant microclimate data to reset the original microclimate object
-  micro$metout[,"TALOC"] <- plant$environ[,"TC"]
-  micro$metout[,"RHLOC"] <- plant$metout [,"RHLOC"]
-  micro$metout[,"TSKYC"] <- plant$metout [,"TSKYC"]
-    micro$soil[, "D0cm"] <- plant$environ[,"TC"]
+# Use the plant microclimate data to reset the original microclimate object. Note that we need to adjust both shade and nonshade conditions 
+  
+  # Unshaded microclimate
+  micro$metout <- plant$metout
+  micro$metout [,"TALOC"] <- plant$environ[,"TC"]
 
-# We'll also this time update the shade soil temp and moisture so that grasshoppers can take advantage of other aspects of the microclimate.
-     micro$shadmet [,"TSKYC"] <- plant$shadmet[,"TSKYC"] 
-     micro$shadsoil[, "D0cm"] <- plant$soilpot[,"PT0cm"]
+  # Shaded microclimate  
+  microshadmet <- plant$shadmet
+  micro$shadmet [,"TALOC"] <- plant$environ [,"TC"]
+ 
+  # Soil microclimate
+       micro$soil <- plant$soil
+   micro$shadsoil <- plant$shadsoil
+  micro$soilmoist <- plant$soilmoist
+  micro$shadmoist <- plant$shadmoist
 
 # Get dates from microclimate object
  dates <- micro$dates  # dates, hourly
@@ -934,7 +940,7 @@ p1/p2 + plot_layout(ncol = 1) + plot_annotation(tag_levels = "A") +
 
 ```
 
-We can see from @fig-grasshopper_lifecycle that the life-cyle of the grasshopper is different when we consider the behaviour of the plant stomata. Notably, when stomata are closed and the leaf temperatures are higher we expect the grasshopper to move through stages faster and reproduce more (@tbl-grasshopper_lifecycle). We can have a look at the different traits expected under both scenarios. Looking at the body temperstures we see major spikes after the life cyle is complete. This is because the grasshopper has reached the end of its lifespan, so the mictoclimate predcitions after this are not relevant.
+We can see from @fig-grasshopper_lifecycle that the life-cyle of the grasshopper is different when we consider the behaviour of the plant stomata. Notably, when stomata are closed and the leaf temperatures are higher we expect the grasshopper to move through stages faster and reproduce more (@tbl-grasshopper_lifecycle). We can have a look at the different traits expected under both scenarios. 
 
 ```{r, tbl-grasshopper_lifecycle}
 #| label: tbl-grasshopper_lifecycle
@@ -1047,8 +1053,8 @@ set.seed(123) # Set seed for reproducibility
 
 # Set up the parameters for the Ricker model
       N0 <- 1000     # Initial population size
-r_closed <- 0.395539 # Intrinsic growth (DEB model) with stoma closed
-  r_open <- -1.33451 # Intrinsic growth (DEB model) with stoma open
+r_closed <- 1.0360276 # Intrinsic growth (DEB model) with stoma closed
+  r_open <- 0.4188939 # Intrinsic growth (DEB model) with stoma open
     sd_r <- 0.15     # Standard deviation of the growth rate
        K <- 10000    # Carrying capacity
     time <- 10       # Time steps
@@ -1089,21 +1095,21 @@ closed_stoma <- image_read(here("figs", "Stomata_closed.png"))
 p1 = ggplot(sims_closed, aes(x = time, y = N, colour = sim)) +
   geom_line() +
   labs(title = "Stomata Closure", x = "Generation (time)", y = "Population size (N)") + theme_classic() + theme(legend.position = "none") +
-  scale_colour_viridis_d() + theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14)) +
-  annotation_custom(closed, xmin = 1, xmax = 5, ymin = 7000, ymax = 10000)
+  scale_colour_viridis_d() + theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14)) +   annotation_custom(closed, xmin = 5, xmax = 9, ymin = 500, ymax = 8000) + ylim(0, 12000)
+  
 
 p2 = ggplot(sims_open, aes(x = time, y = N, colour = sim)) +
   geom_line() +
   labs(title = "Stomata Remain Open", x = "Generation (time)", y = "Population size (N)") + theme_classic() + theme(legend.position = "none") +
   scale_colour_viridis_d() + theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14)) +
-  annotation_custom(open, xmin = 5, xmax = 9, ymin = 700, ymax = 1100)
+  annotation_custom(open, xmin = 1, xmax = 5, ymin = 7000, ymax = 11000) + ylim(0, 12000)
 
 
 p1 + theme(plot.tag = element_text(size = 12, face = "bold")) + p2 + theme(plot.tag = element_text(size = 12, face = "bold")) + plot_layout(ncol = 2) + plot_annotation(tag_levels = "A") 
 
 ```
 
-We can see from @fig-ricker_simulation that when stomata are able to respond by closing grasshoppers are expected to grow and maintain a stable population size, whereas if we have stomata remaining open we expect the population to collapse over time as microhabiats become less suitable for growth and reproduction. This happens because higher body temperatures that result from when stomata close better allows grasshoppers to reach optimal physiological performance.
+We can see from @fig-ricker_simulation that when stomata are able to respond by closing grasshoppers are expected to grow rapidly until they reach carrying capacity, whereas if we have stomata remaining open we expect the population to grow much more slowly over time as microhabiats become less suitable for growth and reproduction. This happens because higher body temperatures that result from when stomata close better allows grasshoppers to reach optimal physiological performance.
 
 ## **Case Study 3: Heat wave impacts through small communities** {#case3}
 
@@ -1523,15 +1529,22 @@ for(i in 1:length(plant_micro)){
 # Load the microclimate object
   load(here("output", "microclim", plant_micro[i]))
 
-# Use the plant microclimate data to reset the original microclimate object
-  micro$metout[,"TALOC"] <- plant$environ[,"TC"]
-  micro$metout[,"RHLOC"] <- plant$metout [,"RHLOC"]
-  micro$metout[,"TSKYC"] <- plant$metout [,"TSKYC"]
-    micro$soil[, "D0cm"] <- plant$environ[,"TC"]
+# Use the plant microclimate data to reset the original microclimate object. Note that we need to adjust both shade and nonshade conditions 
+  
+  # Unshaded microclimate
+  micro$metout <- plant$metout
+  micro$metout [,"TALOC"] <- plant$environ[,"TC"]
 
-# We'll also this time update the shade soil temp and moisture so that grasshoppers can take advantage of other aspects of the microclimate.
-     micro$shadmet [,"TSKYC"] <- plant$shadmet[,"TSKYC"] 
-     micro$shadsoil[, "D0cm"] <- plant$soilpot[,"PT0cm"]
+  # Shaded microclimate  
+  microshadmet <- plant$shadmet
+  micro$shadmet [,"TALOC"] <- plant$environ [,"TC"]
+ 
+  # Soil microclimate
+       micro$soil <- plant$soil
+   micro$shadsoil <- plant$shadsoil
+  micro$soilmoist <- plant$soilmoist
+  micro$shadmoist <- plant$shadmoist
+
 
 # Get dates from microclimate object
  dates <- micro$dates  # dates, hourly
