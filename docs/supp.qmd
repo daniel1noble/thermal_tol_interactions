@@ -1142,6 +1142,19 @@ In @eq-A, the competition coefficient $\alpha$ is a measure of the strength of t
 
 ### Simulating effects of extreme heat on two species
 
+We can simulate the life-cyle of a second grasshopper species that occupies the same habitat but varies in physiology. We've already done this for one species *Warramaba virgo* in [Case Study 2](#case2). 
+
+```{r, fig-two_species_grasshopper}
+#| label: fig-two_species_grasshopper
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-cap: "Simulating two species competitive interactions."
+
+
+```
+
+
 ### Two-species population dynamics 
 
 
