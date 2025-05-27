@@ -1142,7 +1142,7 @@ In @eq-A, the competition coefficient $\alpha$ is a measure of the strength of t
 
 ### Simulating effects of extreme heat on two species
 
-We can simulate the life-cyle of a second grasshopper species that occupies the same habitat but varies in physiology. We've already done this for one species *Warramaba virgo* in [Case Study 2](#case2). 
+We can simulate the life-cyle of a second grasshopper species that occupies the same habitat but varies in physiology. We've already done this for one species *Warramaba virgo* (Species B; @fig-two_species_grasshopper) in [Case Study 2](#case2). 
 
 ```{r, fig-two_species_grasshopper}
 #| label: fig-two_species_grasshopper
@@ -1152,6 +1152,205 @@ We can simulate the life-cyle of a second grasshopper species that occupies the 
 #| fig-cap: "Simulating two species competitive interactions."
 
 
+fig_casetwospecies <- image_read(here("figs", "FigS4.png"))
+fig_casetwospecies
+```
+
+The second species (Species A; @fig-two_species_grasshopper) has a different physiology compared to the first species but is usually more abundant than Species B making it highly competitive. We'll now simulate its life-cycle like we did for Species B in [Case Study 2](#case2). Then, link this to a two-sepcies population dynamic model. These species are closely related but do have some differences in physiology that include: 1) higher thermal tolerance, 2) larger clutch sizes, and 3) different preferred body temperatures; and 4) smaller size. Otherwise, we will assume the same DEB model parameters as Species B.
+
+```{r, speciesA_grasshopper}
+#| label: speciesA_grasshopper
+#| echo: true
+#| message: false
+#| warning: false
+
+# We first need to load the DEB model paraemeters. These are estimated using MatLab. We've already estimated these so we'll simply just load them into R.
+
+     pars <- readMat(here("sims", "results_Warramaba_virgo.mat"))
+
+par.names <- unlist(labels(pars$par))
+for(i in 1:length(par.names)){
+  assign(par.names[i], unlist(pars$par[i]))
+}
+
+     pars <- readMat(here("sims", "stat_Warramaba_virgo.mat"))
+par.names <- unlist(labels(pars$stat))
+for(i in 1:length(par.names)){
+  assign(par.names[i], unlist(pars$stat[i]))
+}
+
+# Additional parameters we need
+        E_sm <- 1800            # J/cm^2, maximum stomach energy content
+       fract <- 1               # scaling factor to change size
+
+# Inital state for DEB model
+
+# Egg Stage. Starting conditions
+     E_init <- (E.0 * fract ^ 4) / (3E-9 * fract ^ 3)
+   E_H_init <- 0
+     V_init <- 3E-9
+      stage <- 0
+
+# Life history traits
+ clutchsize <- 15               # Eggs per clutch
+     stages <- 7                # Number of stages, 0 = egg, 1-5 = nymphs, 6 = pre egg-laying adult, 7 = post-laying adult
+   S_instar <- rep(s.1, stages) # Stress at instar n: L_n^2/ L_n-1^2 (-)}\cr}
+        L_b <- L.b              # Structural length at birth (cm)}\cr}
+ photostart <- 0                # no photoperiod effect on reproduction
+photofinish <- 0                # no photoperiod effect on reproduction
+      reset <- 0                # don't reset lifecycle if death occurs
+   soilnode <- 3                # depth (soil node) at which eggs laid - 3 = 5 cm
+
+# Thermoregulatory parameters
+       Ww_g <- 0.2              # g, body mass, not used though because DEB model computes this
+      shape <- 1                # cylinder
+    shape_b <- 10               # ratio of long to short axis of cylinder
+     T_pref <- 40               # preferred body temperature (animal will attempt to regulate as close to this value as possible)
+    T_F_min <- 13               # degrees C, lower body temperature for foraging
+    T_F_max <- 42               # degrees C, upper body temperature for foraging
+    T_B_min <- 13               # degrees C, minimum basking temperature
+   T_RB_min <- 13               # degrees C, temperature at which animal will move to a basking site
+     CT_max <- 50               # degrees C, critical thermal maximum (animal will die if CT_kill = 1 and this threshold is exceeded)
+     CT_min <- 0                # degrees C, critical thermal minimum (used by program to determine depth selected when inactive and burrowing)
+
+# Behavioural traits (made stage-specific later)
+      diurn <- 1                # Diurnal activity allowed (1) or not (0)?
+    nocturn <- 1                # Nocturnal activity allowed (1) or not (0)?
+     crepus <- 1                # Crepuscular activity allowed (1) or not (0)?
+     burrow <- 0                # Shelter in burrow allowed (1) or not (0)?
+ shade_seek <- 1                # Shade seeking allowed (1) or not (0)?
+   pct_cond <- 0                # Percentage of animal surface contacting the substrate (\%)
+```
+
+
+```{r, deb_grasshopperA}
+#| label: deb_grasshopperA
+#| echo: true
+#| warning: false
+#| message: false
+
+# First, we need to load in the two microclimates scenerios. We'll do this in a loop so that we can run the DEB model for each of the two microclimates. So, here we'll just create a few vectors that cell specific objects we need.
+        plant_micro <- c("plant_micro.RDa", "plant2_micro.RDa")
+  plant_mirco_names <- c("stomata_open", "stomata_closed")
+
+# We also need to load in the original microclimate object so that we can get the dates and other information from it. This is the original microclimate object that we used to simulate the plant microclimate. We'll also overide the `mirco` object so that the ectotherm model can use it.
+  load(here("output", "microclim", "microclimate.RDa"))
+
+# Now we can loop through the two microclimates and run the DEB model for each of them
+for(i in 1:length(plant_micro)){
+
+# Load the microclimate object
+  load(here("output", "microclim", plant_micro[i]))
+
+# Object is labelled plant2 for the plant2_micro.RDa object
+  if(plant_micro[i] == "plant2_micro.RDa"){
+    plant <- plant2
+  } else {
+    plant <- plant
+  }
+
+# Use the plant microclimate data to reset the original microclimate object. Note that we need to adjust both shade and nonshade conditions 
+  
+  # Unshaded microclimate
+  micro$metout <- plant$metout
+  micro$metout [,"TALOC"] <- plant$environ[,"TC"]
+
+  # Shaded microclimate  
+  microshadmet <- plant$shadmet
+  micro$shadmet [,"TALOC"] <- plant$environ [,"TC"]
+ 
+  # Soil microclimate
+       micro$soil <- plant$soil
+   micro$shadsoil <- plant$shadsoil
+  micro$soilmoist <- plant$soilmoist
+  micro$shadmoist <- plant$shadmoist
+
+# Get dates from microclimate object
+ dates <- micro$dates  # dates, hourly
+dates2 <- micro$dates2 # dates, daily
+
+# Set starting date by truncating microclimate model output to when grasshoppers are epected to oviposit eggs. This is the date when the life cylce of the insect is expected to start.
+oviposition_date <- '2018-03-31 23:00:00'
+            subs <- which( dates > as.POSIXct(oviposition_date))
+           subs2 <- which(dates2 > as.POSIXct(oviposition_date))
+
+# Now run the DEB life-cyle model for the grasshopper
+
+  ecto <- ectotherm( Ww_g = Ww_g,
+                    shape = shape,
+                  shape_b = shape_b,
+                   T_pref = T_pref,
+                  T_F_min = T_F_min,
+                  T_F_max = T_F_max,
+                  T_B_min = T_B_min,
+                 T_RB_min = T_RB_min,
+                   CT_min = CT_min,
+                   CT_max = CT_max,
+                    diurn = diurn,
+                  nocturn = nocturn,
+                   crepus = crepus,
+               shade_seek = shade_seek,
+                   burrow = burrow,
+                 pct_cond = pct_cond,
+                   nyears = ceiling(length(subs2)/365),
+                   metout = micro$metout[subs,],
+                     soil = micro$soil[subs,], 
+                  soilpot = micro$soilpot[subs,],
+                soilmoist = micro$soilmoist[subs,], 
+                    humid = micro$humid[subs,],
+                    tcond = micro$tcond[subs,], 
+                  shadmet = micro$shadmet[subs,],
+                 shadsoil = micro$shadsoil[subs,], 
+                  shadpot = micro$shadpot[subs,],
+                shadmoist = micro$shadmoist[subs,],
+                shadhumid = micro$shadhumid[subs,],
+                shadtcond = micro$shadtcond[subs,], 
+                 rainfall = micro$RAINFALL[subs2],
+                minshades = micro$minshade[subs2],
+                maxshades = micro$maxshade[subs2],
+                      DEB = 1, # turns DEB model on
+               metab_mode = 1, # turns on hemimetabolous model, abp
+                        z = z * fract,
+                    del_M = del.M,
+                     p_Xm = p.Am * 100 / 24 / kap.X,
+                    kap_X = kap.X,
+                        v = v / 24,
+                      kap = kap,
+                      p_M = p.M / 24,
+                      E_G = E.G,
+                    kap_R = kap.R,
+                      k_J = k.J  / 24,
+                     E_Hb = E.Hb * fract ^ 3,
+                     E_Hp = (E.Hj+1e-5) * fract ^ 3,
+                     E_Hj = E.Hj * fract ^ 3,
+                      h_a = h.a / (24 ^ 2),
+                      s_G = 0.0779,   # Gompertz stress coefficient, from Debber
+                      E_0 = E.0 * fract ^ 4,
+                     mu_E = mu.E,
+                      d_V = d.V,
+                      d_E = d.E,
+                    T_REF = T.ref,
+                      T_A = T.A,
+                     T_AL = T.AL,
+                     T_AH = T.AH,
+                      T_L = T.L,
+                      T_H = T.H,
+                     E_sm = E_sm,
+                   E_init = E_init,
+                 E_H_init = E_H_init,
+                   V_init = V_init,
+                    stage = stage,
+               clutchsize = clutchsize,
+                   stages = stages,
+                 S_instar = rep(s.1, stages),
+                      L_b = 0.09, # structural length at birth (cm),
+               photostart = photostart,
+              photofinish = photofinish,
+                    reset = reset,
+                 soilnode = soilnode)
+# Save the DEB model
+  save(ecto, file = here("output", "microclim", paste0("grasshopperspA_", plant_mirco_names[i], "_DEB.RDa")))
+}
 ```
 
 
