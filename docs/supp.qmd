@@ -1420,6 +1420,64 @@ p1/p2 + plot_layout(ncol = 1) + plot_annotation(tag_levels = "A") +
 
 ```
 
+We can now put the summaries of all our life-cycle predictions together for both species of grasshopper and both scenerios (@tbl-grasshopperssp_lifecycle).
+
+```{r, tbl-grasshopperssp_lifecycle}
+#| label: tbl-grasshopperssp_lifecycle
+#| echo: false
+#| fig-cap: "Life-cycle of two grasshopper species at a location near Renmark, South Australia. Life-cycle of the grasshoppers is shown in under two scenarios, one where stomata are open all day, and one where stomatal closure is driven by photosynthetically active radiation intensity and vapour pressure."
+
+# Now lets extract the life-cycle parameters from the DEB model and put them into a table
+       debs1 <- c(paste0("grasshopperspA_", plant_mirco_names, "_DEB.RDa"), paste0("grasshopper_", plant_mirco_names, "_DEB.RDa"))
+  scenerios <- c("Stomata Open (Species A)", "Stomata Closed (Species A)", 
+                 "Stomata Open (Species B)", "Stomata Closed (Species B)")
+
+# Create a data.frame to store the life-cycle parameters
+  life_cycle <- data.frame()
+  
+# Loop through the DEB models and extract the life-cycle parameters
+for(i in 1:length(debs1)){
+# Load the DEB model
+  load(here("output", "microclim", debs1[i]))              
+           yearout <- data.frame(ecto$yearout)
+    life_cycle <- rbind(life_cycle, yearout[1,])
+}
+
+# Lets add a column for the different scenerios and re-arrange the data so it's the first column
+  life_cycle <- life_cycle %>% mutate(scenario = scenerios) %>% select(scenario, everything())
+  
+# Remove irrelevant columns
+  life_cycle <- life_cycle %>% select(-c("ANNUALACT", "Length"))
+
+  colnames(life_cycle) <- c("Watering Scenario",
+                            "Development time (days)", 
+                            "Birth day (day of year)", 
+                            "Mass at birth (g)", 
+                            "Months to maturity", 
+                            "Months to reproducton", 
+                            "Length (mm) at first reproduction", 
+                            "Total fecundity (# eggs)",
+                            "Total clutches",
+                            "Minimum reserve density (J/cm3)",
+                            "Food eaten in last year (kg)",
+                            "Total food eaten across life (kg)",
+                            "Minimum body temperature (°C)",
+                            "Maximum body temperature (°C)",
+                            "Maximum level of desiccation",
+                            "Maximum lifespan (days)",
+                            "Generation time (years)",
+                            "Net reproductive rate (R0)",
+                            "Intrinsic growth rate (r)"
+                            )
+
+life_cycle  %>% 
+mutate(across(where(is.numeric), sprintf, fmt = '%.2f')) %>%
+datatable(.,
+            extensions = "Buttons",
+            rownames = FALSE)
+
+```
+
 ### Two-species population dynamics 
 
 
@@ -2007,7 +2065,7 @@ for(i in 1:length(debs)){
                             "Total clutches",
                             "Minimum reserve density (J/cm3)",
                             "Food eaten in last year (kg)",
-                            "Total food eaten (kg)",
+                            "Total food eaten across life (kg)",
                             "Minimum body temperature (°C)",
                             "Maximum body temperature (°C)",
                             "Maximum level of desiccation",
