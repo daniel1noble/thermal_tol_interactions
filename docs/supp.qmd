@@ -1482,7 +1482,7 @@ datatable(.,
 
 ### Two-species population dynamics 
 
-Modelling the dynamics between two species requires some knowldge about how competition impacts the population size of each species. Normally, this is achives by estimating competition coefficients form field or laboratory data. Experiments involve determining how the presence of one species impacts growth of the other relative to a control state where only the single species is present. Given this is a simple case study to demonstarte how to link teh various models, we'll assume that the competition coefficients are known and are as follows:
+Modelling the dynamics between two species requires some knowledge about how competition impacts the population size of each species. Normally, this is achieved by estimating competition coefficients from field or laboratory data. Experiments involve determining how the presence of one species impacts growth of the other relative to a control state where only the single species is present. Given that our goal is simply to demonstrate how models from different fields can be coupled, we'll assume that the competition coefficients are known and are as follows:
 
 - $\alpha$ = 0.2 (Species B has a weak negative effect on Species A)
 - $\beta$  = 0.6 (Species A has a moderate negative effect on Species B)
