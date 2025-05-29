@@ -1425,7 +1425,9 @@ We can now put the summaries of all our life-cycle predictions together for both
 ```{r, tbl-grasshopperssp_lifecycle}
 #| label: tbl-grasshopperssp_lifecycle
 #| echo: false
-#| fig-cap: "Life-cycle of two grasshopper species at a location near Renmark, South Australia. Life-cycle of the grasshoppers is shown in under two scenarios, one where stomata are open all day, and one where stomatal closure is driven by photosynthetically active radiation intensity and vapour pressure."
+#| message: false
+#| warning: false
+#| tbl-cap: "Life-cycle of two grasshopper species at a location near Renmark, South Australia. Life-cycle of the grasshoppers is shown in under two scenarios, one where stomata are open all day, and one where stomatal closure is driven by photosynthetically active radiation intensity and vapour pressure."
 
 # Now lets extract the life-cycle parameters from the DEB model and put them into a table
        debs1 <- c(paste0("grasshopperspA_", plant_mirco_names, "_DEB.RDa"), paste0("grasshopper_", plant_mirco_names, "_DEB.RDa"))
@@ -1479,6 +1481,12 @@ datatable(.,
 ```
 
 ### Two-species population dynamics 
+
+Modelling the dynamics between two species requires some knowldge about how competition impacts the population size of each species. Normally, this is achives by estimating competition coefficients form field or laboratory data. Experiments involve determining how the presence of one species impacts growth of the other relative to a control state where only the single species is present. Given this is a simple case study to demonstarte how to link teh various models, we'll assume that the competition coefficients are known and are as follows:
+
+- $\alpha$ = 0.2 (Species B has a weak negative effect on Species A)
+- $\beta$  = 0.6 (Species A has a moderate negative effect on Species B)
+
 
 
 # **Using a systems modelling approach to help develop solutions to extreme heat events**
