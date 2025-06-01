@@ -24,7 +24,7 @@ crossref:
   tbl-prefix: "Table"
 ---
 
-Daniel W.A. Noble^1^  $\ddagger$, Margaret Mayfield^2^ $\dagger$, Ary Hoffmann^1^ $\dagger$, Zhong-Hua Chen^3^ $\dagger$, Steven Lade^5^ $\dagger$, Xuemei Bai^5^ $\dagger$, Danielle Way^4^ $\dagger$, Belinda Medlyn^3^ $\dagger$, James Cook^3^, Brajesh Singh^3^, Adrienne Nicotra^1,4^, Brendan Choat^3^, Owen Atkin^4^, Barry Pogson^4^,  Alison Bentley^4^, Ian Wright^3^, Micheal R. Kearney^2^ $\ddagger$
+Daniel W.A. Noble^1^ $\ddagger$, Margaret Mayfield^2^ $\dagger$, Ary Hoffmann^1^ $\dagger$, Zhong-Hua Chen^3^ $\dagger$, Steven Lade^5^ $\dagger$, Xuemei Bai^5^ $\dagger$, Danielle Way^4^ $\dagger$, Belinda Medlyn^3^ $\dagger$, Adrienne Nicotra^1,4^ $\dagger$, James Cook^3^, Brajesh Singh^3^, Brendan Choat^3^, Owen Atkin^4^, Barry Pogson^4^,  Alison Bentley^4^, Ian Wright^3^, Micheal R. Kearney^2^ $\ddagger$
  
 **Affiliations**:
 
@@ -103,7 +103,7 @@ $$ {#eq-hi}
 
 # Box 1: Sensitivity to extreme heat is mediated by environmental feedbacks
 
-Natural and anthropogenic environmental factors shape thermal sensitivity and should be considered in any systems modelling approach. For example, drought, often associated with periods of extreme heat, can reduce thermal tolerance in plants by reducing influencing their ability to cool through transpiration leading to leaf damage []. Extended periods of water stress (e.g., several days or more) have also been shown to increase thermal sensitivity in insects, reducing the time they could deal with extreme heat [@Youngblood2025]. 
+Natural and anthropogenic environments shape thermal sensitivity and should be considered in any systems modelling approach. For example, drought, often associated with periods of extreme heat, can reduce thermal tolerance in plants by reducing influencing their ability to cool through transpiration leading to leaf damage []. Extended periods of water stress (e.g., several days or more) have also been shown to increase thermal sensitivity in insects, reducing the time they could deal with extreme heat [@Youngblood2025]. 
 
 Heat tolerance of animals and plants can also both be increased and decreased through changes in the gut microbiome and/or through associated microbes within or around tissues. Interactions between plants and microorganisms, such as plant growth-promoting rhizobacteria (PGPR), arbuscular mycorrhizal fungi (AMF), and bacterial or fungal endophytes are known to impact growth, defense, and heat tolerance in plants [@Chouhan2023; @Liu2025; @Marquez2007]. These interactions are usually achieved by stimulating the production of essential phytohormones, secondary metabolites, organic acids, and amino acids that helps the plant to mitigate heat stress [@Huang2019; @Dastogeer2022]. For example, *Bacillus subtilis* residing in the gut of the nematode *Caenorhabditis elegans* provides protection against heat shock as reflected by effects on fecundity [@Hoang2019]. Moreover, this protective effect can influence the ability of the host to evolve further resistance to the heat shock and harboured more bacteria [@Gehman2019].
 
