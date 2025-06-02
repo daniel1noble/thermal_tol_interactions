@@ -65,6 +65,7 @@ docs/~$oposal-Noble_et_al.docx
 docs/supp_old.qmd
 _extensions/leovan/style-text/_extension.yml
 .gitignore
+ppt_figs/
 
 /.luarc.json
 docs/Endnotes To Keep Track off.qmd
