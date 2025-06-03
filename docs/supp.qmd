@@ -58,7 +58,7 @@ The code below loads the required packages that are needed for this tutorial.
 # devtools::install_github("ilyamaclean/microclima")
 
 # Load required libraries after the installation
-pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable, NicheMapR, terra, microclima, plantecophys, magick, here, ggrepel, lutz, R.matlab, magick, grid, DT)
+pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable, NicheMapR, terra, microclima, plantecophys, magick, here, ggrepel, lutz, R.matlab, magick, grid, DT, latex2exp)
 
 ```
 
@@ -1488,6 +1488,48 @@ Modelling the dynamics between two species requires some knowledge about how com
 - $\beta$  = 0.6 (Species A has a moderate negative effect on Species B)
 
 
+```{r, ricker_two_species_model}
+#| label: ricker_two_species_model
+#| echo: true
+#| message: false
+#| warning: false
+
+#' @title Ricker two model function
+#' @description A simple Ricker model function to simulate population dynamics
+#' @param N0   Initial population size
+#' @param r    Intrinsic growth rate
+#' @param sd_r Standard deviation of the growth rate
+#' @param K    Carrying capacity
+#' @param time Time step
+#' @return     Next years population size
+ricker <- function(N0, r, sd_r, K, time){
+  N0 * exp(rnorm(1, r, sd_r)*(1 - (N0/K)))
+}
+
+## Create a function to do a stochastic simulation of the Ricker model
+#' @title Ricker model simulation function
+#' @description A simple Ricker model function to simulate population dynamics
+#' @param N0    Initial population size
+#' @param r     Intrinsic growth rate
+#' @param sd_r  Standard deviation of the growth rate
+#' @param K     Carrying capacity
+#' @param time  Time step
+#' @param nreps Number of replicates
+#' @return      A matrix of population sizes at each time step for nreps
+
+sim_ricker <- function(N0, r, sd_r, K, time, nreps){
+  N_array <- array(NA, dim = c(time, nreps)) # Create a vector to store the population size at each time step
+  for(j in 1:nreps){
+    for(i in 2:time){
+      N_array[1,j] <- N0
+      N_array[i,j] <- ricker(N_array[i-1, j], r, sd_r, K, time)
+    }
+  }
+  return(N_array)
+}
+
+```
+
 
 # **Using a systems modelling approach to help develop solutions to extreme heat events**
 
@@ -1611,14 +1653,30 @@ rainfall_actual2 <- rainfall_actual  %>%
                                                 ifelse(Rainfall == "rainfall_5", "Watering (5 mm)", NA))))),
          Rainfall = factor(Rainfall, levels = c("Original Rainfall", "Watering (2 mm)", "Watering (5 mm)", "Watering (10 mm)", "Watering (20 mm)")))
 # Plot the rainfall data each day through time
-  ggplot(rainfall_actual2) + 
+ water <-  ggplot(rainfall_actual2) + 
               geom_vline(xintercept = as.POSIXct("2019-01-01"), linetype = "dashed", color = "red") +
               geom_vline(xintercept = as.POSIXct("2019-01-31"), linetype = "dashed", color = "red") +
               geom_line(aes(y = Rainfall_mm, x = dates, col = Rainfall), show.legend = TRUE) +
               labs(y = "Rainfall (mm)", x = "Date") + theme_classic() +
-              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
+              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+                 legend.position = "inside",
+                 legend.position.inside = c(0.2,0.8),
+                 axis.title = element_text(size =18),
+                 legend.title = element_text(size = 18),
+                 legend.text = element_text(size = 12)) + 
               scale_colour_viridis_d()
+ water
 
+```
+
+```{r}
+#| label: fig-water2.2
+#| echo: false
+#| warning: false
+#| message: false
+#| include: false
+
+ ggsave(water, filename = here("figs", "fig-water2.png"), width = 9, height = 6, dpi = 600)
 ```
 
 ### Calculating the different mircoclimates using the watering scenerios 
@@ -1814,18 +1872,40 @@ names(environ_plant) <- listnames
                                         ifelse(.id == "environ_plant_2", "Watering (2 mm)", 
                                               ifelse(.id == "environ_plant_5", "Watering (5 mm)", 
                                                     ifelse(.id == "environ_plant_10", "Watering (10 mm)",  
-                                                          ifelse(.id == "environ_plant_20", "Watering (20 mm)", NA)))))) 
+                                                          ifelse(.id == "environ_plant_20", "Watering (20 mm)", NA))))))  %>% 
+                            mutate(.id = factor(.id, levels = c("Original Rainfall", "Watering (2 mm)", "Watering (5 mm)", "Watering (10 mm)", "Watering (20 mm)")))
 
 # Now lets plot the leaf temperature of the plant over time for each of the three different watering scenarios
-environ_plant2  %>% filter(dates > "2019-01-15" & dates < "2019-01-31")  %>% 
+plant_temps_water <- environ_plant2  %>% filter(dates > "2019-01-15" & dates < "2019-01-31")  %>% 
   ggplot() + 
               geom_line(aes(y = TC, x = dates, col = .id), show.legend = TRUE) +
-              labs(y = "Temperature (°C)", x = "Date") + theme_classic() +
+              labs(y = "Leaf Temperature (°C)", x = "Date") + theme_classic() +
               theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "top") + 
-              scale_colour_viridis_d() + theme(legend.title = element_blank()) 
+              scale_colour_viridis_d() + theme(legend.title = element_blank(),
+                                                legend.text = element_text(size = 12),
+                                                axis.title = element_text(size = 18),
+                                                axis.text = element_text(size = 12)) 
+
+plant_temps_water
 
 ```
 
+```{r}
+#| label: fig-plant_temp3.1
+#| echo: false
+#| warning: false
+#| message: false
+#| include: false
+pw1<- plant_temps_water + theme(axis.text.x = element_blank(),
+                          legend.text = element_text(size = 16),
+                           axis.title = element_text(size = 24)) +
+                    annotate("text", x = as.POSIXct("2019-01-15"), y = 52, label = TeX("$^\\circ$C Decrease"), size = 6, hjust = 0)+
+                    annotate("text", x = as.POSIXct("2019-01-19"), y = 52, label = TeX("-2.80$^\\circ$C"), size = 6, hjust = 0) +
+                    annotate("text", x = as.POSIXct("2019-01-22"), y = 52, label = TeX("-3.63$^\\circ$C"), size = 6, hjust = 0) +
+                    annotate("text", x = as.POSIXct("2019-01-25"), y = 52, label = TeX("-3.82$^\\circ$C"), size = 6, hjust = 0) +
+                    annotate("text", x = as.POSIXct("2019-01-28"), y = 52, label = TeX("-3.87$^\\circ$C"), size = 6, hjust = 0)
+ggsave(pw1, filename = here("figs", "fig-plant_temp3.png"), width = 12.432099, height = 6.876543, dpi = 600)
+```
 
 ```{r, tbl-plant_temp3}
 #| label: tbl-plant_temp3
