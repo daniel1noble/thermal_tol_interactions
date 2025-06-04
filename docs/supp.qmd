@@ -1658,12 +1658,12 @@ rainfall_actual2 <- rainfall_actual  %>%
               geom_vline(xintercept = as.POSIXct("2019-01-31"), linetype = "dashed", color = "red") +
               geom_line(aes(y = Rainfall_mm, x = dates, col = Rainfall), show.legend = TRUE) +
               labs(y = "Rainfall (mm)", x = "Date") + theme_classic() +
-              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
-                 legend.position = "inside",
-                 legend.position.inside = c(0.2,0.8),
-                 axis.title = element_text(size =18),
-                 legend.title = element_text(size = 18),
-                 legend.text = element_text(size = 12)) + 
+              theme(                 legend.position = "inside",
+                 legend.position.inside = c(0.25,0.8),
+                 axis.title = element_text(size =20),
+                 axis.text.x = element_blank(),
+                 legend.title = element_text(size = 20),
+                 legend.text = element_text(size = 20)) + 
               scale_colour_viridis_d()
  water
 
@@ -1675,8 +1675,8 @@ rainfall_actual2 <- rainfall_actual  %>%
 #| warning: false
 #| message: false
 #| include: false
-
- ggsave(water, filename = here("figs", "fig-water2.png"), width = 9, height = 6, dpi = 600)
+ 
+ ggsave(water, filename = here("figs", "fig-water2.png"), width = 7.419753, height = 5.938272, dpi = 600)
 ```
 
 ### Calculating the different mircoclimates using the watering scenerios 
