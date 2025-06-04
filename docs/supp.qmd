@@ -2169,4 +2169,64 @@ datatable(.,
             extensions = "Buttons",
             rownames = FALSE)
 ```
+
+
+We can then look at the expected population growth rate of the grasshopper species under the different watering scenerios as we did in [case study 2](#case2). 
+
+```{r}
+#| label: fig-grasshopper_growth_rate_water
+#| fig-cap: "Expected population growth rate of a grasshopper at a location near Renmark, South Australia under different watering scenerios (2, 5, 10 and 20 mm of water added). Models assume that the watering scenerio is implemented each generation leading to a similar intrinsic population growth rate. Watering scenerios implemented at different times of the year are likely to have different effects on the population growth rate, but could be captured by simulating lice cyles for different years."
+#| echo: true
+#| warning: false
+#| message: false
+#| code-fold: true
+
+set.seed(123) # Set seed for reproducibility
+
+# Set up the parameters for the Ricker model
+        N0 <- 1000     # Initial population size
+         r <- life_cycle[,"Intrinsic growth rate (r)"] # Intrinsic growth (DEB model) 
+     names <- scenerios   # Scenerios
+      sd_r <- 0.15     # Standard deviation of the growth rate
+         K <- 10000    # Carrying capacity
+      time <- 10       # Time steps
+     nsims <- 1000     # Number of simulations
+
+# Lets run the simulations
+sims <- list()
+for(i in 1:length(r)){
+  sims[[i]] <- sim_ricker(N0, r[i], sd_r, K, time, nsims)
+  names(sims)[i] <- names[i]
+}
+
+# Re-organise the data for plotting
+data_organised  <-  lapply(sims, function(x) {
+  pivot_longer(as.data.frame(x), 
+                            cols = everything(), 
+                        names_to = "sim", 
+                       values_to = "N")  %>% 
+               mutate(time = rep(1:time, each = nsims))
+})
+
+# Plot the data for each scenerio
+data_organised2  <- plyr::ldply(data_organised, .id = "scenario")  %>% mutate(scenerio_sim = interaction(scenario, sim)) 
+
+plot_water_sims <- ggplot(data_organised2, aes(x = time, y = N, col = scenario)) +
+    geom_line(aes(group = scenerio_sim)) +
+    labs(x = "Time (Generations)", y = "Population size") +
+    theme_classic() + scale_colour_viridis_d() +
+    theme(plot.title = element_text(hjust = 0.5, size = 16),
+          axis.title = element_text(size = 16),
+          axis.text = element_text(size = 16))
+
+plot_list <- list()
+for(i in 1:length(data_organised)){
+  
+}
+
+plot_list[[1]]
+
+```
+
+
 # **References**
