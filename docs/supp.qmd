@@ -2184,12 +2184,12 @@ We can then look at the expected population growth rate of the grasshopper speci
 set.seed(123) # Set seed for reproducibility
 
 # Set up the parameters for the Ricker model
-        N0 <- 1000     # Initial population size
+        N0 <- 1000                                     # Initial population size
          r <- life_cycle[,"Intrinsic growth rate (r)"] # Intrinsic growth (DEB model) 
-     names <- scenerios   # Scenerios
-      sd_r <- 0.15     # Standard deviation of the growth rate
-         K <- 10000    # Carrying capacity
-      time <- 10       # Time steps
+     names <- scenerios                                # Scenerios
+      sd_r <- 0.15                                     # Standard deviation of the growth rate
+         K <- 10000                                    # Carrying capacity
+      time <- 10                                     # Time steps
      nsims <- 1000     # Number of simulations
 
 # Lets run the simulations
@@ -2213,20 +2213,24 @@ data_organised2  <- plyr::ldply(data_organised, .id = "scenario")  %>% mutate(sc
 
 plot_water_sims <- ggplot(data_organised2, aes(x = time, y = N, col = scenario)) +
     geom_line(aes(group = scenerio_sim)) +
-    labs(x = "Time (Generations)", y = "Population size") +
+    labs(x = "Time (Generations)", y = "Population size (N)") +
     theme_classic() + scale_colour_viridis_d() +
-    theme(plot.title = element_text(hjust = 0.5, size = 16),
-          axis.title = element_text(size = 16),
-          axis.text = element_text(size = 16))
-
-plot_list <- list()
-for(i in 1:length(data_organised)){
-  
-}
-
-plot_list[[1]]
-
+    theme(axis.title = element_text(size = 20),
+          axis.text = element_text(size = 20),
+           legend.position = "inside",
+      legend.position.inside = c(0.7,0.5),
+          legend.text = element_text(size = 20),
+          legend.title = element_blank())
+plot_water_sims
 ```
 
+```{r}
+#| label: fig-grasshopper_pop_growth_out
+#| echo: false
+#| warning: false
+#| message: false
+#| include: false
+ggsave(plot_water_sims, filename = here("figs", "fig-grasshopper_growth_rate_water.png"), width = 7, height = 7, dpi = 600)
+```
 
 # **References**
