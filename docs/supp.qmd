@@ -1503,38 +1503,56 @@ Modelling the dynamics between two species requires some knowledge about how com
 #| message: false
 #| warning: false
 
-#' @title Ricker two model function
-#' @description A simple Ricker model function to simulate population dynamics
-#' @param N0   Initial population size
-#' @param r    Intrinsic growth rate
-#' @param sd_r Standard deviation of the growth rate
-#' @param K    Carrying capacity
+#' @title Ricker two species function
+#' @description A simple Ricker model function to simulate population dynamics for multiple species
+#' @param N0   Initial population size of species i
+#' @param r_i    Intrinsic growth rate for species i
+#' @param sd_r_i Standard deviation of the growth rate for species i
+#' @param K_i    Carrying capacity for species i
+#' @param alpha_ij Competition coefficient for species j on species i
+#' @param N0_j   Initial population size of species j
 #' @param time Time step
 #' @return     Next years population size
-ricker <- function(N0, r, sd_r, K, time){
-  N0 * exp(rnorm(1, r, sd_r)*(1 - (N0/K)))
+ricker_two <- function(N0_i, r_i, sd_r_i, K_i, N0_j, alpha_ij, time){
+  N0_i * exp(rnorm(1, r_i, sd_r_i)*(1 - ((N0_i + (alpha_ij * N0_j))/K_i)))
 }
 
-## Create a function to do a stochastic simulation of the Ricker model
-#' @title Ricker model simulation function
-#' @description A simple Ricker model function to simulate population dynamics
-#' @param N0    Initial population size
-#' @param r     Intrinsic growth rate
-#' @param sd_r  Standard deviation of the growth rate
-#' @param K     Carrying capacity
-#' @param time  Time step
-#' @param nreps Number of replicates
-#' @return      A matrix of population sizes at each time step for nreps
+## Create a function to do a stochastic simulation of the two species Ricker model
+#' @title Two species ricker model simulation function
+#' @description A simple two species Ricker model function to simulate population dynamics for two species
+#' @param N0_i     Initial population size of species i
+#' @param r_i      Intrinsic growth rate for species i
+#' @param sd_r_i   Standard deviation of the growth rate for species i
+#' @param K_i      Carrying capacity for species i
+#' @param N0_j     Initial population size of species j
+#' @param r_j      Intrinsic growth rate for species j
+#' @param sd_r_j   Standard deviation of the growth rate for species j
+#' @param K_j      Carrying capacity for species j
+#' @param alpha_ij Competition coefficient for species j on species i
+#' @param time     Time step
+#' @param nreps    Number of replicates
+#' @return         A matrix of population sizes at each time step for nreps
 
-sim_ricker <- function(N0, r, sd_r, K, time, nreps){
-  N_array <- array(NA, dim = c(time, nreps)) # Create a vector to store the population size at each time step
+sim_ricker_two_sp <- function(N0_i, r_i, sd_r_i, K_i, N0_j, r_j, sd_r_j, K_j, alpha_ij, time, nreps){
+  # Create a vector to store the population size at each time step
+  N_array_i <- array(NA, dim = c(time, nreps)) 
+  N_array_j <- array(NA, dim = c(time, nreps))
+  
   for(j in 1:nreps){
     for(i in 2:time){
-      N_array[1,j] <- N0
-      N_array[i,j] <- ricker(N_array[i-1, j], r, sd_r, K, time)
+      # Create arrays to store population sizes and initilise with initial population sizes
+        N_array_i[1,j] <- N0_i
+        N_array_j[1,j] <- N0_j
+      
+      # Calculate the population size in the next time step for species i
+        N_array_i[i,j] <- ricker_two(N_array_i[i-1, j], r_i, sd_r_i, K_i, N_array_j[i-1, j], alpha_ij, time)
+
+      # Calculate the population size in the next time step for species j, noting that it is based on the same time step as species i
+        N_array_j[i,j] <- ricker_two(N_array_j[i-1, j], r_j, sd_r_j, K_j, N_array_i[i-2, j], alpha_ij, time)
     }
   }
-  return(N_array)
+  # Return the population size at each time step for species i and j
+  return(list(N_i = N_array_i, N_j = N_array_j))
 }
 
 ```
