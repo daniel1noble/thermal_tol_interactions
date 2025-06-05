@@ -1140,6 +1140,15 @@ where $N_t^A$ and $N_t^B$ are the population sizes of species A and B at time $t
 
 In @eq-A, the competition coefficient $\alpha$ is a measure of the strength of the interaction between the two species. If $\alpha$ is greater than 1, it means that species B has a stronger negative effect on species A than species A has on itself. If $\alpha$ is less than 1, it means that species A has a stronger negative effect on itself than species B has on it. If $\alpha$ is equal to 1, it means that the two species have equal effects on each other. The opposite is true for $\beta$ in @eq-B.
 
+A more general form of this model is given by:
+$$
+N_{t+1}^i = N_t^i \cdot \lambda_i^{\left(1 - \frac{N_t^i + \sum_{j \neq i} \alpha_{ij} N_t^j}{K_i}\right)}
+$$ {#eq-general}
+
+where $N_t^i$ is the population size of species $i$ at time $t$, $\lambda_i$ is the intrinsic growth rate of species $i$, $K_i$ is the carrying capacity of species $i$, and $\alpha_{ij}$ is the competition coefficient that describes how much species $j$ affects species $i$. When $\alpha_{ij}$ = 1, species $j$ competes just as strongly as species $i$ does with itself. When $\alpha_{ij}$ < 1, then species $j$ has a weaker effect on species $i$ then conspecifics and $\alpha_{ij}$ > 1, indicates that species $j$ has a stronger effect on species $i$ than conspeecifics. The sum runs over all species $j$ that are not equal to $i$, which means that the model can be extended to include any number of species within a community.
+
+$\alpha_{ij}$ can of course vary depending on the environment and could be viewed as a function in of itself. As such, we could, for example, couple our mircoclimate and biophysical model predictions to estimate how $\alpha_{ij}$ varies as a function of temperature, water or even resource availability based on experimental data describing how $\alpha_{ij}$ varies as across different environments. 
+
 ### Simulating effects of extreme heat on two species
 
 We can simulate the life-cyle of a second grasshopper species that occupies the same habitat but varies in physiology. We've already done this for one species *Warramaba virgo* (Species B; @fig-two_species_grasshopper) in [Case Study 2](#case2). 
