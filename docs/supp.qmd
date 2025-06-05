@@ -1491,11 +1491,9 @@ datatable(.,
 
 ### Two-species population dynamics 
 
-Modelling the dynamics between two species requires some knowledge about how competition impacts the population size of each species. Normally, this is achieved by estimating competition coefficients from field or laboratory data. Experiments involve determining how the presence of one species impacts growth of the other relative to a control state where only the single species is present. Given that our goal is simply to demonstrate how models from different fields can be coupled, we'll assume that the competition coefficients are known and are as follows:
+Modelling the dynamics between two species requires some knowledge about how competition impacts the population size of each species. Normally, this is achieved by estimating competition coefficients from field or laboratory data. Experiments involve determining how the presence of one species impacts growth of the other relative to a control state where only the single species is present. Given that our goal is simply to demonstrate how models from different fields can be coupled, we'll assume that the competition coefficients are known and equal so that $\alpha_{i,j}$ = 0.2. 
 
-- $\alpha$ = 0.2 (Species B has a weak negative effect on Species A)
-- $\beta$  = 0.6 (Species A has a moderate negative effect on Species B)
-
+Lets re-write our functions to use the two-species model now. 
 
 ```{r, ricker_two_species_model}
 #| label: ricker_two_species_model
@@ -1530,15 +1528,15 @@ ricker_two <- function(N0_i, r_i, sd_r_i, K_i, N0_j, alpha_ij, time){
 #' @param K_j      Carrying capacity for species j
 #' @param alpha_ij Competition coefficient for species j on species i
 #' @param time     Time step
-#' @param nreps    Number of replicates
-#' @return         A matrix of population sizes at each time step for nreps
+#' @param nsims    Number of replicates
+#' @return         A matrix of population sizes at each time step for nsims
 
-sim_ricker_two_sp <- function(N0_i, r_i, sd_r_i, K_i, N0_j, r_j, sd_r_j, K_j, alpha_ij, time, nreps){
+sim_ricker_two_sp <- function(N0_i, r_i, sd_r_i, K_i, N0_j, r_j, sd_r_j, K_j, alpha_ij, time, nsims){
   # Create a vector to store the population size at each time step
-  N_array_i <- array(NA, dim = c(time, nreps)) 
-  N_array_j <- array(NA, dim = c(time, nreps))
+  N_array_i <- array(NA, dim = c(time, nsims)) 
+  N_array_j <- array(NA, dim = c(time, nsims))
   
-  for(j in 1:nreps){
+  for(j in 1:nsims){
     for(i in 2:time){
       # Create arrays to store population sizes and initilise with initial population sizes
         N_array_i[1,j] <- N0_i
@@ -1547,8 +1545,8 @@ sim_ricker_two_sp <- function(N0_i, r_i, sd_r_i, K_i, N0_j, r_j, sd_r_j, K_j, al
       # Calculate the population size in the next time step for species i
         N_array_i[i,j] <- ricker_two(N_array_i[i-1, j], r_i, sd_r_i, K_i, N_array_j[i-1, j], alpha_ij, time)
 
-      # Calculate the population size in the next time step for species j, noting that it is based on the same time step as species i
-        N_array_j[i,j] <- ricker_two(N_array_j[i-1, j], r_j, sd_r_j, K_j, N_array_i[i-2, j], alpha_ij, time)
+      # Calculate the population size in the next time step for species j
+        N_array_j[i,j] <- ricker_two(N_array_j[i-1, j], r_j, sd_r_j, K_j, N_array_i[i-1, j], alpha_ij, time)
     }
   }
   # Return the population size at each time step for species i and j
@@ -1557,6 +1555,119 @@ sim_ricker_two_sp <- function(N0_i, r_i, sd_r_i, K_i, N0_j, r_j, sd_r_j, K_j, al
 
 ```
 
+We can now use these functions to simulate the populatino dynamics for both species under the two different scenarios. For simplity we have assumed the competition coefficient is the same for both species and does not vary with environment. Under more realistic conditions it's very likely that the competition coefficient would vary with environment and we could use our microclimate model to estimate this.
+
+```{r, ricker_simulation_twosp}
+#| label: ricker_simulation_twosp
+#| echo: true
+#| message: false
+#| warning: false
+
+set.seed(123) # Set seed for reproducibility
+
+# Set up the parameters for the Ricker model
+      N0_i <- 1000     # Initial population size, species A
+      N0_j <- 500      # Initial population size, species B
+    sd_r_i <- 0.15     # Standard deviation of the growth rate species A
+    sd_r_j <- 0.15     # Standard deviation of the growth rate species B
+       K_i <- 10000    # Carrying capacity species A
+       K_j <- 10000    # Carrying capacity species B
+r_i_j_open <- life_cycle[c(1,3),"Intrinsic growth rate (r)"] # Intrinsic growth rate species A and B open watering scenerio 
+r_i_j_closed <- life_cycle[c(2,4),"Intrinsic growth rate (r)"] # Intrinsic growth rate species A and B closed watering scenerio
+  alpha_ij <- 0.8      # Competition coefficient. Assumed not to vary with environment
+    time <- 10         # Time steps
+   nsims <- 1000       # Number of simulations
+
+# Lets run the simulations
+
+N_closed <- sim_ricker_two_sp(N0_i, 
+                              r_i = r_i_j_closed[1], # Species i growth rate
+                              sd_r_i, 
+                              K_i, 
+                              N0_j, 
+                              r_j = r_i_j_closed[2], # Species j growth rate
+                              sd_r_j, 
+                              K_j, 
+                              alpha_ij, time, nsims)
+  
+N_open <- sim_ricker_two_sp(N0_i, 
+                            r_i = r_i_j_open[1], # Species i growth rate
+                            sd_r_i, 
+                            K_i, 
+                            N0_j, 
+                            r_j = r_i_j_open[2], # Species j growth rate
+                            sd_r_j,
+                            K_j, 
+                            alpha_ij, time, nsims)
+
+# Create a data frame to store the results for each species for each scenerio
+sims_closed <- plyr::ldply(lapply(N_closed, function(x){ 
+                            pivot_longer(as.data.frame(x), 
+                            cols = everything(), 
+                        names_to = "sim", 
+                       values_to = "N")  %>% 
+               mutate(time = rep(1:time, each = nsims))}))
+
+sims_open <- plyr::ldply(lapply(N_open, function(x){ 
+                            pivot_longer(as.data.frame(x), 
+                            cols = everything(), 
+                        names_to = "sim", 
+                       values_to = "N")  %>% 
+               mutate(time = rep(1:time, each = nsims))}))
+
+```
+
+
+Now we can plot the results of the simulations for both species under both scenarios (@fig-ricker_twosp).
+
+```{r, fig-ricker_twosp}
+#| label: fig-ricker_twosp
+#| echo: true
+#| message: false
+#| warning: false
+#| fig-cap: "Simulated population dynamics for two species of grasshopper under two different watering scenarios. A) Stomata open, B) Stomata closed. The lines show the mean population size across 1000 simulations and the shaded area shows the standard deviation." 
+
+
+  open_stoma <- image_read(here("figs", "Stomata_open.png"))
+        open <- rasterGrob(open_stoma)
+closed_stoma <- image_read(here("figs", "Stomata_closed.png"))  
+      closed <- rasterGrob(closed_stoma)
+   
+  # Create a summary of the simulations to make plotting easier
+   sims_closed_sum  <- sims_closed  %>% group_by(.id, time) %>%
+  summarise(N_m = mean(N), sd = sd(N)) 
+
+  sims_open_sum  <- sims_open  %>% group_by(.id, time) %>%
+  summarise(N_m = mean(N), sd = sd(N)) 
+
+# Plot the results
+p1 = ggplot(sims_closed_sum, aes(x = time, y = N_m, colour = .id, fill = .id)) +
+geom_ribbon(aes(ymin = N_m - sd, ymax = N_m + sd), alpha = 0.3, colour = NA) +
+  geom_line() +
+  labs(title = "Stomata Closure", x = "Generation (time)", y = "Population size (N)") + theme_classic() + theme(legend.position = "right") +
+  scale_colour_viridis_d() + scale_fill_viridis_d() + theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14)) +   annotation_custom(closed, xmin = 1, xmax = 4, ymin = 7500, ymax = 12000) + ylim(0, 12000) + scale_colour_viridis_d(
+  labels = c("Species A", "Species B"),
+  name = "Species") +
+scale_fill_viridis_d(
+  labels = c("Species A", "Species B"),
+  name = "Species")
+  
+
+p2 =  ggplot(sims_open_sum, aes(x = time, y = N_m, colour = .id, fill = .id)) +
+geom_ribbon(aes(ymin = N_m - sd, ymax = N_m + sd), alpha = 0.3, colour = NA) +
+  geom_line() +
+  labs(title = "Stomata Remain Open", x = "Generation (time)", y = "Population size (N)") + theme_classic() + theme(legend.position = "right") +
+  scale_colour_viridis_d() + scale_fill_viridis_d() + theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14)) +   annotation_custom(closed, xmin = 1, xmax = 4, ymin = 7500, ymax = 12000) + ylim(0, 12000) + scale_colour_viridis_d(
+  labels = c("Species A", "Species B"),
+  name = "Species") +
+scale_fill_viridis_d(
+  labels = c("Species A", "Species B"),
+  name = "Species")
+
+
+p1 + theme(plot.tag = element_text(size = 12, face = "bold")) + p2 + theme(plot.tag = element_text(size = 12, face = "bold")) + plot_layout(ncol = 2) + plot_annotation(tag_levels = "A") 
+
+```
 
 # **Using a systems modelling approach to help develop solutions to extreme heat events**
 
