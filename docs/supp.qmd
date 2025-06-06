@@ -36,7 +36,9 @@ Please get in touch with Daniel Noble (daniel.noble@anu.edu.au) and Mike Kearney
 
 # **Introduction**
 
-In this supplementary material, we provide extended versions, with code, of our case studies we draw upon within our manuscript to demonstrate how a systems modelling approach can be implemented in practice. Our case studies focus on plant-insect-microbe interactions, and how these interactions are influenced by extreme heat events. We provide the code for the models we use in our case studies, and the code for the simulations we run to predict the impact of heatwaves on these interactions. Models and code will of course always need to be modified to suite the specific system in question and should be validated against empirical data. We view this tutorial as a starting point to help you understand how to implement a systems modelling approach to predict the impact of extreme heat on species interactions.
+In this supplementary material, we develop five hypothetical case studies to demonstrate how a systems modelling approach can be applied in practice. Our case studies focus on plant-insect interactions, and how these interactions are influenced by extreme heat events. 
+
+We provide theory and code with each of our case studies in the hopes that it stimulates easier application and development of our ideas. Models and code will of course always need to be modified to suite the specific system in question and should be validated against empirical data. As such, we view this tutorial as a starting point for helping readers understand how to implement a systems modelling approach to predict the impact of extreme heat on species assemblages.
 
 # **Load packages**
 
@@ -269,10 +271,10 @@ Now we can have a look at what the air temperature would be 20 cm and 2 m above 
                 pivot_longer(cols = c(TALOC,  TAREF), 
                          names_to = "Height", 
                         values_to = "Temperature")  %>% 
-                mutate(Height = ifelse(Height == "TALOC", "20 cm", "2 m"))
+                mutate(Height = factor(ifelse(Height == "TALOC", "20 cm", "2 m"), levels = c("20 cm", "2 m")))
 
 # Plot soil temps
-  air_temp2  %>% filter(dates > "2019-01-15" & dates < "2019-01-31") %>%
+  air_temp2   %>%
   ggplot(aes(y = Temperature, x = dates, col = Height)) + 
               geom_line() +
               labs(y = "Air Temperature (°C)", x = "Date") + theme_classic() +
@@ -647,7 +649,7 @@ grasshopper_environ2 <- grasshopper_environ                                     
               labs(fill = "Behaviour")
 ```
 
-## **Case Study 2: Understanding the effects of leaf mirochabitat on insect life-cyles: Linking mircoclimates with dynamic energy budgets** {#case2}
+## **Case Study 2: Understanding the effects of leaf mirochabitat on insect life-cyles: Linking mircoclimates to dynamic energy budget and population ecology models** {#case2}
 
 ### Setting the scene
 Our next case study will explore how the microclimate produced by a plant leaf can influence the life-cycle of an insect. In this case, we will use a dynamic energy budget model to understand how the microclimate of a plant leaf can influence the growth and development of a grasshopper. Here, we will introduce a Dynamic Energy Budget (DEB) model which now takes as input the mircoclimate produced by the plant to predcit body temperatures, development, growth and reproduction of the grasshopper (see @fig-case2 for a simplified DEB model). The DEB model also allows us to incorperate the heat wave event.
@@ -1677,7 +1679,7 @@ A systems modelling approach can also be used to design possible solutions by un
 
 ### Setting the scene
 
-Let's assume our plant species is of interest for conservation or agricultural reasons and we want to understand how watering during a heatwave might help it survive (@fig-case4). The challenge with watering is that often we are drought stressed in combination with the extreme heat. As such, it's ideal to reduce water use because this saves money and water. So, the questions become:
+Let's assume our plant species is of interest for conservation or agricultural reasons and we want to understand how watering during a heatwave might help it survive (@fig-case4). The challenge with watering is that often we are drought stressed in combination with the extreme heat [@Dai2013]. As such, it's ideal to reduce water use because this saves money and water. So, the questions become:
 
 1. **How much water do we need to protect the plant from extreme heat while also not overwatering?**
 2. **In addition, how does this affect pest insects that might be residing on the plant?**
