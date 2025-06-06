@@ -1659,7 +1659,7 @@ p2 =  ggplot(sims_open_sum, aes(x = time, y = N_m, colour = .id, fill = .id)) +
 geom_ribbon(aes(ymin = N_m - sd, ymax = N_m + sd), alpha = 0.3, colour = NA) +
   geom_line() +
   labs(title = "Stomata Remain Open", x = "Generation (time)", y = "Population size (N)") + theme_classic() + theme(legend.position = "right") +
-  scale_colour_viridis_d() + scale_fill_viridis_d() + theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14)) +   annotation_custom(closed, xmin = 1, xmax = 4, ymin = 7500, ymax = 12000) + ylim(0, 12000) + scale_colour_viridis_d(
+  scale_colour_viridis_d() + scale_fill_viridis_d() + theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14)) +   annotation_custom(open, xmin = 1, xmax = 4, ymin = 7500, ymax = 12000) + ylim(0, 12000) + scale_colour_viridis_d(
   labels = c("Species A", "Species B"),
   name = "Species") +
 scale_fill_viridis_d(
