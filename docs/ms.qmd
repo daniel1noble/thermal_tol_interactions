@@ -104,15 +104,15 @@ $$ {#eq-hi}
 
 # Box 1: Sensitivity to extreme heat is mediated by environmental feedbacks
 
-Natural and anthropogenic environments shape thermal sensitivity and should be considered in any systems modelling approach. A number of environmental drivers have been identified to impact thermal sensitivity including: 
+Natural and anthropogenic environments shape thermal sensitivity and should be considered in any systems modelling approach [@Arnold2025]. Some examples across plant and animals include:
 
-**Drought and Water Stress**: Drought, often associated with periods of extreme heat, can reduce thermal tolerance in plants by impacting their ability to cool through transpiration leading to leaf damage [@Marchin2022]. Extended periods of water stress (e.g., several days or more) have also been shown to increase thermal sensitivity in insects, reducing the time they could deal with extreme heat [@Youngblood2025]. 
+**Microbial Interactions**: Heat tolerance of animals and plants can be increased and decreased through changes in the gut microbiome and/or through associated microbes within or around tissues. Interactions between plants and microorganisms, such as plant growth-promoting rhizobacteria (PGPR), arbuscular mycorrhizal fungi (AMF), and bacterial or fungal endophytes are known to impact growth, defense, and heat tolerance in plants [@Chouhan2023; @Liu2025; @Marquez2007] (Box Fig. [@fig-box1]A). These interactions are usually achieved by stimulating the production of essential phytohormones, secondary metabolites, organic acids, and amino acids that helps the plant to mitigate heat stress [@Huang2019; @Dastogeer2022]. Heat tolerance in animals can also be influenced by gut mircobiota or other associted symbiotes. For example, *Bacillus subtilis* residing in the gut of the nematode *Caenorhabditis elegans* provides protection against heat shock as reflected by effects on fecundity [@Hoang2019] (Box Fig. [@fig-box1]B). Moreover, this protective effect can influence the ability of the host to evolve further resistance to the heat shock and harboured more bacteria [@Gehman2019].
 
-**Nutrition and Diet**: 
+**Drought and Water Stress**: Drought, often associated with periods of extreme heat, can reduce thermal tolerance in plants by impacting their ability to cool through transpiration leading to leaf damage [@Marchin2022] (Box Fig. [@fig-box1]C). Extended periods of water stress (e.g., several days or more) have also been shown to increase thermal sensitivity in insects, reducing the time they could deal with extreme heat [@Youngblood2025] (Box Fig. [@fig-box1]D). 
 
-**Microbial Interactions**: Heat tolerance of animals and plants can be increased and decreased through changes in the gut microbiome and/or through associated microbes within or around tissues. Interactions between plants and microorganisms, such as plant growth-promoting rhizobacteria (PGPR), arbuscular mycorrhizal fungi (AMF), and bacterial or fungal endophytes are known to impact growth, defense, and heat tolerance in plants [@Chouhan2023; @Liu2025; @Marquez2007]. These interactions are usually achieved by stimulating the production of essential phytohormones, secondary metabolites, organic acids, and amino acids that helps the plant to mitigate heat stress [@Huang2019; @Dastogeer2022]. Heat tolerance in animals can also be influenced by gut mircobiota or other associted symbiotes. For example, *Bacillus subtilis* residing in the gut of the nematode *Caenorhabditis elegans* provides protection against heat shock as reflected by effects on fecundity [@Hoang2019]. Moreover, this protective effect can influence the ability of the host to evolve further resistance to the heat shock and harboured more bacteria [@Gehman2019].
+**Nutrition and Diet**: Nutritional composition of the diet has also been shown to affect heat tolerance in insects and plants, possibly through the modification of lipid membranes, substrate availability for ATP synthesis, availability of key amino acids and/or alleviating oxidative stress. @Mengutay2013 show how supplementation of a key mineral, magnesium (Mg), can improve heat tolerance in maize and wheat, with visual leaf damage being aggravated in both species under heat stress when in low supply resulting from increased oxidative cellular damage (Box Fig. [@fig-box1]E). In *Drosophila melanogaster* larvae fed a diet with high protein content were also able to withstand higher temperatures than those fed a high carbohydrate diet, with some evidence for sex-dependent effects [@Anderson2010] (Box Fig. [@fig-box1]F).
 
-Other environmental stressors can also interact with natural variation to impact thermal sensitivity [@Arnold2025]
+The above list is not exhaustive, and other environmental stressors, such as pollution, salinity, and heavy metals, in addition to interactions between those environmental stressors above, can also impact thermal sensitivity [@Arnold2025; @Martinez-De_Leon2024].
 
 ```{r}
 #| label: fig-box1
@@ -120,18 +120,16 @@ Other environmental stressors can also interact with natural variation to impact
 #| fig-cap: "Box 1 Figure."
 
 # Load the image
-img <- image_read(here("figs", "fig_box1.png"))
+img <- image_read(here("figs", "Box1.png"))
 grid::grid.raster(img)
 
 ```
-
 :::
 
 ::: {.callout-note icon="false" appearance="minimal"}
 # Glossary
 **Coexistence**: Coexistence occurs when two species are able to persist in each others presence indefinitely under constant, equilibrium conditions. While highly variable natural environments compromise these assumptions, coexistence models still have a lot of potential as tools for exploring whole community responses to extreme events.\ 
 **Functional traits**: Functional traits are the measurable characteristics of organisms that influence their performance and fitness, such as body size, reproductive output, and metabolic rates. In the context of extreme heat, functional traits can be used to categorize species based on their responses to thermal stress.
-
 :::
 
 # Dynamic Energy Budget (DEB) models that capture the effects of extreme heat across life
