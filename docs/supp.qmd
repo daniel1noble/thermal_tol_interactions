@@ -997,6 +997,8 @@ $$
 \lambda = e^{r_{max}}
 $$ {#eq-ricker_lamda}
 
+While @eq-ricker_model2 is a useful model it does make some simplifying assumptions. First, it assumes discrete non-overlapping generations. This should be a sensible assumption for insect and probably many plant species. Second, $\lambda$ and $K$ are assumed constant over time, ignoring any effects of environmental stochasticity or evolution. However, this assumption can easily be relaxed. Third, it assumes a closed system with no emmigration or immigration. However, again, we can modify the model to include these factors. For now, we will assume that the population is closed and that $\lambda$ and $K$ are constant over time.
+
 Recall from our previous section that we already estimated the intrinsic growth rate. Using this information, for the stomata-closed scenario ($\lambda$ = `r round(exp(1.0360276), 2)`), the population could tolerate up to `r round((1-(1/exp(1.0360276)))*100, 2)`% mortality per generation and still remain stable.
 
 In contrast, for the stomata-open scenario ($\lambda$ = `r round(exp(0.4188939),2)`), the population is increasing more slowly. The population can tolerate around `r abs(round((1-(1/exp(0.4188939)))*100, 2))`% mortality per generation and still remain stable.
@@ -1015,7 +1017,6 @@ Assuming we had information on the carying capacity of the enviroment and popula
 #' @param r    Intrinsic growth rate
 #' @param sd_r Standard deviation of the growth rate
 #' @param K    Carrying capacity
-#' @param time Time step
 #' @return     Next years population size
 ricker <- function(N0, r, sd_r, K, time){
   N0 * exp(rnorm(1, r, sd_r)*(1 - (N0/K)))
@@ -1035,9 +1036,10 @@ ricker <- function(N0, r, sd_r, K, time){
 sim_ricker <- function(N0, r, sd_r, K, time, nreps){
   N_array <- array(NA, dim = c(time, nreps)) # Create a vector to store the population size at each time step
   for(j in 1:nreps){
+          N_array[1,j] <- N0
+    
     for(i in 2:time){
-      N_array[1,j] <- N0
-      N_array[i,j] <- ricker(N_array[i-1, j], r, sd_r, K, time)
+      N_array[i,j] <- ricker(N_array[i-1, j], r, sd_r, K)
     }
   }
   return(N_array)
@@ -1149,7 +1151,16 @@ $$ {#eq-general}
 
 where $N_t^i$ is the population size of species $i$ at time $t$, $\lambda_i$ is the intrinsic growth rate of species $i$, $K_i$ is the carrying capacity of species $i$, and $\alpha_{ij}$ is the competition coefficient that describes how much species $j$ affects species $i$. When $\alpha_{ij}$ = 1, species $j$ competes just as strongly as species $i$ does with itself. When $\alpha_{ij}$ < 1, then species $j$ has a weaker effect on species $i$ then conspecifics and $\alpha_{ij}$ > 1, indicates that species $j$ has a stronger effect on species $i$ than conspeecifics. The sum runs over all species $j$ that are not equal to $i$, which means that the model can be extended to include any number of species within a community.
 
-$\alpha_{ij}$ can of course vary depending on the environment and could be viewed as a function in of itself. As such, we could, for example, couple our mircoclimate and biophysical model predictions to estimate how $\alpha_{ij}$ varies as a function of temperature, water or even resource availability based on experimental data describing how $\alpha_{ij}$ varies as across different environments. 
+
+Just like @eq-ricker_model2, @eq-general is also making similar and a few additional assumptions that wre worth noting. 
+
+1. it again assumes discrete non-overlapping generations. 
+2. it assumes $\lambda$, $K$ and now $\alpha_{ij}$ are constant over time, ignoring any effects of environmental stochasticity, changing interaction strengths between species or evolution. Again, these assumptions can be relaxed. For example, $\alpha_{ij}$ can of course vary depending on the environment and could be viewed as a function in of itself. As such, we could, for example, couple our mircoclimate and biophysical model predictions to estimate how $\alpha_{ij}$ varies as a function of temperature, water or even resource availability based on experimental data describing how $\alpha_{ij}$ varies as across different environments.
+3. it assumes that population growth is limited by the total effective density based on both intra and interspecific effects. It also assumes these act additively on the log scale. 
+4. it assumes a closed system with no emmigration or immigration. 
+5. while we assume symmetric interactions, it allows for asymmetric interaction (i.e., $\alpha_{ij} \neq \alpha_{ji}$) 
+
+For now, we will assume that the population is closed and that $K$ is constant over time. While this model allows for asymmetric interaction (i.e., $\alpha_{ij} \neq \alpha_{ji}$), we will assume that the interactions are symmetric (i.e., $\alpha_{ij} = \alpha_{ji}$). We will also assume that $\lambda$ varies slightly over time and add this to our model to demonstrate how you can relax assumptions of $\lambda$, $K$ and $\alpha_{ij}$ being constant over time.
 
 ### Simulating effects of extreme heat on two species
 
@@ -1511,9 +1522,8 @@ Lets re-write our functions to use the two-species model now.
 #' @param K_i    Carrying capacity for species i
 #' @param alpha_ij Competition coefficient for species j on species i
 #' @param N0_j   Initial population size of species j
-#' @param time Time step
 #' @return     Next years population size
-ricker_two <- function(N0_i, r_i, sd_r_i, K_i, N0_j, alpha_ij, time){
+ricker_two <- function(N0_i, r_i, sd_r_i, K_i, N0_j, alpha_ij){
   N0_i * exp(rnorm(1, r_i, sd_r_i)*(1 - ((N0_i + (alpha_ij * N0_j))/K_i)))
 }
 
@@ -1539,16 +1549,16 @@ sim_ricker_two_sp <- function(N0_i, r_i, sd_r_i, K_i, N0_j, r_j, sd_r_j, K_j, al
   N_array_j <- array(NA, dim = c(time, nsims))
   
   for(j in 1:nsims){
-    for(i in 2:time){
-      # Create arrays to store population sizes and initilise with initial population sizes
+    # Create arrays to store population sizes and initilise with initial population sizes
         N_array_i[1,j] <- N0_i
         N_array_j[1,j] <- N0_j
-      
+    
+    for(i in 2:time){
       # Calculate the population size in the next time step for species i
-        N_array_i[i,j] <- ricker_two(N_array_i[i-1, j], r_i, sd_r_i, K_i, N_array_j[i-1, j], alpha_ij, time)
+        N_array_i[i,j] <- ricker_two(N_array_i[i-1, j], r_i, sd_r_i, K_i, N_array_j[i-1, j], alpha_ij)
 
       # Calculate the population size in the next time step for species j
-        N_array_j[i,j] <- ricker_two(N_array_j[i-1, j], r_j, sd_r_j, K_j, N_array_i[i-1, j], alpha_ij, time)
+        N_array_j[i,j] <- ricker_two(N_array_j[i-1, j], r_j, sd_r_j, K_j, N_array_i[i-1, j], alpha_ij)
     }
   }
   # Return the population size at each time step for species i and j
@@ -1557,7 +1567,7 @@ sim_ricker_two_sp <- function(N0_i, r_i, sd_r_i, K_i, N0_j, r_j, sd_r_j, K_j, al
 
 ```
 
-We can now use these functions to simulate the populatino dynamics for both species under the two different scenarios. For simplity we have assumed the competition coefficient is the same for both species and does not vary with environment. Under more realistic conditions it's very likely that the competition coefficient would vary with environment and we could use our microclimate model to estimate this.
+We can now use these functions to simulate the population dynamics for both species under the two different scenarios. For simplity we have assumed the competition coefficient is the same for both species and does not vary with environment. Under more realistic conditions it's very likely that the competition coefficient would vary with environment and we could use our microclimate model to estimate this.
 
 ```{r, ricker_simulation_twosp}
 #| label: ricker_simulation_twosp
@@ -1625,6 +1635,7 @@ Now we can plot the results of the simulations for both species under both scena
 ```{r, fig-ricker_twosp}
 #| label: fig-ricker_twosp
 #| echo: true
+#| code-fold: true
 #| message: false
 #| warning: false
 #| fig-cap: "Simulated population dynamics for two species of grasshopper under two different watering scenarios. A) Stomata open, B) Stomata closed. The lines show the mean population size across 1000 simulations and the shaded area shows the standard deviation." 
@@ -1647,7 +1658,7 @@ p1 = ggplot(sims_closed_sum, aes(x = time, y = N_m, colour = .id, fill = .id)) +
 geom_ribbon(aes(ymin = N_m - sd, ymax = N_m + sd), alpha = 0.3, colour = NA) +
   geom_line() +
   labs(title = "Stomata Closure", x = "Generation (time)", y = "Population size (N)") + theme_classic() + theme(legend.position = "right") +
-  scale_colour_viridis_d() + scale_fill_viridis_d() + theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), legend.position = "none") +   annotation_custom(closed, xmin = 1, xmax = 4, ymin = 7500, ymax = 12000) + ylim(0, 12000) + scale_colour_viridis_d(
+  scale_colour_viridis_d() + scale_fill_viridis_d() + theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), legend.position = "none") +   annotation_custom(closed, xmin = 1, xmax = 5, ymin = 7500, ymax = 12000) + ylim(0, 12000) + scale_colour_viridis_d(
   labels = c("Species A", "Species B"),
   name = "Species") +
 scale_fill_viridis_d(
@@ -1659,7 +1670,7 @@ p2 =  ggplot(sims_open_sum, aes(x = time, y = N_m, colour = .id, fill = .id)) +
 geom_ribbon(aes(ymin = N_m - sd, ymax = N_m + sd), alpha = 0.3, colour = NA) +
   geom_line() +
   labs(title = "Stomata Remain Open", x = "Generation (time)", y = "Population size (N)") + theme_classic() + theme(legend.position = "right") +
-  scale_colour_viridis_d() + scale_fill_viridis_d() + theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14)) +   annotation_custom(open, xmin = 1, xmax = 4, ymin = 7500, ymax = 12000) + ylim(0, 12000) + scale_colour_viridis_d(
+  scale_colour_viridis_d() + scale_fill_viridis_d() + theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14)) +   annotation_custom(open, xmin = 1, xmax = 5, ymin = 7500, ymax = 12000) + ylim(0, 12000) + scale_colour_viridis_d(
   labels = c("Species A", "Species B"),
   name = "Species") +
 scale_fill_viridis_d(
