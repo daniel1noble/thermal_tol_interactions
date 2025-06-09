@@ -8,7 +8,7 @@ Please get in touch with Daniel Noble (daniel.noble@anu.edu.au) and Mike Kearney
 
 # How to use this repository
 
-You can download this repository as a zip file, or clone it using Git. 
+You can download this repository as a zip file, or clone it using Git. To download the repository as a zip file, click the green "Code" button at the top right of this page, and select "Download ZIP". 
 
 Set your working directory to the root of the repository. You can then follow the [online tutorial](https://daniel1noble.github.io/thermal_tol_interactions/) to run the code and reproduce the results in the paper by working through the `supp.qmd` file in the `docs/` folder.
 
