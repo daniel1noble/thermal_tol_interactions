@@ -117,7 +117,7 @@ The above list is not exhaustive, and other environmental stressors, such as pol
 ```{r}
 #| label: fig-box1
 #| eval: true
-#| fig-cap: "Created with BioRender.com."
+#| fig-cap: "**Examples of environmental factors impacting thermal sensitivty in plants and animals**. Created with BioRender.com."
 
 # Load the image
 img <- image_read(here("figs", "Box_1.png"))
