@@ -24,15 +24,16 @@ crossref:
   tbl-prefix: "Table"
 ---
 
-Daniel W.A. Noble^1^ $\ddagger$, Margaret Mayfield^2^ $\dagger$, Ary Hoffmann^1^ $\dagger$, Zhong-Hua Chen^3^ $\dagger$, Steven Lade^5^ $\dagger$, Xuemei Bai^5^ $\dagger$, Danielle Way^4^ $\dagger$, Belinda Medlyn^3^ $\dagger$, Adrienne Nicotra^1,4^ $\dagger$, James Cook^3^, Brajesh Singh^3^, Brendan Choat^3^, Owen Atkin^4^, Barry Pogson^4^,  Alison Bentley^4^, Ian Wright^3^, Micheal R. Kearney^2^ $\ddagger$
+Daniel W.A. Noble^1^ $\ddagger$, Margaret Mayfield^2^ $\dagger$, Ary Hoffmann^1^ $\dagger$, Zhong-Hua Chen^3,4^ $\dagger$, Steven Lade^6^ $\dagger$, Xuemei Bai^6^ $\dagger$, Danielle Way^5^ $\dagger$, Belinda Medlyn^3^ $\dagger$, Adrienne Nicotra^1,5^ $\dagger$, James Cook^3^, Brajesh Singh^3^, Brendan Choat^3^, Owen Atkin^5^, Barry Pogson^5^,  Alison Bentley^5^, Ian Wright^3^, Micheal R. Kearney^2^ $\ddagger$
  
 **Affiliations**:
 
-^1^ Division of Ecology and Evolution, Research School of Biology, The Australian National University, Canberra ACT 2602, Australia \   
+^1^ Division of Ecology and Evolution, Research School of Biology, The Australian National University, Canberra ACT 2602, Australia\   
 ^2^ School of Biosciences, The University of Melbourne, Australia\ 
 ^3^ Hawksbury Institute for the Environment, Western Sydney University, Australia\
-^4^ Division of Plant Sciences, Research School of Biology, The Australian National University, Canberra ACT 2602, Australia\
-^5^ Fenner School of Environment and Society, The Australian National University, Canberra ACT 2602, Australia\ 
+^4^ School of Agriculture, Food and Wine, Waite Research Institute, University of Adelaide, Glen Osmond, SA 5064, Australia\
+^5^ Division of Plant Sciences, Research School of Biology, The Australian National University, Canberra ACT 2602, Australia\
+^6^ Fenner School of Environment and Society, The Australian National University, Canberra ACT 2602, Australia\ 
 
 ^1^ $\ddagger$ Correspondance: daniel.noble@anu.edu.au & m.kearney@unimelb.edu.au\
 $\dagger$ These authors contributed equally to this work.
@@ -226,6 +227,9 @@ grid::grid.raster(img)
 
 # Concluding Remarks
 We have discussed ways in which a better understanding of the impacts of extreme heat on plant and animal systems can be captured through the coupling of models from diverse research fields – models that translate the effects of atmospheric conditions to the biophysical experiences of organisms and how this then scales up to impact individuals, populations and communities. As part of demonstrating the ways in which these models can be coupled, we have developed a series of case studies to show how such a systems modelling framework can be approached (see [*Supplementary Online Material*](https://daniel1noble.github.io/thermal_tol_interactions/)). While our case studies are necessarily hypothetical in nature they move us one step closer to implementing a systems modelling approach in real-world systems. However, many challenges and gaps remain (see **Outstanding Questions**). Developing a systems modelling framework will require collaboration between different research fields, including biophysics, physiology, ecology and evolutionary biology as well as with socio-ecologists. Nonetheless, by working collaboratively and integratively we can develop a more calculated understanding of the impacts that extreme heat will have on organisms, populations, and communities along with how to mitigate these impacts to preserve diverse systems now and into the future.
+
+# Acknowledgements
+We would like to thank Pieter Arnold, Joel Treutlein and Patrice Pottier for helpful comments on previous versions of this manuscript. DWAN is supported by an ARC Future Fellowship (FT220100276). We would also like to thank The Australian National Univesity, the University of Melbourne and Western Sydney University for funding to support workshops that helped develop this manuscript. 
 
 # References
 
