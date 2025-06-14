@@ -1689,6 +1689,8 @@ p1 + theme(plot.tag = element_text(size = 12, face = "bold")) + p2 + theme(plot.
 
 ```
 
+More complex models that incorporate a multitude of species and their interactions can be built using the same principles [e.g., @Bimler2018; @Bimler2023; @Bimler2024]. Information on interaction strength between species can be used to understand how species coexistence is expected to change under extreme heat scenarios.
+
 # **Using a systems modelling approach to help develop solutions to extreme heat events**
 
 A systems modelling approach can also be used to design possible solutions by understanding better how 'thermal interventions' affect heat experienced by organisms and how it influences growth, survival and reproduction. For example, we can manipulate rainfall at a particular time to simulate artificial watering which might be a possible intervention used during extreme heat. The added water can be used to make calculations of heat exchange, temperatures and transpiration under extreme heat events. We can also optimise the amount of water to balance costs and benefits of watering.
