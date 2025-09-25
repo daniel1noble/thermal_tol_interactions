@@ -12,3 +12,11 @@ You can download this repository as a zip file, or clone it using Git. To downlo
 
 Set your working directory to the root of the repository. You can then follow the [online tutorial](https://daniel1noble.github.io/thermal_tol_interactions/) to run the code and reproduce the results in the paper by working through the `supp.qmd` file in the `docs/` folder.
 
+# Revision Thoughts
+- Clarify if Reviewer or Opinion. 
+- Delete section on GCMs. 
+- Delete SES stuff in Box 3. 
+- Need to re-write concluding remarks.
+- Think about how to simplify figures. Can probably do for Fig 1 and 2 a bit.
+- Don't like equations in text so make in box, but probably worth reducing space dedicated to TLS. 
+- Think about moving multi species model into the main text. 
