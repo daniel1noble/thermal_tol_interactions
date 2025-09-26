@@ -13,10 +13,14 @@ You can download this repository as a zip file, or clone it using Git. To downlo
 Set your working directory to the root of the repository. You can then follow the [online tutorial](https://daniel1noble.github.io/thermal_tol_interactions/) to run the code and reproduce the results in the paper by working through the `supp.qmd` file in the `docs/` folder.
 
 # Revision Thoughts
-- Clarify if Reviewer or Opinion. 
+- Clarify if Reviewer or Opinion. - Clarified it is a Review
+- Need to not have supplementary material refs in main text so need to bring elements from there into the paper
 - Delete section on GCMs. 
 - Delete SES stuff in Box 3. 
 - Need to re-write concluding remarks.
 - Think about how to simplify figures. Can probably do for Fig 1 and 2 a bit.
 - Don't like equations in text so make in box, but probably worth reducing space dedicated to TLS. 
 - Think about moving multi species model into the main text. 
+- Keep the Evolution Box. Don't agree with reviewer. We have plenty of examples where extreme heat drives rapid evolution. It impacts strength of selection and also available genetic variation. Maybe just add more on extreme heat to point out evolution of extremes is different and may not be predictable over longer time frames
+- Key examples in main text should be the solutions and multi-species models
+- Maybe in the main paper just state "Code to generate examples can be found on GitHHub" and that will be a way to point to tutorial. We definitely need to provide reproducible code.
