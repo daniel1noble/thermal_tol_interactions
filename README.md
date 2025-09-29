@@ -21,6 +21,6 @@ Set your working directory to the root of the repository. You can then follow th
 - Think about how to simplify figures. Can probably do for Fig 1 and 2 a bit.
 - Don't like equations in text so make in box, but probably worth reducing space dedicated to TLS. 
 - Think about moving multi species model into the main text. 
-- Keep the Evolution Box. Don't agree with reviewer. We have plenty of examples where extreme heat drives rapid evolution. It impacts strength of selection and also available genetic variation. Maybe just add more on extreme heat to point out evolution of extremes is different and may not be predictable over longer time frames
+- Keep the Evolution Box. Don't agree with reviewer. We have plenty of examples where extreme heat drives rapid evolution (see recent review: Baeckens, S. and Donihue, C.M., 2025. Evolutionary consequences of extreme climate events. Current Biology, 35(17), pp.R850-R864.). It impacts strength of selection and also available genetic variation. Maybe just add more on extreme heat to point out evolution of extremes is different and may not be predictable over longer time frames
 - Key examples in main text should be the solutions and multi-species models
 - Maybe in the main paper just state "Code to generate examples can be found on GitHHub" and that will be a way to point to tutorial. We definitely need to provide reproducible code.
