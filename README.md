@@ -1,5 +1,7 @@
 # A systems-modelling approach to predict biological responses to extreme heat
 
+[![DOI](https://zenodo.org/badge/750640367.svg)](https://doi.org/10.5281/zenodo.17316595)
+
 This is the online GitHub repository hosting the code, data and [online tutorial](https://daniel1noble.github.io/thermal_tol_interactions/) for the paper:
 
 Noble *et al.* 2025. A systems-modelling approach to predict biological responses to extreme heat. Trends in Ecology and Evolution, under review.
