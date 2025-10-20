@@ -699,7 +699,7 @@ damage_accum <- function(time, temp, intercept, slope) {
   
   x = c(time, time[last_row])
   y = c(temp, temp[last_row])
-  
+
   for (i in 1:length(x) - 1) {
     #print(paste0("round nr. ", i))
     acc = max(0, min(100, (100 * (x[i + 1] - x[i])) / (10^(slope * max(y[i + 1], y[i]) + intercept))))
@@ -745,7 +745,7 @@ damage_accum <- function(time, temp, intercept, slope) {
 #'   x = T_C, TA = 5000, TAL = 8000, TAH = 9000,
 #'   TL = 285, TH = 313, TREF = 293.15, kdot_ref = 1
 #' )
-repair_accum <- function(x, TA, TAL, TAH, TL, TH, TREF, kdot_ref) {
+damage_repair_accum <- function(x, TA, TAL, TAH, TL, TH, TREF, kdot_ref) {
   ## ---- Basic checks ---------------------------------------------------------
   if (!is.numeric(x)) stop("'x' must be numeric (°C).")
   for (nm in c("TA", "TAL", "TAH", "TL", "TH", "TREF", "kdot_ref")) {
@@ -772,6 +772,52 @@ repair_accum <- function(x, TA, TAL, TAH, TL, TH, TREF, kdot_ref) {
 
   return(out)
 }
+
+
+```
+
+
+```{r}
+#| label: test_damage_repair
+#| echo: true
+#| warning: false
+#| message: false 
+#| code-fold: true
+
+# Lets use air temperature as a test case for functions, limit to 2m above ground (TA). Note that this dataset has dates but we need to convert these to cumulated time in minutes for the damage and repair functions to work. We have hourly data so we simply multiply the row number by 60 to get time in minutes.
+
+air_2m_temp <- air_temp2  %>% filter(Height == "2 m")  %>% mutate(time_min = c(0:(n()-1))*60)
+
+
+# Test from Arnold et al. 2025a parameters
+ctmax <- 52 # CTmax1h
+z <-  2.5 # z (slope)
+alpha  <- ctmax/z # Need these for the log time accumulation function
+beta <- -1 / z       # Need these for the log time accumulation function
+# Set repair coefficients
+kdot0 <- 0 # none
+kdot1 <- 0.007 # low
+kdot2 <- 0.0111 # moderate
+kdot3 <- 0.02 # high
+
+TA <- 14065 # Arrhenius temperature, K
+TL <- 10.5 + 273.15 # Arrhenius temperature lower threshold, K
+TH <- 28.5 + 273.15 # Arrhenius temperature upper threshold, K
+TAL <- 50000 # Arrhenius temperature lower, K
+TAH <- 100000 # Arrhenius temperature upper, K
+TREF <- 20 + 273.15 # reference temperature, K
+Tbs <- seq(0, 50) # sequence of temperatures over which to model, deg C
+kdot_ref <- 0.02 # repair rate % per minute at ref temp 20 deg C
+ta <- air_2m_temp$Temperature # time vector, minutes
+
+# No repair
+damage <- damage_accum(time = air_2m_temp$time_min, 
+             temp = air_2m_temp$Temperature, 
+         intercept = alpha, 
+              slope = beta)
+par(mfrow = c(1, 2))
+plot(air_2m_temp$time_min, damage, type = "l", xlab = "Time (min)", ylab = "Accumulated Damage (%)", main = "No Repair", xlim = c(0, 30000))
+plot(air_2m_temp$time_min, air_2m_temp$Temperature, type = "l", xlab = "Time (min)", ylab = "Air Temperature (°C)", main = "Air Temperature at 2m", xlim = c(0, 30000))
 ```
 
 ## **Case Study 3: Understanding the effects of leaf microhabitat on insect life-cycles: Linking microclimates to dynamic energy budget and population ecology models** {#case2}
