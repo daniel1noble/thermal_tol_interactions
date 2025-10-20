@@ -650,7 +650,131 @@ grasshopper_environ2 <- grasshopper_environ                                     
               labs(fill = "Behaviour")
 ```
 
-## **Case Study 2: Understanding the effects of leaf mirochabitat on insect life-cyles: Linking mircoclimates to dynamic energy budget and population ecology models** {#case2}
+## **Case Study 2: Heat damage accumulation and the dynamics of damage and repair** {#heat_damage}
+
+Thermal load sensitivity (TLS) theory can capture the dynamics of damage and repair in response to naturally occurring temperature fluctuations when we have an understanding of the thermal sensitivity of tissues and/or organisms [@Arnold2025a]. TLS theory is particularly useful for understanding how extreme heat events that cause sub-lethal damage to organisms that can accumulate over time and lead to delayed mortality.
+
+Given that our biophysical models can make predictions body temperature for organisms over time, we can use TLS theory to predict how damage accumulates in response to heatwaves. Here, we will use TLS theory to predict how damage accumulates in grasshoppers during the heatwave event we have been exploring above.
+
+To achieve this level of understanding, we need: 1) the intercept and slope of the thermal sensitivity of damage and repair for the organism of interest [@Arnold2025a]; and 2) the sequence of body temperatures experienced by the organism in question. We'll use a few useful functions to help us achieve this.
+
+```{r, damage_repair_functions}
+#| label: damage_repair_functions
+#| echo: true
+#| warning: false
+#| message: false
+
+#' Accumulated percentage damage across time intervals
+#'
+#' @description
+#' Calculates a cumulative percentage increase through time,
+#' where each interval’s increment depends on the temperature.
+#' 
+#' For each adjacent time pair (t[i], t[i+1]):
+#' \deqn{
+#' acc_i = \max\left(0,\; \min\left(100,\;
+#'   \frac{100 \cdot (t_{i+1} - t_i)}
+#'        {10^{(\text{slope} \cdot \max(T_i, T_{i+1}) + \text{intercept})}}\right)\right)
+#' }
+#'
+#' @param time Numeric vector of time points (e.g., minutes).
+#' @param temp Numeric vector of temperatures (°C), same length as `time`.
+#' @param intercept Numeric scalar controlling the denominator (base-10 intercept).
+#' @param slope Numeric scalar controlling how temperature affects the rate.
+#'
+#' @return A numeric vector of cumulative percentages (0–100).
+#'
+#' @examples
+#' # Example: cumulative increase over 10 minutes of exposure
+#' # where temperature varies between 30–43 °C
+#' time <- log10(c(1, 60, 120, 180, 240, 600, 1200, 2400))       # log-minutes
+#' temp <- seq(30, 43, length = 8)  # °C
+#' ctmax = 47 # CTmax1 hour
+#' slope = -4.5 # slope 
+#' damage_accum(time = 10^time, temp = temp, intercept = ctmax, slope = slope)
+damage_accum <- function(time, temp, intercept, slope) {
+  
+    output = data.frame(z = NA, cumsum = NA)
+  last_row = nrow(data.frame(x = time, y = temp))
+  
+  x = c(time, time[last_row])
+  y = c(temp, temp[last_row])
+  
+  for (i in 1:length(x) - 1) {
+    #print(paste0("round nr. ", i))
+    acc = max(0, min(100, (100 * (x[i + 1] - x[i])) / (10^(slope * max(y[i + 1], y[i]) + intercept))))
+    output[i, 1] = acc
+  }
+  
+  output$cumsum = cumsum(output$z)
+  z = output$cumsum
+  z = append(z, 0)
+  z[z > 100] = 100 # Set values exceeding 100% to 100%
+  z = z[-length(z)]
+  return(z)
+}
+
+#' Repair using Arrhenius/Schoolfield-type thermal performance with low/high inactivation
+#'
+#' @description Computes a temperature-dependent rate using an Arrhenius rise with
+#' both low- and high-temperature inactivation terms (Schoolfield form).
+#' @param x Numeric vector of temperatures in **°C** at which to evaluate the rate.
+#' @param TA  Numeric scalar. Arrhenius temperature parameter (activation energy / k),governing the rising limb. Units: **Kelvin** (i.e., energy scaled by Boltzmann's constant).
+#' @param TAL Numeric scalar. Low-temperature inactivation parameter (deactivation / k).Units: **Kelvin**.
+#' @param TAH Numeric scalar. High-temperature inactivation parameter (deactivation / k).Units: **Kelvin**.
+#' @param TL  Numeric scalar. Low-temperature inactivation midpoint temperature in **Kelvin**.
+#' @param TH  Numeric scalar. High-temperature inactivation midpoint temperature in **Kelvin**.
+#' @param TREF Numeric scalar. Reference temperature in **Kelvin** at which the reference rate is defined.
+#' @param kdot_ref Numeric scalar. Reference rate at `TREF` (units of the process being modeled).
+#' @return Numeric vector of the same length as `x`, giving the temperature-dependent rate.
+#' @details
+#' Temperature conversion to Kelvin is handled internally as `273.15 + x`.
+#' This is the commonly used Schoolfield (1981)-style equation:
+#'
+#' \deqn{
+#'   k(T) = k_{\mathrm{ref}}
+#'          \frac{\exp\{TA \; (1/T_{\mathrm{REF}} - 1/T)\}}
+#'               {1 + \exp\{TAL \; (1/T - 1/T_L)\} + \exp\{TAH \; (1/T_H - 1/T)\}}
+#' }
+#'
+#' where all capital \eqn{T} terms are in Kelvin.
+#'
+#' @examples
+#' T_C <- seq(5, 45, by = 1)
+#' rate <- ArrFunc5(
+#'   x = T_C, TA = 5000, TAL = 8000, TAH = 9000,
+#'   TL = 285, TH = 313, TREF = 293.15, kdot_ref = 1
+#' )
+repair_accum <- function(x, TA, TAL, TAH, TL, TH, TREF, kdot_ref) {
+  ## ---- Basic checks ---------------------------------------------------------
+  if (!is.numeric(x)) stop("'x' must be numeric (°C).")
+  for (nm in c("TA", "TAL", "TAH", "TL", "TH", "TREF", "kdot_ref")) {
+    if (!is.numeric(get(nm)) || length(get(nm)) != 1L) {
+      stop(sprintf("'%s' must be a numeric scalar.", nm))
+    }
+  }
+
+  ## ---- Convert input temperatures to Kelvin ---------------------------------
+  TK   <- 273.15 + x     # evaluation temperatures (K)
+  # Scalars below are already in Kelvin per argument definitions:
+  # TL, TH, TREF
+
+  ## ---- Numerator: Arrhenius rise relative to TREF ---------------------------
+  # exp( TA * (1/TREF - 1/T) )
+  num <- exp(TA * (1 / TREF - 1 / TK))
+
+  ## ---- Denominator: low & high inactivation terms ---------------------------
+  # 1 + exp( TAL * (1/T - 1/TL) ) + exp( TAH * (1/TH - 1/T) )
+  den <- 1 + exp(TAL * (1 / TK - 1 / TL)) + exp(TAH * (1 / TH - 1 / TK))
+
+  ## ---- Combine with reference rate ------------------------------------------
+  out <- (num / den) * kdot_ref
+
+  return(out)
+}
+```
+
+## **Case Study 3: Understanding the effects of leaf microhabitat on insect life-cycles: Linking microclimates to dynamic energy budget and population ecology models** {#case2}
 
 ### Setting the scene
 Our next case study will explore how the microclimate produced by a plant leaf can influence the life-cycle of an insect. In this case, we will use a dynamic energy budget model to understand how the microclimate of a plant leaf can influence the growth and development of a grasshopper. Here, we will introduce a Dynamic Energy Budget (DEB) model which now takes as input the mircoclimate produced by the plant to predcit body temperatures, development, growth and reproduction of the grasshopper (see @fig-case2 for a simplified DEB model). The DEB model also allows us to incorperate the heat wave event.
@@ -1122,7 +1246,7 @@ p1 + theme(plot.tag = element_text(size = 12, face = "bold")) + p2 + theme(plot.
 
 We can see from @fig-ricker_simulation that when stomata are able to respond by closing grasshoppers are expected to grow rapidly until they reach carrying capacity (K = 10,000, and the point they all converge on), whereas if we have stomata remaining open we expect the population to grow much more slowly over time as microhabiats become less suitable for growth and reproduction. This happens because higher body temperatures that result from when stomata close better allows grasshoppers to reach optimal physiological performance.
 
-## **Case Study 3: Heat wave impacts through small communities** {#case3}
+## **Case Study 4: Heat wave impacts through small communities** {#case3}
 
 ### Setting the scene
 
@@ -1695,17 +1819,17 @@ More complex models that incorporate a multitude of species and their interactio
 
 A systems modelling approach can also be used to design possible solutions by understanding better how 'thermal interventions' affect heat experienced by organisms and how it influences growth, survival and reproduction. For example, we can manipulate rainfall at a particular time to simulate artificial watering which might be a possible intervention used during extreme heat. The added water can be used to make calculations of heat exchange, temperatures and transpiration under extreme heat events. We can also optimise the amount of water to balance costs and benefits of watering.
 
-## **Case Study 4: Simulating the effect of watering on plant and insect body temperatures** {#case4}
+## **Case Study 5: Simulating the effect of watering on plant and insect body temperatures** {#case5}
 
 ### Setting the scene
 
-Let's assume our plant species is of interest for conservation or agricultural reasons and we want to understand how watering during a heatwave might help it survive (@fig-case4). The challenge with watering is that often we are drought stressed in combination with the extreme heat [@Dai2013]. As such, it's ideal to reduce water use because this saves money and water. So, the questions become:
+Let's assume our plant species is of interest for conservation or agricultural reasons and we want to understand how watering during a heatwave might help it survive (@fig-case5). The challenge with watering is that often we are drought stressed in combination with the extreme heat [@Dai2013]. As such, it's ideal to reduce water use because this saves money and water. So, the questions become:
 
 1. **How much water do we need to protect the plant from extreme heat while also not overwatering?**
 2. **In addition, how does this affect pest insects that might be residing on the plant?**
 
-```{r, fig-case4}
-#| label: fig-case4
+```{r, fig-case5}
+#| label: fig-case5
 #| echo: false
 #| fig-cap: "Evaluating the impacts of 'thermal interventions' on temperatures experienced by plants and animals. Under extreme heat we might add water to the system to help keep plants cool, but such intervention may also have unexpected consequences on insects. Using a systems approach we can evaluate the impact of watering on plant and insect body temperatures. This can help us understand how to best manage the system to reduce the impacts of extreme heat on plants and insects."
 
@@ -2083,16 +2207,16 @@ ggsave(pw1, filename = here("figs", "fig-plant_temp3.png"), width = 12.432099, h
 
 @fig-plant_temp3 shows how much watering at the various levels affects the leaf temperature of the plant during the day (between 11:00-14:00 hr). We can see that watering even just 2mm can reduce the leaf temperature by on average `r abs(tbl_temps[2,2])` $^\circ\text{C}$ (@tbl-plant_temp3). Interestingly, we can see that after 5mm of water, the leaf temperature doesn't change much, suggesting that we can get away with less water. A good thing in a very arid environment!
 
-## **Case Study 5: Impacts of watering scenerios on grasshopper life cycle** {#case5}
+## **Case Study 6: Impacts of watering scenarios on grasshopper life cycle** {#case6}
 
 ### Setting the scene
-Now that we have the leaf temperature of the plant under the various watering scenerios, we can use this to understand how the different scenerios might affect grasshopper body temperature, life cycle and population dynamics like we did in [case study 2](#case2). This is a nice demonstrations of re-applying everything we've learnt to a new problem – a problem potentially involving the need to control and understand the probability of pest outbreaks. 
+Now that we have the leaf temperature of the plant under the various watering scenarios, we can use this to understand how the different scenarios might affect grasshopper body temperature, life cycle and population dynamics like we did in [case study 2](#case2). This is a nice demonstrations of re-applying everything we've learnt to a new problem – a problem potentially involving the need to control and understand the probability of pest outbreaks.
 
-We can do this by using the ectotherm model using the leaf temperature under the different watering scenerios as the microclimate for the grasshopper. Given the short period of the heat wave and watering regimes we don't expect major differences but it's better to check.
+We can do this by using the ectotherm model using the leaf temperature under the different watering scenarios as the microclimate for the grasshopper. Given the short period of the heat wave and watering regimes we don't expect major differences but it's better to check.
 
-### Use the different watering scenerios to look at how changes in temperature during the watering regime period affect the grasshopper life cycle 
+### Use the different watering scenarios to look at how changes in temperature during the watering regime period affect the grasshopper life cycle
 
-As we did before, we'll update the microclimate experienced by the grasshopper to coincide with the leaf temperature and environmental conditions of the plant (assuming grasshoppers are within the bush in 40% shade). This will then calculate what tempeartures the grasshopper experiences using a heat-budget model to predict the grasshopper body temperature. Then, we will use the heat-budget calculations to run teh Dynamic Energy Budget model for the grasshopper to predict whether this impacts life-cycle. Again, these simulations are all done at once using the `ectotherm` function.
+As we did before, we'll update the microclimate experienced by the grasshopper to coincide with the leaf temperature and environmental conditions of the plant (assuming grasshoppers are within the bush in 40% shade). This will then calculate what temperatures the grasshopper experiences using a heat-budget model to predict the grasshopper body temperature. Then, we will use the heat-budget calculations to run the Dynamic Energy Budget model for the grasshopper to predict whether this impacts life-cycle. Again, these simulations are all done at once using the `ectotherm` function.
 
 ```{r, deb_grasshopper_water}
 #| label: deb_grasshopper_water
