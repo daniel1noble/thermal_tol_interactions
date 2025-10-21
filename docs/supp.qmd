@@ -28,15 +28,15 @@ editor_options:
   chunk_output_type: console
 ---
 
-This is the online supplementary material for the manuscript:
+This is the code for reproducing the examples for the manuscript:
 
 Noble *et al.* 2025. **A systems-modelling approach to predict biological responses to extreme heat**. *Trends in Ecology and Evolution*, under review.
 
-Please get in touch with Daniel Noble (daniel.noble@anu.edu.au) and Mike Kearney (m.kearney@unimelb.edu.au) if you have any questions about the code or the models.
+It demonstrates how to couple models from different disciplines to predict the impacts of extreme heat on plant-insect interactions. Please get in touch with Daniel Noble (daniel.noble@anu.edu.au) and Mike Kearney (m.kearney@unimelb.edu.au) if you have any questions about the code or the models.
 
 # **Introduction**
 
-In this supplementary material, we develop five hypothetical case studies to demonstrate how a systems modelling approach can be applied in practice. Our case studies focus on plant-insect interactions, and how these interactions are influenced by extreme heat events. 
+Here, we develop five hypothetical case studies to demonstrate how a systems modelling approach can be applied in practice. Our case studies focus on plant-insect interactions, and how these interactions are influenced by extreme heat events. 
 
 We provide theory and code with each of our case studies in the hopes that it stimulates easier application and development of our ideas. Models and code will of course always need to be modified to suite the specific system in question and should be validated against empirical data. As such, we view this tutorial as a starting point for helping readers understand how to implement a systems modelling approach to predict the impact of extreme heat on species assemblages.
 
@@ -745,31 +745,27 @@ damage_accum <- function(time, temp, intercept, slope) {
 #'   x = T_C, TA = 5000, TAL = 8000, TAH = 9000,
 #'   TL = 285, TH = 313, TREF = 293.15, kdot_ref = 1
 #' )
-damage_repair_accum <- function(x, TA, TAL, TAH, TL, TH, TREF, kdot_ref) {
+damage_repair_accum <- function(temp, damage, TA, TAL, TAH, TL, TH, TREF, kdot_ref) {
   ## ---- Basic checks ---------------------------------------------------------
-  if (!is.numeric(x)) stop("'x' must be numeric (°C).")
+  if (!is.numeric(temp)) stop("'temp' must be numeric (°C).")
   for (nm in c("TA", "TAL", "TAH", "TL", "TH", "TREF", "kdot_ref")) {
     if (!is.numeric(get(nm)) || length(get(nm)) != 1L) {
       stop(sprintf("'%s' must be a numeric scalar.", nm))
     }
   }
 
+  # Note that the accumulated damage is stored here
+  damage_accumulated <- damage
+
   ## ---- Convert input temperatures to Kelvin ---------------------------------
-  TK   <- 273.15 + x     # evaluation temperatures (K)
+  TK   <- 273.15 + temp     # evaluation temperatures (K)
   # Scalars below are already in Kelvin per argument definitions:
   # TL, TH, TREF
 
-  ## ---- Numerator: Arrhenius rise relative to TREF ---------------------------
-  # exp( TA * (1/TREF - 1/T) )
-  num <- exp(TA * (1 / TREF - 1 / TK))
-
-  ## ---- Denominator: low & high inactivation terms ---------------------------
-  # 1 + exp( TAL * (1/T - 1/TL) ) + exp( TAH * (1/TH - 1/T) )
-  den <- 1 + exp(TAL * (1 / TK - 1 / TL)) + exp(TAH * (1 / TH - 1 / TK))
-
-  ## ---- Combine with reference rate ------------------------------------------
-  out <- (num / den) * kdot_ref
-
+  ## ---- Combine with reference rate and damage accumulation -------------------
+  out <- damage - (exp(TA*(1/TREF-1/(273.15+temp)))/(1+exp(TAL*(1/(273.15+temp)-1/TL))+exp(TAH*(1/TH-1/(273.15+temp))))*kdot_ref)*60 # Multiply by 60 to convert the per minute rate
+  out[out < 0] <- 0      # Set negative damage values to zero
+  out[out > 100] <- 100  # Set values exceeding 100% to 100%
   return(out)
 }
 
@@ -777,47 +773,80 @@ damage_repair_accum <- function(x, TA, TAL, TAH, TL, TH, TREF, kdot_ref) {
 ```
 
 
-```{r}
+```{r, test_damage_repair}
 #| label: test_damage_repair
 #| echo: true
 #| warning: false
 #| message: false 
 #| code-fold: true
 
-# Lets use air temperature as a test case for functions, limit to 2m above ground (TA). Note that this dataset has dates but we need to convert these to cumulated time in minutes for the damage and repair functions to work. We have hourly data so we simply multiply the row number by 60 to get time in minutes.
+# From our previous ectotherm model run for the grasshopper, we can extract the body temperature time series. We can then use a TLS approach to estimate damage accumulation and repair over time.
+grasshopper_environ2_tb <- grasshopper_environ2  %>% filter(Temps == "Body Temperature")  %>% mutate(time_min = c(0:(n()-1))*60)
 
-air_2m_temp <- air_temp2  %>% filter(Height == "2 m")  %>% mutate(time_min = c(0:(n()-1))*60)
+# Thermal Load sensitivity parameters for grasshoppers
+ ctmax <- 47           # CTmax1h
+     z <- 0.5          # z (slope)
+alpha  <- ctmax/z      # Need these for the log time accumulation function
+  beta <- -1 / z       # Need these for the log time accumulation function
+
+# Set repair coefficients. From Arnold et al. 2025 as examples
+repair_rate <- 0.05          # high
+
+# Set up the repair function
+TA <- 14065            # Arrhenius temperature, K
+TL <- 10.5 + 273.15    # Arrhenius temperature lower threshold, K
+TH <- 28.5 + 273.15    # Arrhenius temperature upper threshold, K
+TAL <- 50000           # Arrhenius temperature lower, K
+TAH <- 100000          # Arrhenius temperature upper, K
+TREF <- 20 + 273.15    # reference temperature, K
+kdot_ref <- 0.05       # repair rate % per minute at ref temp 25 deg C
+tb <- grasshopper_environ2_tb$Temperature # body temps, Celsius
+time <- grasshopper_environ2_tb$time_min # time in minutes
+
+# Using body temperatures through time, estimate the accumulation of physiological damage towards a threshold of 50% mortality under no repair
+damage <- damage_accum(time = time, 
+                       temp = tb, 
+                  intercept = alpha, 
+                      slope = beta)
+
+# Using body temperatures through time, estimate the accumulation of physiological damage towards a threshold of 50% mortality with repair
+damage_w_repair  <- damage_repair_accum(  temp = tb,
+                                        damage = damage,
+                                            TA = TA,
+                                           TAL = TAL,
+                                           TAH = TAH,
+                                            TL = TL,
+                                            TH = TH,
+                                          TREF = TREF,
+                                      kdot_ref = repair_rate)
+
+```
+
+```{r}
+#| label: fig-damage_repair
+#| fig-cap: "Accumulation of physiological damage (%) in grasshoppers during a heatwave event near Renmark, South Australia. Damage accumulation is shown for two scenarios, one where no repair occurs (black line) and one where high repair occurs (orange line). The dashed horizontal line indicates 100% damage, which is the threshold for mortality."
+#| code-fold: true
 
 
-# Test from Arnold et al. 2025a parameters
-ctmax <- 52 # CTmax1h
-z <-  2.5 # z (slope)
-alpha  <- ctmax/z # Need these for the log time accumulation function
-beta <- -1 / z       # Need these for the log time accumulation function
-# Set repair coefficients
-kdot0 <- 0 # none
-kdot1 <- 0.007 # low
-kdot2 <- 0.0111 # moderate
-kdot3 <- 0.02 # high
+# Plot results
+lim = 25000
+p1  <- ggplot2::ggplot() +
+  geom_line(aes(x = time, y = damage), color = "red") +
+  labs(x = "Time (min)", y = "Accumulated Damage (50 % Survival)", title = "No Repair") +
+  xlim(0, lim) +
+  theme_classic()
+p2 <- ggplot2::ggplot() +
+  geom_line(aes(x = time, y = damage_w_repair), color = "blue") +
+  labs(x = "Time (min)", y = "Accumulated Damage (50 % Survival)", title = "With Repair") +
+  xlim(0, lim) +
+  theme_classic()
+p3 <- ggplot2::ggplot() +
+  geom_line(aes(x = time, y = tb), color = "black") +
+  labs(x = "Time (min)", y = "Body Temperature (°C)", title = "Body Temperature (°C) / time (min)") +
+  xlim(0, lim) +
+  theme_classic()
+(p1 | p2 | p3 ) + plot_annotation(title = "Damage accumulation and repair in grasshoppers during heatwave event")
 
-TA <- 14065 # Arrhenius temperature, K
-TL <- 10.5 + 273.15 # Arrhenius temperature lower threshold, K
-TH <- 28.5 + 273.15 # Arrhenius temperature upper threshold, K
-TAL <- 50000 # Arrhenius temperature lower, K
-TAH <- 100000 # Arrhenius temperature upper, K
-TREF <- 20 + 273.15 # reference temperature, K
-Tbs <- seq(0, 50) # sequence of temperatures over which to model, deg C
-kdot_ref <- 0.02 # repair rate % per minute at ref temp 20 deg C
-ta <- air_2m_temp$Temperature # time vector, minutes
-
-# No repair
-damage <- damage_accum(time = air_2m_temp$time_min, 
-             temp = air_2m_temp$Temperature, 
-         intercept = alpha, 
-              slope = beta)
-par(mfrow = c(1, 2))
-plot(air_2m_temp$time_min, damage, type = "l", xlab = "Time (min)", ylab = "Accumulated Damage (%)", main = "No Repair", xlim = c(0, 30000))
-plot(air_2m_temp$time_min, air_2m_temp$Temperature, type = "l", xlab = "Time (min)", ylab = "Air Temperature (°C)", main = "Air Temperature at 2m", xlim = c(0, 30000))
 ```
 
 ## **Case Study 3: Understanding the effects of leaf microhabitat on insect life-cycles: Linking microclimates to dynamic energy budget and population ecology models** {#case2}
