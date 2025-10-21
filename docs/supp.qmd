@@ -772,7 +772,6 @@ damage_repair_accum <- function(temp, damage, TA, TAL, TAH, TL, TH, TREF, kdot_r
 
 ```
 
-
 ```{r, test_damage_repair}
 #| label: test_damage_repair
 #| echo: true
@@ -822,9 +821,12 @@ damage_w_repair  <- damage_repair_accum(  temp = tb,
 
 ```
 
-```{r}
+
+We can now have a look at, using the temperatures experienced by the grasshopper during the heatwave, how damage accumulates over time with and without repair (@fig-damage_repair).
+
+```{r, fig-damage_repair}
 #| label: fig-damage_repair
-#| fig-cap: "Accumulation of physiological damage (%) in grasshoppers during a heatwave event near Renmark, South Australia. Damage accumulation is shown for two scenarios, one where no repair occurs (black line) and one where high repair occurs (orange line). The dashed horizontal line indicates 100% damage, which is the threshold for mortality."
+#| fig-cap: "Accumulation of physiological damage (time to reach 50% survival) in grasshoppers during a heatwave event near Renmark, South Australia. Damage accumulation is shown for two scenarios, one where no repair occurs (A) and one where high repair occurs (B). (C) shows the body temperatures modelled."
 #| code-fold: true
 
 
@@ -845,7 +847,8 @@ p3 <- ggplot2::ggplot() +
   labs(x = "Time (min)", y = "Body Temperature (°C)", title = "Body Temperature (°C) / time (min)") +
   xlim(0, lim) +
   theme_classic()
-(p1 | p2 | p3 ) + plot_annotation(title = "Damage accumulation and repair in grasshoppers during heatwave event")
+(p1 | p2 | p3 ) + plot_annotation(tag_levels = 'A', tag_prefix = "(", tag_suffix = ")") &
+  theme(plot.tag = element_text(size = 12))
 
 ```
 
