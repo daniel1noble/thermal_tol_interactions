@@ -30,3 +30,11 @@ Set your working directory to the root of the repository. You can then follow th
 # Chat with Margie on revisions
 - directional selection for evolution of heat tolerance; a lot of species respond very quickly but trees may not and selection even stochastic has consequences for genetic variation. Need to just bring a bit about that into the main text.
 - repeated heatwaves lead to more directional selection over longer times if extreme heat back to back becomes more common, which will happen.
+
+Belinda. 
+Figure 1
+- Be more specific to be clear about modelling framework. Big mega model, or an approach that links models that do different things. Spell out what you mean by framework. Link up different kinds of models.
+- systems modelling - be specific about what that means.
+- Feedbacks to the climate. 
+- Maybe outstanding questions about coupling between LSM to earth systems.
+- Give LSM Earth systems model example of them being coupled, e.g., carbon cycle feedbacks. Then include in Concluding remarks.
