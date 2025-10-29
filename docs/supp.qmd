@@ -28,25 +28,25 @@ editor_options:
   chunk_output_type: console
 ---
 
-This is the code for reproducing the examples for the manuscript:
+This file contains the code and data needed for demonstrating how a systems modelling approach can be applied in practice and can be found on [GitHub](https://github.com/daniel1noble/thermal_tol_interactions). It is the code for reproducing the examples in **Box 1** and **Box 2** for the manuscript:
 
 Noble *et al.* 2025. **A systems-modelling approach to predict biological responses to extreme heat**. *Trends in Ecology and Evolution*, under review.
 
-It demonstrates how to couple models from different disciplines to predict the impacts of extreme heat on plant-insect interactions. Please get in touch with Daniel Noble (daniel.noble@anu.edu.au) and Mike Kearney (m.kearney@unimelb.edu.au) if you have any questions about the code or the models.
+It also demonstrates how to couple models from different disciplines to predict the impacts of extreme heat on plant-insect interactions. 
+
+Please get in touch with Daniel Noble (daniel.noble@anu.edu.au) and Mike Kearney (m.kearney@unimelb.edu.au) if you have any questions about the code or the models.
 
 # **Introduction**
 
-Here, we develop five hypothetical case studies to demonstrate how a systems modelling approach can be applied in practice. Our case studies focus on plant-insect interactions, and how these interactions are influenced by extreme heat events. 
-
-We provide theory and code with each of our case studies in the hopes that it stimulates easier application and development of our ideas. Models and code will of course always need to be modified to suite the specific system in question and should be validated against empirical data. As such, we view this tutorial as a starting point for helping readers understand how to implement a systems modelling approach to predict the impact of extreme heat on species assemblages.
+Here, we provide the code for reproducing the systems-modelling approaches described in Boxes 1 & 2. 
 
 # **Load packages**
 
-Our case studies all use the statistical software [R](https://www.r-project.org/). We use a number of packages to run our simulations, including [`NicheMapR`](https://mrke.github.io) [@Kearney2009b; @Kearney2013], [`microclima`](https://github.com/ilyamaclean/microclima) [@Maclean2019; @Kearney2020], and [`plantecophys`](https://github.com/RemkoDuursma/plantecophys) [@Duursma2015].  
+Our code is built using the statistical software [R](https://www.r-project.org/). We use a number of packages to run our simulations, including [`NicheMapR`](https://mrke.github.io) [@Kearney2009b; @Kearney2013], [`microclima`](https://github.com/ilyamaclean/microclima) [@Maclean2019; @Kearney2020], and [`plantecophys`](https://github.com/RemkoDuursma/plantecophys) [@Duursma2015].  
 
-We recommend that readers interested in working through this tutorial download our [GitHub repository](https://github.com/daniel1noble/thermal_tol_interactions), which contains all the code and data required to run the models. To locate the document that generated this tutorial navigate to the `docs/supp.qmd` file. You should then be able to run the code in this document to reproduce the figures and tables without having to setup your repository. 
+We recommend that readers interested in working through this the code download our [GitHub repository](https://github.com/daniel1noble/thermal_tol_interactions), which contains all the data required to run the models. This code file can also located in the `docs/supp.qmd` file. You should then be able to run the code in this document to reproduce the figures and tables without having to setup your repository. 
 
-The code below loads the required packages that are needed for this tutorial.
+The code below loads the required packages that are needed.
 
 ```{r, libraries}
 #| label: libraries
@@ -64,17 +64,7 @@ pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equat
 
 ```
 
-```{r, func}
-#| label: func
-#| echo: false
-#| warning: false
-#| message: false
-#| 
-source(here("R", "func.R"))
-```
-
-
-Throughout we'll also use some helper functions. These can be added to your working environment by running the code below.
+Throughout we'll also need some helper functions. These can be added to your working environment by running the code below.
 
 ```{r, functions}
 #| label: functions
@@ -169,7 +159,658 @@ gFortran can be a problem for NicheMapR so you need to set the paths properly if
 :::
 :::
 
-# **Predicting relevant microclimates to organisms: A walk through microclimate modelling** {#section1}
+# Box 1 Code
+
+#### Getting the microclimate data
+
+```{r, microclimate_box1}
+#| label: microclimate_box1
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+#| eval: false  
+
+# First, set the location where NCEAP climate data is located. This is a global dataset. We need this to calculate the microclimate. Only need to do once.
+    get.global.climate(folder=here("NCEP_dan", "NCEAP" ))
+
+# Location we want
+  longlat <- c(140.79970255974192, -34.159176277782564) # Near Renmark, South Australia
+    micro <- micro_silo(     loc = longlat,      # Location
+                          dstart = "01/01/2018", # Start year
+                         dfinish = "31/12/2019", # End year
+                        minshade = 40,           # Minimum shade, %
+                        maxshade = 80,           # Maximum shade, %
+                          Usrhyt = 0.2,          # Height above ground, m 
+                      microclima = 1,            # Use mircoclima 
+                              PC = -1500,        # Water potential for stomatal closure
+                              SP = 10,           # Stability parameter for stomatal closure
+                              
+                           email = "daniel.noble@anu.edu.au") # Replace with your email
+
+# Save the microclimate object for later in case we need it again as it avoids needing to rerun.                           
+  save(micro, file = here("output", "microclim", "microclimate.RDa"))
+
+```
+
+#### Plant biophysical model with stomatal conductance
+
+Set up the parameters:
+
+```{r, plant_params_box1}
+#| label: plant_params_box1
+#| echo: true
+ # Load the microclimate object
+    load(here("output", "microclim", "microclimate.RDa"))
+
+  # First, lets extract the relevant information from the microclimate object
+      PDIFs <- micro$diffuse_frac             # use variable diffuse fraction
+        P_a <- get_pressure(micro$elev)       # air pressure, Pa
+        P_a <- rep(P_a, nrow(micro$metout))   # create hourly vector
+      dates <- micro$dates                    # dates
+
+  # Set leaf functional traits
+         live <- 0      # don't simulate behaviour or respiration
+         leaf <- 1      # use the stomatal conductance formulation for evaporation
+         Ww_g <- 1      # wet weight, g
+        shape <- 2      # 0=plate, 1=cylinder, 2=ellipsoid
+      shape_b <- 0.0025 # ratio of b axis:a axis for ellipsoid 
+      shape_c <- 0.1176 # ratio of c axis:a axis for ellipsoid 
+      g_vs_ab <- 0.4    # leaf vapour conductance, abaxial (bottom of leaf), mol/m2/s
+      g_vs_ad <- 0.0    # leaf vapour conductance, adaxial (top of leaf), mol/m2/s
+  g_vs_ab_max <- 0.4    # leaf vapour conductance, abaxial (bottom of leaf), mol/m2/s
+  g_vs_ad_max <- 0.0    # leaf vapour conductance, adaxial (top of leaf), mol/m2/s
+  epsilon_sub <- 0.95   # emissivity of the substrate (-)
+  epsilon_sky <- 1      # emissivity of the sky (-), accounted for already in 'TSKY' output from microclimate model so make it 1
+    epsilon_L <- 0.97   # emissivity of the leaf (-)
+      alpha_L <- 0.5    # solar absorptivity of the leaf (-)
+       fatosk <- 0.5    # radiation configuration factor to sky (-)
+       fatosb <- 0.5    # radiation configuration factor to substrate (-)
+ conv_enhance <- 1.4    # convective enhancement factor (-)
+     pct_cond <- 0      # percent of leaf conducting to the ground (%)
+       postur <- 3      # leaf oriented horizontally, not tracking sun
+          M_1 <- 0      # make metabolic rate zero
+
+# Set up vapour conductance vectors and simulate stomatal closure at night
+                              f_open <- rep(1, nrow(micro$metout))
+  f_open[micro$metout[,"ZEN"] == 90] <- 0      # close stomata when the sun is set
+                            g_vs_abs <- g_vs_ab * f_open 
+                            g_vs_ads <- g_vs_ad * f_open
+
+```
+
+Allow for stomatal conductance to be simulated using the `plantecophys` package. We can do this by calculating stomatal conductance using the `Photosyn` function in `plantecophys`. This function requires vapour pressure deficit (VPD) which we can calculate from the microclimate data using the `WETAIR` function in `NicheMapR`.
+
+```{r, plant_stomatal_box1}
+#| label: plant_stomatal_box1
+#| echo: true
+#| warning: false
+#| message: false
+
+# Include simulated stomatal conductance from plantecophys
+  UMOLPERJ <- 4.57                                                   # mu_mol photons / J
+WETAIR_out <- WETAIR(db = plant$metout[,"TALOC"], rh = plant$metout[,"RHLOC"], bp = P_a)
+    VPD_Pa <- WETAIR_out$esat - WETAIR_out$e
+ photo_out <- Photosyn(Tleaf = plant$environ[,"TC"],                 # Leaf temperature (C)
+                          g1 = 5.2,                                  # Parameter of Ball-Berry model
+                          Ca = 400,                                  # Atmospheric CO2 concentration (ppm)
+                         VPD = VPD_Pa/1000,                          # Vapour pressure deficit (kPa)
+                      vpdmin = 0.5,                                  # lower threshold on VPD
+                        PPFD = plant$metout[,"SOLR"] * UMOLPERJ * 1, # mu mol m-2 s-1
+                        Patm = P_a/1000                              # Atmospheric pressure (kPa)
+                      )
+g_vs_abs_pho <- photo_out$GS
+```
+
+Now calculate leaf temperature using these stomatal conductance values from `Photosyn`. Note that we have re-written the `g_vs_abs_pho` to capture the stomatal conductance from `Photosyn`. We just replace this in the plant biophysical model.
+
+```{r, plant_stomatal2_box1}
+#| label: plant_stomatal2
+#| echo: true
+#| warning: false
+#| message: false
+
+# Rerun the models. Note that the parameters as the same as  
+plant2 <- ectotherm( leaf = leaf, 
+                     live = live,
+                     Ww_g = Ww_g, 
+                    shape = shape, 
+                  shape_b = shape_b, 
+                  shape_c = shape_c, 
+                  g_vs_ab = g_vs_abs_pho, 
+                  g_vs_ad = g_vs_ads, 
+              g_vs_ab_max = g_vs_ab_max, 
+              g_vs_ad_max = g_vs_ad_max, 
+              epsilon_sub = epsilon_sub, 
+              epsilon_sky = epsilon_sky,
+                  epsilon = epsilon_L, 
+                alpha_max = alpha_L, 
+                alpha_min = alpha_L,
+                      M_1 = M_1,
+                   fatosk = fatosk, 
+                   fatosb = fatosb, 
+             conv_enhance = conv_enhance, 
+                 pct_cond = pct_cond, 
+                   postur = postur,
+                   preshr = P_a, 
+                    PDIF = PDIFs)
+# Save model
+  save(plant2, file = here("output", "microclim", "plant2_micro.RDa"))
+
+```
+
+Now, lets have a look at the leaf temperature when stomatal closure behaviour is incorporated.
+
+```{r, fig-plant_temp2}
+#| label: fig-plant_temp2
+#| fig-cap: "Leaf temperature of a plant at a location near Renmark, South Australia. Leaf temperature is shown in relation to air temperature at 2 m above ground (and in minimum shade, 40%) between 2019-01-15 and 2019-01-31 for two scenarios, one where stomata are open all day, and one where stomatal closure is driven by photosynthetically active radiation intensity and vapour pressure."
+#| code-fold: true
+  
+  # Load the plant object
+    load(here("output", "microclim", "plant_micro.RDa"))
+    load(here("output", "microclim", "plant2_micro.RDa"))
+  
+  # Extract the microclimate temperatures. Because this was simulated for a plant the 'body tempertaure'is the leaf temperature and is stored as 'TC' in the environ object. Note now that this new biophysical model has stomatal behaviour incorporated in the new plant2 object.
+            environ_plant_plantecophys2 <- as.data.frame(plant2$environ)
+      environ_plant_plantecophys2$dates <- micro$dates  # For clarirty add in dates from microclimate that ecto model uses
+
+  # Re-organise the data for plotting
+  environ_plant_plantecophys <- environ_plant_plantecophys2 %>% filter(dates > "2019-01-15" & dates < "2019-01-31") %>%
+              dplyr::select(dates, TC) %>%
+              pivot_longer(cols = c(TC), 
+                           names_to = "Temps", 
+                           values_to = "Temperature") %>% 
+              mutate(Temps = ifelse(Temps == "TC",  "Leaf Temperature (Stomatal Closure) (40% shade)"))
+
+  # Combine the two dataframes environ_plant_plantecophys and environ_plant2
+  new_environ_plant2 <- rbind(environ_plant_plantecophys, environ_plant2)
+
+  ggplot(new_environ_plant2) + 
+              geom_line(aes(y = Temperature, x = dates, col = Temps), show.legend = TRUE) +
+              labs(y = "Temperature (°C)", x = "Date") + theme_classic() +
+              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),legend.position = "top", legend.text = element_text(size = 6)) + 
+              scale_colour_viridis_d()
+```
+
+Here, we can see that stomatal closure in the middle of the day causes the leaf temperatures to rise substantially compared to if they were always open and transpiring (i.e., evaporative cooling). This is important because it means that the grasshopper will be exposed to higher temperatures when plant stomata close midday. 
+
+```{r, deb_grasshopper_params_box1}
+#| label: deb_grasshopper_params
+#| echo: true
+#| warning: false
+#| message: false
+
+
+# We first need to load the DEB model parameters. These are estimated using MatLab. We've already estimated these so we'll simply just load them into R.
+
+     pars <- readMat(here("sims", "results_Warramaba_virgo.mat"))
+
+par.names <- unlist(labels(pars$par))
+for(i in 1:length(par.names)){
+  assign(par.names[i], unlist(pars$par[i]))
+}
+
+     pars <- readMat(here("sims", "stat_Warramaba_virgo.mat"))
+par.names <- unlist(labels(pars$stat))
+for(i in 1:length(par.names)){
+  assign(par.names[i], unlist(pars$stat[i]))
+}
+
+# Additional parameters we need
+        E_sm <- 2000            # J/cm^2, maximum stomach energy content
+       fract <- 1               # scaling factor to change size
+
+# Inital state for DEB model
+
+# Egg Stage. Starting conditions
+     E_init <- (E.0 * fract ^ 4) / (3E-9 * fract ^ 3)
+   E_H_init <- 0
+     V_init <- 3E-9
+      stage <- 0
+
+# Life history traits
+ clutchsize <- 8                # Eggs per clutch
+     stages <- 7                # Number of stages, 0 = egg, 1-5 = nymphs, 6 = pre egg-laying adult, 7 = post-laying adult
+   S_instar <- rep(s.1, stages) # Stress at instar n: L_n^2/ L_n-1^2 (-)}\cr}
+        L_b <- L.b              # Structural length at birth (cm)}\cr}
+ photostart <- 0                # no photoperiod effect on reproduction
+photofinish <- 0                # no photoperiod effect on reproduction
+      reset <- 0                # don't reset lifecycle if death occurs
+   soilnode <- 3                # depth (soil node) at which eggs laid - 3 = 5 cm
+
+# Thermoregulatory parameters
+       Ww_g <- 0.2              # g, body mass, not used though because DEB model computes this
+      shape <- 1                # cylinder
+    shape_b <- 10               # ratio of long to short axis of cylinder
+     T_pref <- 38               # preferred body temperature (animal will attempt to regulate as close to this value as possible)
+    T_F_min <- 13               # degrees C, lower body temperature for foraging
+    T_F_max <- 40               # degrees C, upper body temperature for foraging
+    T_B_min <- 13               # degrees C, minimum basking temperature
+   T_RB_min <- 13               # degrees C, temperature at which animal will move to a basking site
+     CT_max <- 47               # degrees C, critical thermal maximum (animal will die if CT_kill = 1 and this threshold is exceeded)
+     CT_min <- 0                # degrees C, critical thermal minimum (used by program to determine depth selected when inactive and burrowing)
+
+
+# Behavioural traits (made stage-specific later)
+      diurn <- 1                # Diurnal activity allowed (1) or not (0)?
+    nocturn <- 1                # Nocturnal activity allowed (1) or not (0)?
+     crepus <- 1                # Crepuscular activity allowed (1) or not (0)?
+     burrow <- 0                # Shelter in burrow allowed (1) or not (0)?
+ shade_seek <- 1                # Shade seeking allowed (1) or not (0)?
+   pct_cond <- 0                # Percentage of animal surface contacting the substrate (\%)
+```
+
+ ### Run biophysical-physiological model for two grasshoppers using the plant microclimate as the environment for grasshoppers
+
+Define the biophysical model parameters for the grasshopper. Note we also include DEB model parameters here, which relate to Box 2, but it's easier to run the model once with all the parameters defined and we can (and will) extract what we need for Box 1.
+
+```{r, grasshopper_params_box1_2}
+#| label: grasshopper_params_box1_2
+#| echo: true
+#| warning: false
+#| message: false
+
+
+# We first need to load the DEB model paraemeters. These are estimated using MatLab. We've already estimated these so we'll simply just load them into R.
+
+     pars <- readMat(here("sims", "results_Warramaba_virgo.mat"))
+
+par.names <- unlist(labels(pars$par))
+for(i in 1:length(par.names)){
+  assign(par.names[i], unlist(pars$par[i]))
+}
+
+     pars <- readMat(here("sims", "stat_Warramaba_virgo.mat"))
+par.names <- unlist(labels(pars$stat))
+for(i in 1:length(par.names)){
+  assign(par.names[i], unlist(pars$stat[i]))
+}
+
+# Additional parameters we need
+        E_sm <- 2000            # J/cm^2, maximum stomach energy content
+       fract <- 1               # scaling factor to change size
+
+# Inital state for DEB model. Note that DEB can ve turned off and only heat and water budget models will be used so some parameters are not needed if DEB is off.
+
+# Egg Stage. Starting conditions
+     E_init <- (E.0 * fract ^ 4) / (3E-9 * fract ^ 3)
+   E_H_init <- 0
+     V_init <- 3E-9
+      stage <- 0
+
+# Life history traits
+ clutchsize <- 8                # Eggs per clutch
+     stages <- 7                # Number of stages, 0 = egg, 1-5 = nymphs, 6 = pre egg-laying adult, 7 = post-laying adult
+   S_instar <- rep(s.1, stages) # Stress at instar n: L_n^2/ L_n-1^2 (-)}\cr}
+        L_b <- L.b              # Structural length at birth (cm)}\cr}
+ photostart <- 0                # no photoperiod effect on reproduction
+photofinish <- 0                # no photoperiod effect on reproduction
+      reset <- 0                # don't reset lifecycle if death occurs
+   soilnode <- 3                # depth (soil node) at which eggs laid - 3 = 5 cm
+
+# Thermoregulatory parameters
+       Ww_g <- 0.2              # g, body mass, not used though because DEB model computes this
+      shape <- 1                # cylinder
+    shape_b <- 10               # ratio of long to short axis of cylinder
+     T_pref <- 38               # preferred body temperature (animal will attempt to regulate as close to this value as possible)
+    T_F_min <- 13               # degrees C, lower body temperature for foraging
+    T_F_max <- 40               # degrees C, upper body temperature for foraging
+    T_B_min <- 13               # degrees C, minimum basking temperature
+   T_RB_min <- 13               # degrees C, temperature at which animal will move to a basking site
+     CT_max <- 47               # degrees C, critical thermal maximum (animal will die if CT_kill = 1 and this threshold is exceeded)
+     CT_min <- 0                # degrees C, critical thermal minimum (used by program to determine depth selected when inactive and burrowing)
+
+# Behavioural traits 
+      diurn <- 1                # Diurnal activity allowed (1) or not (0)?
+    nocturn <- 1                # Nocturnal activity allowed (1) or not (0)?
+     crepus <- 1                # Crepuscular activity allowed (1) or not (0)?
+     burrow <- 0                # Shelter in burrow allowed (1) or not (0)?
+ shade_seek <- 1                # Shade seeking allowed (1) or not (0)?
+   pct_cond <- 0                # Percentage of animal surface contacting the substrate (\%)
+```
+
+Run the biophysical-physiological model species A with some adjustments based on hypothetical differences between the species. 
+
+```{r, grasshopperA_box1_2}
+#| label: grasshopperA_box1_2
+#| echo: true
+#| warning: false
+#| message: false
+
+# First, we need to load in the two microclimates scenarios. We'll do this in a loop so that we can run the DEB model for each of the two microclimates. So, here we'll just create a few vectors that cell specific objects we need.
+        plant_micro <- c("plant_micro.RDa", "plant2_micro.RDa")
+  plant_mirco_names <- c("stomata_open", "stomata_closed")
+
+# We also need to load in the original microclimate object so that we can get the dates and other information from it. This is the original microclimate object that we used to simulate the plant microclimate. We'll also overide the `mirco` object so that the ectotherm model can use it.
+  load(here("output", "microclim", "microclimate.RDa"))
+
+# Now we can loop through the two microclimates and run the DEB model for each of them
+for(i in 1:length(plant_micro)){
+
+# Load the microclimate object
+  load(here("output", "microclim", plant_micro[i]))
+
+# Object is labelled plant2 for the plant2_micro.RDa object
+  if(plant_micro[i] == "plant2_micro.RDa"){
+    plant <- plant2
+  } else {
+    plant <- plant
+  }
+
+# Use the plant microclimate data to reset the original microclimate object. Note that we need to adjust both shade and nonshade conditions 
+  
+  # Unshaded microclimate
+  micro$metout <- plant$metout
+  micro$metout [,"TALOC"] <- plant$environ[,"TC"]
+
+  # Shaded microclimate  
+  microshadmet <- plant$shadmet
+  micro$shadmet [,"TALOC"] <- plant$environ [,"TC"]
+ 
+  # Soil microclimate
+       micro$soil <- plant$soil
+   micro$shadsoil <- plant$shadsoil
+  micro$soilmoist <- plant$soilmoist
+  micro$shadmoist <- plant$shadmoist
+
+# Get dates from microclimate object
+ dates <- micro$dates  # dates, hourly
+dates2 <- micro$dates2 # dates, daily
+
+# Set starting date by truncating microclimate model output to when grasshoppers are epected to oviposit eggs. This is the date when the life cylce of the insect is expected to start.
+oviposition_date <- '2018-03-31 23:00:00'
+            subs <- which( dates > as.POSIXct(oviposition_date))
+           subs2 <- which(dates2 > as.POSIXct(oviposition_date))
+
+# Now run the DEB life-cyle model for the grasshopper
+
+  ecto <- ectotherm( Ww_g = Ww_g,
+                    shape = shape,
+                  shape_b = shape_b,
+                   T_pref = T_pref,
+                  T_F_min = T_F_min,
+                  T_F_max = T_F_max,
+                  T_B_min = T_B_min,
+                 T_RB_min = T_RB_min,
+                   CT_min = CT_min,
+                   CT_max = CT_max,
+                    diurn = diurn,
+                  nocturn = nocturn,
+                   crepus = crepus,
+               shade_seek = shade_seek,
+                   burrow = burrow,
+                 pct_cond = pct_cond,
+                   nyears = ceiling(length(subs2)/365),
+                   metout = micro$metout[subs,],
+                     soil = micro$soil[subs,], 
+                  soilpot = micro$soilpot[subs,],
+                soilmoist = micro$soilmoist[subs,], 
+                    humid = micro$humid[subs,],
+                    tcond = micro$tcond[subs,], 
+                  shadmet = micro$shadmet[subs,],
+                 shadsoil = micro$shadsoil[subs,], 
+                  shadpot = micro$shadpot[subs,],
+                shadmoist = micro$shadmoist[subs,],
+                shadhumid = micro$shadhumid[subs,],
+                shadtcond = micro$shadtcond[subs,], 
+                 rainfall = micro$RAINFALL[subs2],
+                minshades = micro$minshade[subs2],
+                maxshades = micro$maxshade[subs2],
+                      DEB = 1, # turns DEB model on
+               metab_mode = 1, # turns on hemimetabolous model, abp
+                        z = z * fract,
+                    del_M = del.M,
+                     p_Xm = p.Am * 100 / 24 / kap.X,
+                    kap_X = kap.X,
+                        v = v / 24,
+                      kap = kap,
+                      p_M = p.M / 24,
+                      E_G = E.G,
+                    kap_R = kap.R,
+                      k_J = k.J  / 24,
+                     E_Hb = E.Hb * fract ^ 3,
+                     E_Hp = (E.Hj+1e-5) * fract ^ 3,
+                     E_Hj = E.Hj * fract ^ 3,
+                      h_a = h.a / (24 ^ 2),
+                      s_G = 0.0779,   # Gompertz stress coefficient, from Debber
+                      E_0 = E.0 * fract ^ 4,
+                     mu_E = mu.E,
+                      d_V = d.V,
+                      d_E = d.E,
+                    T_REF = T.ref,
+                      T_A = T.A,
+                     T_AL = T.AL,
+                     T_AH = T.AH,
+                      T_L = T.L,
+                      T_H = T.H,
+                     E_sm = E_sm,
+                   E_init = E_init,
+                 E_H_init = E_H_init,
+                   V_init = V_init,
+                    stage = stage,
+               clutchsize = clutchsize,
+                   stages = stages,
+                 S_instar = rep(s.1, stages),
+                      L_b = 0.09, # structural length at birth (cm),
+               photostart = photostart,
+              photofinish = photofinish,
+                    reset = reset,
+                 soilnode = soilnode)
+# Save the DEB model
+  save(ecto, file = here("output", "microclim", paste0("grasshopperspA_", plant_mirco_names[i], "_DEB.RDa")))
+}
+```
+
+Run the biophysical-physiological model again, but for species B which uses different parameters to capture the different life histories of the species.
+
+```{r, grasshopperB_box1_2}
+#| label: grasshopperB_box1_2
+#| echo: true
+#| warning: false
+#| message: false
+
+# First, we need to load in the two microclimates scenerios. We'll do this in a loop so that we can run the DEB model for each of the two microclimates. So, here we'll just create a few vectors that cell specific objects we need.
+        plant_micro <- c("plant_micro.RDa", "plant2_micro.RDa")
+  plant_mirco_names <- c("stomata_open", "stomata_closed")
+
+# We also need to load in the original microclimate object so that we can get the dates and other information from it. This is the original microclimate object that we used to simulate the plant microclimate. We'll also overide the `mirco` object so that the ectotherm model can use it.
+  load(here("output", "microclim", "microclimate.RDa"))
+
+# Now we can loop through the two microclimates and run the DEB model for each of them
+for(i in 1:length(plant_micro)){
+
+# Load the microclimate object
+  load(here("output", "microclim", plant_micro[i]))
+
+# Object is labelled plant2 for the plant2_micro.RDa object
+  if(plant_micro[i] == "plant2_micro.RDa"){
+    plant <- plant2
+  } else {
+    plant <- plant
+  }
+
+# Use the plant microclimate data to reset the original microclimate object. Note that we need to adjust both shade and nonshade conditions 
+  
+  # Unshaded microclimate
+  micro$metout <- plant$metout
+  micro$metout [,"TALOC"] <- plant$environ[,"TC"]
+
+  # Shaded microclimate  
+  microshadmet <- plant$shadmet
+  micro$shadmet [,"TALOC"] <- plant$environ [,"TC"]
+ 
+  # Soil microclimate
+       micro$soil <- plant$soil
+   micro$shadsoil <- plant$shadsoil
+  micro$soilmoist <- plant$soilmoist
+  micro$shadmoist <- plant$shadmoist
+
+# Get dates from microclimate object
+ dates <- micro$dates  # dates, hourly
+dates2 <- micro$dates2 # dates, daily
+
+# Set starting date by truncating microclimate model output to when grasshoppers are epected to oviposit eggs. This is the date when the life cylce of the insect is expected to start.
+oviposition_date <- '2018-03-31 23:00:00'
+            subs <- which( dates > as.POSIXct(oviposition_date))
+           subs2 <- which(dates2 > as.POSIXct(oviposition_date))
+
+# Now run the DEB life-cyle model for the grasshopper
+
+  ecto <- ectotherm( Ww_g = Ww_g,
+                    shape = shape,
+                  shape_b = shape_b,
+                   T_pref = T_pref,
+                  T_F_min = T_F_min,
+                  T_F_max = T_F_max,
+                  T_B_min = T_B_min,
+                 T_RB_min = T_RB_min,
+                   CT_min = CT_min,
+                   CT_max = CT_max,
+                    diurn = diurn,
+                  nocturn = nocturn,
+                   crepus = crepus,
+               shade_seek = shade_seek,
+                   burrow = burrow,
+                 pct_cond = pct_cond,
+                   nyears = ceiling(length(subs2)/365),
+                   metout = micro$metout[subs,],
+                     soil = micro$soil[subs,], 
+                  soilpot = micro$soilpot[subs,],
+                soilmoist = micro$soilmoist[subs,], 
+                    humid = micro$humid[subs,],
+                    tcond = micro$tcond[subs,], 
+                  shadmet = micro$shadmet[subs,],
+                 shadsoil = micro$shadsoil[subs,], 
+                  shadpot = micro$shadpot[subs,],
+                shadmoist = micro$shadmoist[subs,],
+                shadhumid = micro$shadhumid[subs,],
+                shadtcond = micro$shadtcond[subs,], 
+                 rainfall = micro$RAINFALL[subs2],
+                minshades = micro$minshade[subs2],
+                maxshades = micro$maxshade[subs2],
+                      DEB = 1, # turns DEB model on
+               metab_mode = 1, # turns on hemimetabolous model, abp
+                        z = z * fract,
+                    del_M = del.M,
+                     p_Xm = p.Am * 100 / 24 / kap.X,
+                    kap_X = kap.X,
+                        v = v / 24,
+                      kap = kap,
+                      p_M = p.M / 24,
+                      E_G = E.G,
+                    kap_R = kap.R,
+                      k_J = k.J  / 24,
+                     E_Hb = E.Hb * fract ^ 3,
+                     E_Hp = (E.Hj+1e-5) * fract ^ 3,
+                     E_Hj = E.Hj * fract ^ 3,
+                      h_a = h.a / (24 ^ 2),
+                      s_G = s.G,
+                      E_0 = E.0 * fract ^ 4,
+                     mu_E = mu.E,
+                      d_V = d.V,
+                      d_E = d.E,
+                    T_REF = T.ref,
+                      T_A = T.A,
+                     T_AL = T.AL,
+                     T_AH = T.AH,
+                      T_L = T.L,
+                      T_H = T.H,
+                     E_sm = E_sm,
+                   E_init = E_init,
+                 E_H_init = E_H_init,
+                   V_init = V_init,
+                    stage = stage,
+               clutchsize = clutchsize,
+                   stages = stages,
+                 S_instar = rep(s.1, stages),
+                      L_b = L.b,
+               photostart = photostart,
+              photofinish = photofinish,
+                    reset = reset,
+                 soilnode = soilnode)
+# Save the DEB model
+  save(ecto, file = here("output", "microclim", paste0("grasshopper_", plant_mirco_names[i], "_DEB.RDa")))
+}
+```
+
+
+# Box 2 Code
+
+
+We can have a look at the life-cycle of the new species of grasshopper, Species A, under both scenarios (@fig-grasshopperspA_lifecycle).
+
+
+```{r, fig-grasshopperspA_lifecycle_box2}
+#| label: fig-grasshopperspA_lifecycle
+#| fig-cap: "Life-cycle of a grasshopper (Species A) at a location near Renmark, South Australia. Life-cycle of the grasshopper is shown in under two scenarios, one where stomata are open all day, and one where stomatal closure is driven by photosynthetically active radiation intensity and vapour pressure. Note that the life-cycle is shown as the wet mass of the grasshopper (mg) over time (days) with different colours corresponding to different life stages. The life stages are: 0 = egg (‘grey’), 1 = first instar (‘forest green’), 2 = second instar (‘lime green’), 3 = third instar (‘tan’), 4 = fourth instar (‘brown’), 5 = fifth instar (‘orange’), 6 = adult (‘pink’).The grey lines indicate the body temperature of the grasshopper (°C) (right axis)."
+#| code-fold: true
+#| echo: true
+#| warning: false
+#| message: false
+
+# Load in the DEB model for scenerio 1
+  load(here("output", "microclim", "grasshopperspA_stomata_open_DEB.RDa"))
+         datetime <- dates[subs]
+              sub <- which(datetime > as.POSIXct('2018-03-31') & datetime < as.POSIXct('2019-04-30'))
+           debout <- data.frame(ecto$debout)
+  debout$datetime <- datetime
+    scale_factor  <-  10
+# Create the life cycle plot
+
+p1 <- ggplot() +
+geom_line(data = ecto$environ, aes(x = datetime, y = TC*scale_factor), col = 'lightgrey', linewidth = 0.5) +
+ylim(-10, 500) +
+geom_line(data = ecto$environ, aes(x = datetime, y = SHADE), col = "forestgreen") +
+geom_line(data = debout, aes(x = datetime, y = WETMASS * 1000), col = "black") +
+geom_line(data = debout %>% filter(STAGE == 0), aes(x = datetime, y = WETMASS * 1000), col = "darkgrey", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 1), aes(x = datetime, y = WETMASS * 1000), col = "lightgreen", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 2), aes(x = datetime, y = WETMASS * 1000), col = "green", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 3), aes(x = datetime, y = WETMASS * 1000), col = "tan", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 4), aes(x = datetime, y = WETMASS * 1000), col = "brown", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 5), aes(x = datetime, y = WETMASS * 1000), col = "orange", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 6), aes(x = datetime, y = WETMASS * 1000), col = "pink", linewidth =2) +
+labs(title = "Predicted Species A Grasshopper life-cycle under stomata open", x = "Date") + 
+scale_y_continuous(
+    name = "Wet mass (mg)", 
+    sec.axis = sec_axis(~ . / scale_factor, name = "Body temperature (°C)")
+  )+ theme_classic()
+
+# Now for scenerio 2
+
+load(here("output", "microclim", "grasshopperspA_stomata_closed_DEB.RDa"))
+           debout <- data.frame(ecto$debout)
+  debout$datetime <- datetime
+
+# Create the life cycle plot
+p2 <- ggplot() +
+geom_line(data = ecto$environ, aes(x = datetime, y = TC*scale_factor), col = 'lightgrey', size = 0.5) +
+ylim(-10, 500) +
+geom_line(data = ecto$environ, aes(x = datetime, y = SHADE), col = "forestgreen") +
+geom_line(data = debout, aes(x = datetime, y = WETMASS * 1000), col = "black") +
+geom_line(data = debout %>% filter(STAGE == 0), aes(x = datetime, y = WETMASS * 1000), col = "darkgrey", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 1), aes(x = datetime, y = WETMASS * 1000), col = "lightgreen", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 2), aes(x = datetime, y = WETMASS * 1000), col = "green", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 3), aes(x = datetime, y = WETMASS * 1000), col = "tan", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 4), aes(x = datetime, y = WETMASS * 1000), col = "brown", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 5), aes(x = datetime, y = WETMASS * 1000), col = "orange", linewidth =2) +
+geom_line(data = debout %>% filter(STAGE == 6), aes(x = datetime, y = WETMASS * 1000), col = "pink", linewidth =2) +
+labs(title = "Predicted Species A Grasshopper life-cycle under stomata closed",  x = "Date") + 
+scale_y_continuous(
+    name = "Wet mass (mg)", 
+    sec.axis = sec_axis(~ . / scale_factor, name = "Body temperature (°C)")
+  )+ theme_classic()
+
+p1/p2 + plot_layout(ncol = 1) + plot_annotation(tag_levels = "A") +
+  theme(plot.tag = element_text(size = 12, face = "bold"))
+
+```
+
+
+# Detailed Guide to Code 
+
+To make the more complicated examples above clearer we also provide six hypothetical case studies that build greater complexity to help understand the concepts in the Boxes. We provide theory and code with each of our case studies in the hopes that it stimulates easier application and development of our ideas. Models and code will of course always need to be modified to suite the specific system in question and should be validated against empirical data. 
+
+## **Predicting relevant microclimates to organisms: A walk through microclimate modelling** {#section1}
 
 Broad-scale climate data is extremely coarse relative to the types of conditions experienced by organisms in their natural environment. Using biophysical models we can use coarse climate, topological, rainfall, elevation and spatial information to make predictions on what the microclimate a species is likely to experience, which can help us predict its body temperature (*exposure*). In combination with an understanding of the species' biology we can simulate realistic scenarios that are relevant to the species in question.
 
@@ -309,11 +950,11 @@ It is important to recognize that these are predictions. As with any model, they
 
 Now that we've explored the various temperatures predicted in our microclimate model, we can use this information to predict the body temperatures of organisms. We can also use this information to predict how these organisms will respond to extreme heat events.
 
-# **Developing a systems modelling approach to predict biological responses to extreme heat**
+## **Developing a systems modelling approach to predict biological responses to extreme heat**
 
-## **Case Study 1: Simulating plant and insect interactions under heatwaves** {#case1}
+### **Case Study 1: Simulating plant and insect interactions under heatwaves** {#case1}
 
-### Setting the scene
+#### Setting the scene
 
 Case study one explores how feedback between plants and insects can happen in response to extreme heat events. Here, we are interested in how the behaviour and body temperature of grasshoppers is influenced by changes in plant transpiration which can impact microhabitat temperatures of grasshoppers (@fig-case1). While this is a simple situation it's a useful starting point to understand how a systems modelling approach can be built up to predict the impact of heatwaves on species interactions. 
 
@@ -327,7 +968,7 @@ fig_case1
 ```
 
 
-### Predicting temperatures experienced by plants that form the grasshopper microclimate {#step1}
+#### Predicting temperatures experienced by plants that form the grasshopper microclimate {#step1}
 
 To predict the impact of heatwaves on plant-insect interactions, we first need to predict how the microclimate that each organism experiences translates into body temperatures.  Taking a systems approach means that we can account for the effects of other organisms on our focal species. To do this, we need to consider the biology of the species that co-exist. 
 
@@ -542,7 +1183,7 @@ Now, lets have a look at the leaf temperature when stomatal closure behaviour is
 
 Here, we can see that stomatal closure in the middle of the day causes the leaf temperatures to rise substantially compared to if they were always open and transpiring (i.e., evaporative cooling). This is important because it means that the grasshopper will be exposed to higher temperatures when plant stomata close midday. 
 
-### Coupling plant and animal models: Incorporating cooling effects of plant transpiration to estimate grasshopper body temperature {#step2}
+#### Coupling plant and animal models: Incorporating cooling effects of plant transpiration to estimate grasshopper body temperature {#step2}
 
 Now, lets run the ectotherm model for a grasshopper, but instead of using the microclimate object as it is, lets assume that the plant environment forms the microclimate of the grasshopper. This allows us to take in the microclimate and use it to calculate the body temperature of the grasshopper, and eventually understand how this affects growth, development etc within a dynamic energy budget model. The ectotherm model also allows us to incorporate relevant behavioural plasticity in response to extreme heat, which we'll do. 
 
@@ -650,7 +1291,7 @@ grasshopper_environ2 <- grasshopper_environ                                     
               labs(fill = "Behaviour")
 ```
 
-## **Case Study 2: Heat damage accumulation and the dynamics of damage and repair** {#heat_damage}
+### **Case Study 2: Heat damage accumulation and the dynamics of damage and repair** {#heat_damage}
 
 Thermal load sensitivity (TLS) theory can capture the dynamics of damage and repair in response to naturally occurring temperature fluctuations when we have an understanding of the thermal sensitivity of tissues and/or organisms [@Arnold2025a]. TLS theory is particularly useful for understanding how extreme heat events that cause sub-lethal damage to organisms that can accumulate over time and lead to delayed mortality.
 
@@ -772,8 +1413,10 @@ damage_repair_accum <- function(temp, damage, TA, TAL, TAH, TL, TH, TREF, kdot_r
 
 ```
 
-```{r, test_damage_repair}
-#| label: test_damage_repair
+Using our `grasshopper_environ2` object from (Case Study 1)[#case1], we can extract the body temperature time series for the grasshopper during the heatwave event (which we call `grasshopper_environ2_tb`). We can then use a TLS approach to estimate damage accumulation and repair over time and we can also incorperate the bodily repair processes which would occur when temperatures return to more optimal physiological conditions.
+
+```{r, damage_repair}
+#| label: damage_repair
 #| echo: true
 #| warning: false
 #| message: false 
@@ -821,8 +1464,7 @@ damage_w_repair  <- damage_repair_accum(  temp = tb,
 
 ```
 
-
-We can now have a look at, using the temperatures experienced by the grasshopper during the heatwave, how damage accumulates over time with and without repair (@fig-damage_repair).
+We can now have a look at, using the temperatures experienced by the grasshopper during the heatwave, how damage accumulates over time with and without repair (@fig-damage_repair). Note that we can interpret the damage values as the percentage towards reaching 50% mortality. So, when damage reaches 100% this means that 50% mortality has occurred. Any additional threshold could have been used and we can scale the damage to any mortality threshold of interest (for example, 100% damage would be simply doubling the threshold).
 
 ```{r, fig-damage_repair}
 #| label: fig-damage_repair
@@ -852,9 +1494,9 @@ p3 <- ggplot2::ggplot() +
 
 ```
 
-## **Case Study 3: Understanding the effects of leaf microhabitat on insect life-cycles: Linking microclimates to dynamic energy budget and population ecology models** {#case2}
+### **Case Study 3: Understanding the effects of leaf microhabitat on insect life-cycles: Linking microclimates to dynamic energy budget and population ecology models** {#case2}
 
-### Setting the scene
+#### Setting the scene
 Our next case study will explore how the microclimate produced by a plant leaf can influence the life-cycle of an insect. In this case, we will use a dynamic energy budget model to understand how the microclimate of a plant leaf can influence the growth and development of a grasshopper. Here, we will introduce a Dynamic Energy Budget (DEB) model which now takes as input the mircoclimate produced by the plant to predcit body temperatures, development, growth and reproduction of the grasshopper (see @fig-case2 for a simplified DEB model). The DEB model also allows us to incorperate the heat wave event.
 
 Dynamic Energy Budget (DEB) models are a powerful tool for understanding how organisms allocate energy to growth, reproduction and maintenance.  To parameterise a DEB model it requires a set of parameters that are derived from empirical data on growth and metabolism. While DEB models are parameter rich, key parameters have been estimated for > 3000 species already [@Marques2018; @Kooijman2021]. New analytical approaches using phylogenetic imputation methods can be used to predict DEB parameters for over 1.3 million species providing immense opportunities to model how heat will affect life-cycles of multi-species assemblages (see https://deb.bolding-bruggeman.com, @Bruggeman2009). 
@@ -868,7 +1510,7 @@ fig_case2 <- image_read(here("figs", "FigS3.png"))
 fig_case2
 ```
 
-### Grasshopper development and reproduction under heatwaves when plants don't respond
+#### Grasshopper development and reproduction under heatwaves when plants don't respond
 
 To setup our DEB model we first need to set the DEB model paarameters. Grasshoppers are slightly more complicated because of the differing life-stages but we can use an existing DEB model for the grasshopper *Warramaba virgo*, and use a model developed by @Llandres2015. Thankfully, @Llandres2015 have already estimated the DEB parameters for us so we'll use these. The DEB model parameters are available in the `sims` folder of the repository. We'll load these parameters into R and then set the initial conditions for the DEB model.
 
@@ -939,7 +1581,7 @@ photofinish <- 0                # no photoperiod effect on reproduction
 ```
 
 
-### Microclimate data for the DEB model
+#### Microclimate data for the DEB model
 
 Recall from [Case Study 1](#case1) that we have already simulated the microclimate for the grasshopper assuming: 1) plant stoma remain open during the day or 2) close during the day. As we seen in @fig-plant_temp3, this had major implications for temperatures experienced in the plant microhabitat that grasshoppers inhabit. Under these two different scenerios, the key questions now become: 
 
@@ -1182,7 +1824,7 @@ flextable::flextable(table_final) %>%
 
 ```
 
-### Population dynamics of grasshoppers under two plant response scenerios
+#### Population dynamics of grasshoppers under two plant response scenerios
 
 As we have seen in the previous section, the life-cycle of the grasshopper is different when we consider the behaviour of the plant stomata and this has noticable effects on vital rates. We can use this information to parameterise a simple stochastic population models to understand how population dynamics of the grasshopper might change.
 
@@ -1324,15 +1966,15 @@ p1 + theme(plot.tag = element_text(size = 12, face = "bold")) + p2 + theme(plot.
 
 We can see from @fig-ricker_simulation that when stomata are able to respond by closing grasshoppers are expected to grow rapidly until they reach carrying capacity (K = 10,000, and the point they all converge on), whereas if we have stomata remaining open we expect the population to grow much more slowly over time as microhabiats become less suitable for growth and reproduction. This happens because higher body temperatures that result from when stomata close better allows grasshoppers to reach optimal physiological performance.
 
-## **Case Study 4: Heat wave impacts through small communities** {#case3}
+### **Case Study 4: Heat wave impacts through small communities** {#case3}
 
-### Setting the scene
+#### Setting the scene
 
 A systems modelling approach naturally involves attempting to model multi-species assemblies / communities. This is challenging with large communities because of the complexity of the interactions between species. However, for simpler communities such an approach of connecting models across fields is achievable and potentially powerful in making predictions about how communities will respond to extreme heat events.
 
 In this case study, we expand on the impacts of extreme heat on a single species of grasshopper and show how this can be extended to capture interactions between three species: a plant, a grasshopper and a second competing grasshopper species that occupies the same mircohabitat. We extend our Ricker model to capture the impacts that each grasshopper species has on the other. One way to model this is to explicity translate how each species' interactions impact the population size of the other.
 
-### Some Theory
+#### Some Theory
 Recall our original Ricker model (@eq-ricker_model2):
 
 $$
@@ -1371,7 +2013,7 @@ Just like @eq-ricker_model2, @eq-general is also making similar and a few additi
 
 For now, we will assume that the population is closed and that $K$ is constant over time. While this model allows for asymmetric interaction (i.e., $\alpha_{ij} \neq \alpha_{ji}$), we will assume that the interactions are symmetric (i.e., $\alpha_{ij} = \alpha_{ji}$). We will also assume that $\lambda$ varies slightly over time and add this to our model to demonstrate how you can relax assumptions of $\lambda$, $K$ and $\alpha_{ij}$ being constant over time.
 
-### Simulating effects of extreme heat on two species
+#### Simulating effects of extreme heat on two species
 
 We can simulate the life-cyle of a second grasshopper species that occupies the same habitat but varies in physiology. We've already done this for one species *Warramaba virgo* (Species B; @fig-two_species_grasshopper) in [Case Study 2](#case2). 
 
@@ -1387,7 +2029,7 @@ fig_casetwospecies <- image_read(here("figs", "FigS4.png"))
 fig_casetwospecies
 ```
 
-The second species (Species A; @fig-two_species_grasshopper) has a different physiology compared to the first species but is usually more abundant than Species B making it highly competitive. We'll now simulate its life-cycle like we did for Species B in [Case Study 2](#case2). Then, link this to a two-sepcies population dynamic model. These species are closely related but do have some differences in physiology that include: 1) higher thermal tolerance, 2) larger clutch sizes, and 3) different preferred body temperatures; and 4) smaller size. Otherwise, we will assume the same DEB model parameters as Species B.
+The second species (Species A; @fig-two_species_grasshopper) has a different physiology compared to the first species but is usually more abundant than Species B making it highly competitive. We'll now simulate its life-cycle like we did for Species B in [Case Study 3](#case3). Then, link this to a two-species population dynamic model. These species are closely related but do have some differences in physiology that include: 1) higher thermal tolerance, 2) larger clutch sizes, and 3) different preferred body temperatures; and 4) smaller size. Otherwise, we will assume the same DEB model parameters as Species B.
 
 ```{r, speciesA_grasshopper}
 #| label: speciesA_grasshopper
@@ -1711,7 +2353,7 @@ datatable(.,
 
 ```
 
-### Incorporating thermal load impacts on survival into population dynamics
+#### Incorporating thermal load impacts on survival into population dynamics
 
 As shown in [Case Study 2](#case2), extreme heat can have significant impacts on survival of ectotherms. We can incorporate this into our DEB models as an additional source of mortality. Combining mortality, reproduction and development time allows us to estimate the intrinsic growth rate ($r$) of each species under each scenario. This is done using the life-cycle outputs from the DEB model as shown in @tbl-grasshopperssp_lifecycle.
 
@@ -1781,7 +2423,7 @@ stage_str <- debout_post_hatch  %>% group_by(STAGE) %>% summarise(P_SURV = mean(
 ```
 
 
-### Two-species population dynamics 
+#### Two-species population dynamics 
 
 Modelling the dynamics between two species requires some knowledge about how competition impacts the population size of each species. Normally, this is achieved by estimating competition coefficients from field or laboratory data. Experiments involve determining how the presence of one species impacts growth of the other relative to a control state where only the single species is present. Given that our goal is simply to demonstrate how models from different fields can be coupled, we'll assume that the competition coefficients are known and equal so that $\alpha_{i,j}$ = 0.2. 
 
@@ -1963,13 +2605,13 @@ p1 + theme(plot.tag = element_text(size = 12, face = "bold")) + p2 + theme(plot.
 
 More complex models that incorporate a multitude of species and their interactions can be built using the same principles [e.g., @Bimler2018; @Bimler2023; @Bimler2024]. Information on interaction strength between species can be used to understand how species coexistence is expected to change under extreme heat scenarios.
 
-# **Using a systems modelling approach to help develop solutions to extreme heat events**
+## **Using a systems modelling approach to help develop solutions to extreme heat events**
 
 A systems modelling approach can also be used to design possible solutions by understanding better how 'thermal interventions' affect heat experienced by organisms and how it influences growth, survival and reproduction. For example, we can manipulate rainfall at a particular time to simulate artificial watering which might be a possible intervention used during extreme heat. The added water can be used to make calculations of heat exchange, temperatures and transpiration under extreme heat events. We can also optimise the amount of water to balance costs and benefits of watering.
 
-## **Case Study 5: Simulating the effect of watering on plant and insect body temperatures** {#case5}
+### **Case Study 5: Simulating the effect of watering on plant and insect body temperatures** {#case5}
 
-### Setting the scene
+#### Setting the scene
 
 Let's assume our plant species is of interest for conservation or agricultural reasons and we want to understand how watering during a heatwave might help it survive (@fig-case5). The challenge with watering is that often we are drought stressed in combination with the extreme heat [@Dai2013]. As such, it's ideal to reduce water use because this saves money and water. So, the questions become:
 
@@ -2111,7 +2753,7 @@ rainfall_actual2 <- rainfall_actual  %>%
  ggsave(water, filename = here("figs", "fig-water2.png"), width = 7.419753, height = 5.938272, dpi = 600)
 ```
 
-### Calculating the different mircoclimates using the watering scenerios 
+#### Calculating the different mircoclimates using the watering scenerios 
 
 We can now use the `micro_silo` function to run the microclimate model with the new rainfall data. We simply need to update the rainfall data in the `rainhour` argument. The `rainhourly` argument is set to 1 to indicate that we want to use hourly rainfall data.
 
@@ -2167,7 +2809,7 @@ save(rain, file = here("output", "microclim", paste0(names(rain_list)[i], "_shad
 
 Now we have the new microclimate objects. The original, 2, 5, 10 and 20mm watering events. We have access to temperatures in the air and soil as well as high shade (80%) and low shade (40%). Let's how feed this into our plant heat-budget model to predict the leaf temperature of the plant.
 
-### Calculating the plant leaf temperature using the watering scenerios
+#### Calculating the plant leaf temperature using the watering scenerios
 
 ```{r, water_plant}
 #| label: water_plant
@@ -2270,7 +2912,7 @@ g_vs_abs_pho <- photo_out$GS
 
 ```
 
-### Impacts of watering scenerios on leaf temperature
+#### Impacts of watering scenerios on leaf temperature
 
 We've now used the heat budget model applying each of the three different microclimate objects to calculate the leaf temperature of the plant. We can now plot this out to see how the watering events affect leaf temperature.
 
@@ -2355,14 +2997,14 @@ ggsave(pw1, filename = here("figs", "fig-plant_temp3.png"), width = 12.432099, h
 
 @fig-plant_temp3 shows how much watering at the various levels affects the leaf temperature of the plant during the day (between 11:00-14:00 hr). We can see that watering even just 2mm can reduce the leaf temperature by on average `r abs(tbl_temps[2,2])` $^\circ\text{C}$ (@tbl-plant_temp3). Interestingly, we can see that after 5mm of water, the leaf temperature doesn't change much, suggesting that we can get away with less water. A good thing in a very arid environment!
 
-## **Case Study 6: Impacts of watering scenarios on grasshopper life cycle** {#case6}
+### **Case Study 6: Impacts of watering scenarios on grasshopper life cycle** {#case6}
 
-### Setting the scene
+#### Setting the scene
 Now that we have the leaf temperature of the plant under the various watering scenarios, we can use this to understand how the different scenarios might affect grasshopper body temperature, life cycle and population dynamics like we did in [case study 2](#case2). This is a nice demonstrations of re-applying everything we've learnt to a new problem – a problem potentially involving the need to control and understand the probability of pest outbreaks.
 
 We can do this by using the ectotherm model using the leaf temperature under the different watering scenarios as the microclimate for the grasshopper. Given the short period of the heat wave and watering regimes we don't expect major differences but it's better to check.
 
-### Use the different watering scenarios to look at how changes in temperature during the watering regime period affect the grasshopper life cycle
+#### Use the different watering scenarios to look at how changes in temperature during the watering regime period affect the grasshopper life cycle
 
 As we did before, we'll update the microclimate experienced by the grasshopper to coincide with the leaf temperature and environmental conditions of the plant (assuming grasshoppers are within the bush in 40% shade). This will then calculate what temperatures the grasshopper experiences using a heat-budget model to predict the grasshopper body temperature. Then, we will use the heat-budget calculations to run the Dynamic Energy Budget model for the grasshopper to predict whether this impacts life-cycle. Again, these simulations are all done at once using the `ectotherm` function.
 
