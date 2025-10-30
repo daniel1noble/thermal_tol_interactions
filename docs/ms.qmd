@@ -99,11 +99,11 @@ Once we have leaf temperatures, we can assume these now form part of the microcl
 ```{r}
 #| label: fig-box1
 #| eval: true
-#| fig-cap: " Created with BioRender.com."
+#| fig-cap: "Figure I: Predicting and coupling microclimate and biophysical models of plants and insects. Created with BioRender.com."
 
 # Load the image
-
-
+box1_img <- image_read(here("figs", "Box1_Fig.png"))
+box1_img
 ```
 
 Once the thermal sensitivity (i.e., the slope $z$, Figure 1) for a particular endpoint has been quantified it can be used to predict the accumulation of damage during stressful temperatures experienced under realistic conditions [@Orsted2024; @Orsted2022; @Rezende2020; @Arnold2025a].
@@ -144,17 +144,16 @@ Population growth models used in coexistence frameworks are best suited to sessi
 
 # Box 2: Scaling up extreme heat effects from impacts on individuals of species to communities
 
-A systems modelling approach naturally involves attempting to model multi-species assemblies / communities. This is challenging with large communities because of the complexity of the interactions between species. However, for simpler communities such an approach of connecting models across fields is achievable and potentially powerful in making predictions about how communities will respond to extreme heat events.
+Box 1 demonstrated how to predict differential exposure to extreme heat events across species in a community, couple microclimates between species, and incorporate thermoregulatory behaviour. Here, we use these predicted organismal temperatures to take stock of how thermal heat stress accumulation impacts survival probability and simulate life-cycles for two interacting grasshopper species under their respective microclimates.
 
-Following Ørsted *et al.* @Orsted2024, we can use thermal sensitivity parameters from TLS (i.e., $z$, slope and $\alpha$ = critical thermal limit) for each species to calculate heat injury (HI) accumulated between time point $t_{i}$ and $t_{i+1}$, and integrate this across life (@eq-hi).
+To start, using existing parameters for a dynamic energy budget (DEB) model for a grasshopper [@Llandres2015] we can use the `ectotherm` function in *NicheMapR*, to simulate life cycles for each of the two species. We assume that both species have similar DEB parameters but vary in their life-history, thermal physiology, size and reproduction, which we include in our DEB model (see Figure I in Box 1). 
 
+DEB models incorporate a simple Gompertz mortality function to capture senescence, but do not integrate the effects of thermal load accumulation in response to extreme heat events into survival functions (we assume reproduction is not impacted for simplicity). Using thermal sensitivity parameters from TLS (i.e. $z$, slope and $\alpha$ = critical thermal limit), which differ for each species, we can calculate heat injury (HI) accumulated between time point $t_{i}$ and $t_{i+1}$ (using an $LT_{100}$ threshold), and integrate this across life (@eq-hi).
 $$ 
 HI = \sum_{i = 1}^{T_{e} > T_{c}} \frac{100 \cdot \left(t_{i+1} - t_{i} \right)}{10^{\left(- \frac{1}{z} \cdot max\left(T_{i}; T_{i+1}\right) + \alpha \right)}} 
 $$ {#eq-hi}
 
-Arnold *et al* @Arnold2025a discuss approaches for integrating repair processes into these models as well, but for now keep it simple.
-
-The second species (Species A; @fig-two_species_grasshopper) has a different physiology compared to the first species but is usually more abundant than Species B making it highly competitive. We'll now simulate its life-cycle like we did for Species B in [Case Study 2](#case2). Then, link this to a two-species population dynamic model. These species are closely related but do have some differences in physiology that include: 1) higher thermal tolerance, 2) larger clutch sizes, and 3) different preferred body temperatures; and 4) smaller size. Otherwise, we will assume the same DEB model parameters as Species B
+After calculating HI, and thus probability of mortality through time, we can multiply the mortality rate at each time step $t$ from the Gompertz mortality rate and the mortality rate due to HI accumulation from TLS. In combination with the DEB model outputs on total reproduction across life, we can build a simple stage-structured population matrix to estimate population growth rate ($R_{0} = \sum{l_{x} \cdot m_{x}}$ = ) for each species under their respective microclimates and include this in a two-species Ricker model to calculation their population growth under competition (@eq-general).
 
 $$
 N_{t+1}^i = N_t^i \cdot \lambda_i^{\left(1 - \frac{N_t^i + \sum_{j \neq i} \alpha_{ij} N_t^j}{K_i}\right)}
@@ -165,13 +164,18 @@ where $N_t^i$ is the population size of species $i$ at time $t$, $\lambda_i$ is 
 ```{r}
 #| label: fig-box3
 #| eval: true
-#| fig-cap: "**Impacts of extreme heat on natural and production ecosystems will cascade to affect people, both locally and in distant human-dominated systems such as cities**. Decisions made by people in these communities in response to these changes will affect the ecosystems on which they rely, creating an interdependent social-ecological system. Created with BioRender.com."
+#| fig-cap: "Figure II: **Impacts of extreme heat on natural and production ecosystems will cascade to affect people, both locally and in distant human-dominated systems such as cities**. Decisions made by people in these communities in response to these changes will affect the ecosystems on which they rely, creating an interdependent social-ecological system. Created with BioRender.com."
 
 # Load the image
 img <- image_read(here("figs", ))
 grid::grid.raster(img)
 
 ```
+
+
+Arnold *et al* @Arnold2025a discuss approaches for integrating repair processes into these models as well, but for now keep it simple.
+
+The second species (Species A; @fig-two_species_grasshopper) has a different physiology compared to the first species but is usually more abundant than Species B making it highly competitive. We'll now simulate its life-cycle like we did for Species B in [Case Study 2](#case2). Then, link this to a two-species population dynamic model. These species are closely related but do have some differences in physiology that include: 1) higher thermal tolerance, 2) larger clutch sizes, and 3) different preferred body temperatures; and 4) smaller size. Otherwise, we will assume the same DEB model parameters as Species B
 
 :::
 

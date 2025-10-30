@@ -308,6 +308,7 @@ Set up the parameters:
                          PDIF = PDIFs)
 
 # Save model
+  plant$dates <- dates  # Add in dates for clarity
   save(plant, file = here("output", "microclim", "plant_micro.RDa"))
 
 ```
@@ -374,6 +375,7 @@ plant2 <- ectotherm( leaf = leaf,
                    preshr = P_a, 
                     PDIF = PDIFs)
 # Save model
+  plant2$dates <- dates  # Add in dates for clarity
   save(plant2, file = here("output", "microclim", "plant2_micro.RDa"))
 
 ```
@@ -392,10 +394,10 @@ Now, lets have a look at the leaf temperature when stomatal closure behaviour is
   
   # Extract the microclimate temperatures. Because this was simulated for a plant the 'body tempertaure'is the leaf temperature and is stored as 'TC' in the environ object. Note now that this new biophysical model has stomatal behaviour incorporated in the new plant2 object.
            environ_plant <- as.data.frame(plant$environ)
-      environ_plant$dates <- micro$dates  # For clarity add in dates from microclimate that ecto model uses
+      environ_plant$dates <- plant$dates  # For clarity add in dates from microclimate that ecto model uses
 
             environ_plant_plantecophys2 <- as.data.frame(plant2$environ)
-      environ_plant_plantecophys2$dates <- micro$dates  # For clarirty add in dates from microclimate that ecto model uses
+      environ_plant_plantecophys2$dates <- plant2$dates  # For clarirty add in dates from microclimate that ecto model uses
 
   # Re-organise the data for plotting
 
@@ -619,6 +621,7 @@ oviposition_date <- '2018-03-31 23:00:00'
                     reset = reset,
                  soilnode = soilnode)
 # Save the ectotherm model
+    ectoA$dates <- dates[subs]  # Add in dates for clarity
   save(ectoA, file = here("output", "microclim", paste0("grasshopperspA_", plant_mirco_names, "_Box1.RDa")))
 
 ```
@@ -790,6 +793,7 @@ oviposition_date <- '2018-03-31 23:00:00'
                     reset = reset,
                  soilnode = soilnode)
 # Save the DEB model
+    ectoB$dates <- dates[subs]  # Add in dates for clarity
   save(ectoB, file = here("output", "microclim", paste0("grasshopperB_", plant_mirco_names, "_Box1.RDa")))
 ```
 
@@ -801,20 +805,20 @@ Now we can have a look at the body temperature of both species under both microc
 #| echo: true
 #| code-fold: true
 
-
-
+# Load the two ectotherm models
 load(here("output", "microclim", "grasshopperspA_stomata_closed_Box1.RDa"))
+load(here("output", "microclim", "grasshopperB_stomata_open_Box1.RDa"))
 
+# Extract dates
  sub <- which(datetime > as.POSIXct('2019-01-15') & datetime < as.POSIXct('2019-01-31'))
  datetime <- dates[subs]
  
-    temp_spA_open <- data.frame(ectoA$environ)
+# Create dataframes for plotting for both species
+           temp_spA_open <- data.frame(ectoA$environ)
   temp_spA_open$datetime <- datetime
 
-load(here("output", "microclim", "grasshopperB_stomata_open_Box1.RDa"))
-    temp_spB_open <- data.frame(ectoB$environ)
+         temp_spB_open <- data.frame(ectoB$environ)
 temp_spB_open$datetime <- datetime
-
       
 # Merge the two dataframes
   temp_combined <- rbind(
@@ -823,22 +827,289 @@ temp_spB_open$datetime <- datetime
   )
 
 # Now subset to the desired dates
-  temp_combined_sub <- temp_combined %>% filter(datetime > as.POSIXct('2019-01-15') & datetime < as.POSIXct('2019-01-31'))
+  temp_combined_sub <- temp_combined %>% filter(datetime > as.POSIXct('2019-01-15') & datetime < as.POSIXct('2019-01-18'))
 
 # Plot
 ggplot(temp_combined_sub, aes(x = datetime, y = TA, color = Species)) +
-  geom_line() +
+  geom_line(size = 0.8) +
   labs(x = "Date",
        y = "Body Temperature (°C)") +
-  theme_classic() + theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.text = element_text(size = 14), legend.position = "none", axis.text = element_text(size = 14), axis.title = element_blank()) +
-  scale_colour_viridis_d()
-
+  theme_classic() +
+  theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),legend.position = "none", legend.text = element_text(size = 14), axis.text = element_text(size = 14), axis.title = element_blank()) +
+  scale_colour_manual(values = c("Species A (Stomata Closed)" = "#E5D3B3", "Species B (Stomata Open)" = "#664229"))
+# ggsave(here("figs", "fig_grasshopper_temp_box1.png"), width = 8, height = 5, dpi = 600)
 ```
 
 # Box 2 Code
 
+Now that we have predictions about body temperatures we can incorporate thermal load accumulation and use the DEB models to predict life-cycles of the two grasshopper species. The output from DEB models can then be used to calculate vital rates such as growth, development, reproduction, and survival, which we can use to calculate population growth rates ($r_{max}$). We can then model population dynamics and interactions between the two species.
 
-We can have a look at the life-cycle of the new species of grasshopper, Species A, under both scenarios (@fig-grasshopperspA_lifecycle).
+Note that in Box 1, we ran the biophysical model with DEB turned on, but we only extracted body temperature information. So, in essence, we already coupled heat and water-budget models with dynamic energy budget models for grasshoppers. Here, we will extract the DEB model and do a bit more with it. 
+
+First, we'll need some functions to extract life-cycle details from the DEB model output and compute survival probabilities.
+
+```{r, grasshopper_lifecycle_functions}
+#| label: grasshopper_lifecycle_functions
+#| echo: true
+#| warning: false
+#| message: false
+#| code-fold: true
+
+# Subset debout to period when alive
+get_alive <- function(ecto){
+    debout <- data.frame(ecto$debout)
+    # Then, we can subset to just the post-hatch period
+  debout_post_hatch <- debout[debout$V > 0 & debout$STAGE > 0, ] 
+  debout_post_hatch$dates <-  ecto$dates[which(debout$V > 0 & debout$STAGE > 0)]
+  return(debout_post_hatch)
+}
+
+# Extract environ data
+get_environ <- function(ecto){
+  environ <- data.frame(ecto$environ)
+  environ$datetime <- ecto$dates
+  return(environ)
+}
+
+# limit envirn data to period when alive, use TB for TLS
+get_environ_alive  <- function(sub_alive, sub_env){
+  sub_env_alive <- data.frame(sub_env[which(sub_env$datetime %in% sub_alive$dates), ])
+  return(sub_env_alive)
+}
+
+# Takes the debout post hatch data and updates survival probabilities based on additional mortality rates including activity based, hatch mortality, and thermal load stress mortality
+update_p_surv <- function(debout_post_hatch, m_h, m_i, m_a, m_tls){
+  debout_post_hatch$P_SURV2 <- debout_post_hatch$P_SURV * (1 - m_h) 
+  for(i in 2:nrow(debout_post_hatch)){
+    debout_post_hatch$P_SURV2[i] <- debout_post_hatch$P_SURV2[i-1] * (1 - m_a) * (1 - m_tls[i]) * (1 - m_i)
+  }
+  return(debout_post_hatch)
+}
+
+#' @title get_lifecycle_vitals
+#' @description Function to extract key life cycle details from DEB model output (survival, fecunity, lifespan) 
+#' alive_debout=debout_post_hatch_A, ecto=ectoA
+get_lifecycle_vitals <- function(alive_debout, ecto){
+  
+  # Fecundity data
+  life_cycle_open <- data.frame(ecto$yearout)
+  
+  # Calculate longevity and generation time
+        longevity <- nrow(alive_debout) # hours
+         E_B_diff <- alive_debout$E_B[2:longevity] - alive_debout$E_B[1:(longevity - 1)]
+  age_first_repro <- which(E_B_diff < 0)[1]
+  generation_time <- age_first_repro / 24 / 365
+
+  # Create stage-specific survival and fecundity
+   stage_str <- alive_debout  %>% 
+                group_by(STAGE) %>% 
+                summarise(P_SURV = mean(P_SURV2),
+                             E_B = mean(E_B),
+                       fecundity = ifelse(E_B == 0, 0, life_cycle_open$FECUNDITY)) # Reproductive buffer energy, can see we only have a single reproductive event.
+   # Estimate R0 and rmax
+      R0 <- stage_str$P_SURV %*% stage_str$fecundity 
+    rmax <- log(R0) / generation_time
+  
+  return(list(R0 = R0,
+            rmax = rmax,
+       longevity = longevity / 24 / 365,
+ generation_time = generation_time,
+       stage_str = stage_str))
+}
+
+
+#' Accumulated percentage damage across time intervals
+#'
+#' @description
+#' Calculates a cumulative percentage increase through time,
+#' where each interval’s increment depends on the temperature.
+#' 
+#' For each adjacent time pair (t[i], t[i+1]):
+#' \deqn{
+#' acc_i = \max\left(0,\; \min\left(100,\;
+#'   \frac{100 \cdot (t_{i+1} - t_i)}
+#'        {10^{(\text{slope} \cdot \max(T_i, T_{i+1}) + \text{intercept})}}\right)\right)
+#' }
+#'
+#' @param time Numeric vector of time points (e.g., minutes).
+#' @param temp Numeric vector of temperatures (°C), same length as `time`.
+#' @param intercept Numeric scalar controlling the denominator (base-10 intercept).
+#' @param slope Numeric scalar controlling how temperature affects the rate.
+#'
+#' @return A numeric vector of cumulative percentages (0–100).
+#'
+#' @examples
+#' # Example: cumulative increase over 10 minutes of exposure
+#' # where temperature varies between 30–43 °C
+#' time <- log10(c(1, 60, 120, 180, 240, 600, 1200, 2400))       # log-minutes
+#' temp <- seq(30, 43, length = 8)  # °C
+#' ctmax = 47 # CTmax1 hour
+#' slope = -4.5 # slope 
+#' damage_accum(time = 10^time, temp = temp, intercept = ctmax, slope = slope)
+damage_accum <- function(time, temp, intercept, slope) {
+  
+    output = data.frame(z = NA, cumsum = NA)
+  last_row = nrow(data.frame(x = time, y = temp))
+  
+  x = c(time, time[last_row])
+  y = c(temp, temp[last_row])
+
+  for (i in 1:length(x) - 1) {
+    #print(paste0("round nr. ", i))
+    acc = max(0, min(100, (100 * (x[i + 1] - x[i])) / (10^(slope * max(y[i + 1], y[i]) + intercept))))
+    output[i, 1] = acc
+  }
+  
+  output$cumsum = cumsum(output$z)
+  z = output$cumsum
+  z = append(z, 0)
+  z[z > 100] = 100 # Set values exceeding 100% to 100%
+  z = z[-length(z)]
+  return(z)
+}
+
+#' Repair using Arrhenius/Schoolfield-type thermal performance with low/high inactivation
+#'
+#' @description Computes a temperature-dependent rate using an Arrhenius rise with
+#' both low- and high-temperature inactivation terms (Schoolfield form).
+#' @param x Numeric vector of temperatures in **°C** at which to evaluate the rate.
+#' @param TA  Numeric scalar. Arrhenius temperature parameter (activation energy / k),governing the rising limb. Units: **Kelvin** (i.e., energy scaled by Boltzmann's constant).
+#' @param TAL Numeric scalar. Low-temperature inactivation parameter (deactivation / k).Units: **Kelvin**.
+#' @param TAH Numeric scalar. High-temperature inactivation parameter (deactivation / k).Units: **Kelvin**.
+#' @param TL  Numeric scalar. Low-temperature inactivation midpoint temperature in **Kelvin**.
+#' @param TH  Numeric scalar. High-temperature inactivation midpoint temperature in **Kelvin**.
+#' @param TREF Numeric scalar. Reference temperature in **Kelvin** at which the reference rate is defined.
+#' @param kdot_ref Numeric scalar. Reference rate at `TREF` (units of the process being modeled).
+#' @return Numeric vector of the same length as `x`, giving the temperature-dependent rate.
+#' @details
+#' Temperature conversion to Kelvin is handled internally as `273.15 + x`.
+#' This is the commonly used Schoolfield (1981)-style equation:
+#'
+#' \deqn{
+#'   k(T) = k_{\mathrm{ref}}
+#'          \frac{\exp\{TA \; (1/T_{\mathrm{REF}} - 1/T)\}}
+#'               {1 + \exp\{TAL \; (1/T - 1/T_L)\} + \exp\{TAH \; (1/T_H - 1/T)\}}
+#' }
+#'
+#' where all capital \eqn{T} terms are in Kelvin.
+#'
+#' @examples
+#' T_C <- seq(5, 45, by = 1)
+#' rate <- ArrFunc5(
+#'   x = T_C, TA = 5000, TAL = 8000, TAH = 9000,
+#'   TL = 285, TH = 313, TREF = 293.15, kdot_ref = 1
+#' )
+damage_repair_accum <- function(temp, damage, TA, TAL, TAH, TL, TH, TREF, kdot_ref) {
+  ## ---- Basic checks ---------------------------------------------------------
+  if (!is.numeric(temp)) stop("'temp' must be numeric (°C).")
+  for (nm in c("TA", "TAL", "TAH", "TL", "TH", "TREF", "kdot_ref")) {
+    if (!is.numeric(get(nm)) || length(get(nm)) != 1L) {
+      stop(sprintf("'%s' must be a numeric scalar.", nm))
+    }
+  }
+
+  # Note that the accumulated damage is stored here
+  damage_accumulated <- damage
+
+  ## ---- Convert input temperatures to Kelvin ---------------------------------
+  TK   <- 273.15 + temp     # evaluation temperatures (K)
+  # Scalars below are already in Kelvin per argument definitions:
+  # TL, TH, TREF
+
+  ## ---- Combine with reference rate and damage accumulation -------------------
+  out <- damage - (exp(TA*(1/TREF-1/(273.15+temp)))/(1+exp(TAL*(1/(273.15+temp)-1/TL))+exp(TAH*(1/TH-1/(273.15+temp))))*kdot_ref)*60 # Multiply by 60 to convert the per minute rate
+  out[out < 0] <- 0      # Set negative damage values to zero
+  out[out > 100] <- 100  # Set values exceeding 100% to 100%
+  return(out)
+}
+```
+
+
+```{r}
+#| label: grasshopper_lifecycle_box2_setup
+#| echo: true
+#| warning: false
+#| message: false
+
+# Load each grasshopper DEB model and extract life-cycle details
+load(here("output", "microclim", "grasshopperspA_stomata_closed_Box1.RDa")) #ectoA
+load(here("output", "microclim", "grasshopperB_stomata_open_Box1.RDa"))     #ectoB
+
+## ------------------## 
+# Species A
+## ------------------## 
+
+# First, find out dates and times when animal is alive. We need these to extract the body temperatures AND the relevant aspects of the lifecyle
+
+# Get the DEB output while alive
+debout_post_hatch_A <- get_alive(ectoA)
+
+# Get the environ data while alive, which we use for TLS as we need the body temperature every hour
+          environ_A <- get_environ(ectoA)
+    environ_A_alive <- get_environ_alive(debout_post_hatch_A, environ_A)
+    environ_A_alive <- environ_A_alive %>% mutate(time_min = c(0:(n()-1))*60) # time in minutes
+
+# Thermal Load sensitivity parameters for species A
+ ctmax <- 50           # CTmax1h
+     z <- -4.5          # z (slope)
+alpha  <- -ctmax/z      # Need these for the log time accumulation function
+  beta <- 1 / z       # Need these for the log time accumulation function
+
+# Set repair coefficients. From Arnold et al. 2025 as examples
+repair_rate <- 0.05          # high
+
+# Set up the repair function
+TA <- 14065            # Arrhenius temperature, K
+TL <- 10.5 + 273.15    # Arrhenius temperature lower threshold, K
+TH <- 28.5 + 273.15    # Arrhenius temperature upper threshold, K
+TAL <- 50000           # Arrhenius temperature lower, K
+TAH <- 100000          # Arrhenius temperature upper, K
+TREF <- 20 + 273.15    # reference temperature, K
+kdot_ref <- 0.05       # repair rate % per minute at ref temp 25 deg C
+      tb <- environ_A_alive$TC # body temps, Celsius
+    time <- environ_A_alive$time_min # time in minutes
+
+# Using body temperatures through time, estimate the accumulation of physiological damage towards a threshold of 50% mortality under no repair
+damage <- damage_accum(time = rep(60, length(tb)), 
+                       temp = tb, 
+                  intercept = alpha, 
+                      slope = beta)
+
+# Using body temperatures through time, estimate the accumulation of physiological damage towards a threshold of 50% mortality with repair
+damage_w_repair  <- damage_repair_accum(  temp = tb,
+                                        damage = damage,
+                                            TA = TA,
+                                           TAL = TAL,
+                                           TAH = TAH,
+                                            TL = TL,
+                                            TH = TH,
+                                          TREF = TREF,
+                                      kdot_ref = repair_rate) / 100
+
+# Now that we have the probability of mortality from thermal load stress, we can update the survival probabilities in the DEB model output
+
+  m_h <- 0.5   # mortality at hatch
+  m_i <- 0     # mortality per hour inactive
+  m_a <- 1e-4  # mortality per hour active
+debout_post_hatch_A <- update_p_surv(debout_post_hatch_A, 
+                                    m_h = m_h,    # mortality at hatch
+                                    m_a = m_a,    # mortality for active hour
+                                    m_i = m_i,    # mortality for inactive hour
+                                    m_tls = damage_w_repair)    # Heat load mortality
+
+# Now we can extract life-cycle details
+lifecycle_A <- get_lifecycle_vitals(debout_post_hatch_A, ectoA)
+
+## ------------------## 
+# Species B
+## ------------------## 
+
+debout_post_hatch_B <- get_alive(ectoB)
+          environ_B <- get_environ(ectoB)
+    environ_B_alive <- get_environ_alive(debout_post_hatch_B, environ_B)
+   
+
+```
 
 
 ```{r, fig-grasshopperspA_lifecycle_box2}
@@ -2459,11 +2730,14 @@ datatable(.,
 
 As shown in [Case Study 2](#case2), extreme heat can have significant impacts on survival of ectotherms. We can incorporate this into our DEB models as an additional source of mortality. Combining mortality, reproduction and development time allows us to estimate the intrinsic growth rate ($r$) of each species under each scenario. This is done using the life-cycle outputs from the DEB model as shown in @tbl-grasshopperssp_lifecycle.
 
-```{r}
+```{r, TLS}
+#| label: TLS
+#| echo: true 
 
 # Load in the DEB model for scenerio 1 ****UPDATE OBJECT*****
   load(here("output", "microclim", "grasshopper_stomata_open_DEB.RDa"))
   
+
 # Extract the key traits we need from the life-cycle output so that we can calculate r_max
            traits <- c("FECUNDITY", "CLUTCHES", "LifeSpan", "rmax")  
   life_cycle_open <- data.frame(ecto$yearout)[,traits]
