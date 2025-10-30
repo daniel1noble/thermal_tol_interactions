@@ -203,6 +203,51 @@ Set up the parameters:
  # Load the microclimate object
     load(here("output", "microclim", "microclimate.RDa"))
 
+  # First, lets extract the relevant information from the microclimate object to model stomatal behaviour
+      PDIFs <- micro$diffuse_frac             # use variable diffuse fraction
+        P_a <- get_pressure(micro$elev)       # air pressure, Pa
+        P_a <- rep(P_a, nrow(micro$metout))   # create hourly vector
+      dates <- micro$dates                    # dates
+
+  # Set leaf functional traits
+         live <- 0      # don't simulate behaviour or respiration, for animal
+         leaf <- 1      # use the stomatal conductance formulation for evaporation
+         Ww_g <- 1      # wet weight, g
+        shape <- 2      # 0=plate, 1=cylinder, 2=ellipsoid
+      shape_b <- 0.0025 # ratio of b axis:a axis for ellipsoid 
+      shape_c <- 0.1176 # ratio of c axis:a axis for ellipsoid 
+      g_vs_ab <- 0.4    # leaf vapour conductance, abaxial (bottom of leaf), mol/m2/s
+      g_vs_ad <- 0.0    # leaf vapour conductance, adaxial (top of leaf), mol/m2/s
+  g_vs_ab_max <- 0.4    # leaf vapour conductance, abaxial (bottom of leaf), mol/m2/s
+  g_vs_ad_max <- 0.0    # leaf vapour conductance, adaxial (top of leaf), mol/m2/s
+  epsilon_sub <- 0.95   # emissivity of the substrate (-)
+  epsilon_sky <- 1      # emissivity of the sky (-), accounted for already in 'TSKY' output from microclimate model so make it 1
+    epsilon_L <- 0.97   # emissivity of the leaf (-)
+      alpha_L <- 0.5    # solar absorptivity of the leaf (-)
+       fatosk <- 0.5    # radiation configuration factor to sky (-)
+       fatosb <- 0.5    # radiation configuration factor to substrate (-)
+ conv_enhance <- 1.4    # convective enhancement factor (-)
+     pct_cond <- 0      # percent of leaf conducting to the ground (%)
+       postur <- 3      # leaf oriented horizontally, not tracking sun
+          M_1 <- 0      # make metabolic rate zero
+
+# Set up vapour conductance vectors and simulate stomatal closure at night
+                              f_open <- rep(1, nrow(micro$metout))
+  f_open[micro$metout[,"ZEN"] == 90] <- 0      # close stomata when the sun is set
+                            g_vs_abs <- g_vs_ab * f_open 
+                            g_vs_ads <- g_vs_ad * f_open
+
+```
+
+#### Run the biophysical model for the plant leaf
+
+```{r, microclimate_plant_box1}
+#| label: microclimate_plant_box1
+#| echo: true
+#| warning: false
+#| message: false
+
+
   # First, lets extract the relevant information from the microclimate object
       PDIFs <- micro$diffuse_frac             # use variable diffuse fraction
         P_a <- get_pressure(micro$elev)       # air pressure, Pa
@@ -237,7 +282,37 @@ Set up the parameters:
                             g_vs_abs <- g_vs_ab * f_open 
                             g_vs_ads <- g_vs_ad * f_open
 
+# Run the heat-budget model for the plant leaf. Note that the microclimate object is used to get the relevant environmental temperatures to make the calculations of leaf temperature (by default, ectotherm expects an object in the environment called 'micro' and uses it to obtain the relevant environmental data, but this can be overridden).
+    plant <- ectotherm(  leaf = leaf, 
+                         live = live,
+                         Ww_g = Ww_g, 
+                        shape = shape, 
+                      shape_b = shape_b, 
+                      shape_c = shape_c, 
+                      g_vs_ab = g_vs_abs, 
+                      g_vs_ad = g_vs_ads, 
+                  g_vs_ab_max = g_vs_ab_max, 
+                  g_vs_ad_max = g_vs_ad_max, 
+                  epsilon_sub = epsilon_sub, 
+                  epsilon_sky = epsilon_sky,
+                      epsilon = epsilon_L, 
+                    alpha_max = alpha_L, 
+                    alpha_min = alpha_L,
+                          M_1 = M_1,
+                       fatosk = fatosk, 
+                       fatosb = fatosb, 
+                 conv_enhance = conv_enhance, 
+                     pct_cond = pct_cond, 
+                       postur = postur,
+                       preshr = P_a, 
+                         PDIF = PDIFs)
+
+# Save model
+  save(plant, file = here("output", "microclim", "plant_micro.RDa"))
+
 ```
+
+#### Plant biophysical model with stomatal conductance from plantecophys
 
 Allow for stomatal conductance to be simulated using the `plantecophys` package. We can do this by calculating stomatal conductance using the `Photosyn` function in `plantecophys`. This function requires vapour pressure deficit (VPD) which we can calculate from the microclimate data using the `WETAIR` function in `NicheMapR`.
 
@@ -246,6 +321,10 @@ Allow for stomatal conductance to be simulated using the `plantecophys` package.
 #| echo: true
 #| warning: false
 #| message: false
+
+# Need to extract a few things from the plant object we just created
+  # Load the plant object
+    load(here("output", "microclim", "plant_micro.RDa"))
 
 # Include simulated stomatal conductance from plantecophys
   UMOLPERJ <- 4.57                                                   # mu_mol photons / J
@@ -270,7 +349,7 @@ Now calculate leaf temperature using these stomatal conductance values from `Pho
 #| warning: false
 #| message: false
 
-# Rerun the models. Note that the parameters as the same as  
+# Rerun the models. Note that the parameters as the same as above except for g_vs_ab which is now from plantecophys 
 plant2 <- ectotherm( leaf = leaf, 
                      live = live,
                      Ww_g = Ww_g, 
@@ -301,9 +380,10 @@ plant2 <- ectotherm( leaf = leaf,
 
 Now, lets have a look at the leaf temperature when stomatal closure behaviour is incorporated.
 
-```{r, fig-plant_temp2}
-#| label: fig-plant_temp2
-#| fig-cap: "Leaf temperature of a plant at a location near Renmark, South Australia. Leaf temperature is shown in relation to air temperature at 2 m above ground (and in minimum shade, 40%) between 2019-01-15 and 2019-01-31 for two scenarios, one where stomata are open all day, and one where stomatal closure is driven by photosynthetically active radiation intensity and vapour pressure."
+```{r, fig-plant_temp2_box1}
+#| label: fig-plant_temp2_box1
+#| eval: false
+#| echo: true
 #| code-fold: true
   
   # Load the plant object
@@ -311,11 +391,22 @@ Now, lets have a look at the leaf temperature when stomatal closure behaviour is
     load(here("output", "microclim", "plant2_micro.RDa"))
   
   # Extract the microclimate temperatures. Because this was simulated for a plant the 'body tempertaure'is the leaf temperature and is stored as 'TC' in the environ object. Note now that this new biophysical model has stomatal behaviour incorporated in the new plant2 object.
+           environ_plant <- as.data.frame(plant$environ)
+      environ_plant$dates <- micro$dates  # For clarity add in dates from microclimate that ecto model uses
+
             environ_plant_plantecophys2 <- as.data.frame(plant2$environ)
       environ_plant_plantecophys2$dates <- micro$dates  # For clarirty add in dates from microclimate that ecto model uses
 
   # Re-organise the data for plotting
-  environ_plant_plantecophys <- environ_plant_plantecophys2 %>% filter(dates > "2019-01-15" & dates < "2019-01-31") %>%
+
+  environ_plant2 <- environ_plant %>% filter(dates > "2019-01-15" & dates < "2019-01-18") %>%
+              select(dates, TA, TC) %>%
+              pivot_longer(cols = c(TA, TC), 
+                           names_to = "Temps", 
+                           values_to = "Temperature") %>% 
+              mutate(Temps = ifelse(Temps == "TA", "Air Temperature (2 m) (40% shade)", "Leaf Temperature (Stomata Open) (40% shade)"))
+
+  environ_plant_plantecophys <- environ_plant_plantecophys2 %>% filter(dates > "2019-01-15" & dates < "2019-01-18") %>%
               dplyr::select(dates, TC) %>%
               pivot_longer(cols = c(TC), 
                            names_to = "Temps", 
@@ -325,91 +416,26 @@ Now, lets have a look at the leaf temperature when stomatal closure behaviour is
   # Combine the two dataframes environ_plant_plantecophys and environ_plant2
   new_environ_plant2 <- rbind(environ_plant_plantecophys, environ_plant2)
 
+  # Produce element of the fgure in box 1. Note it was adjusted in Biorender.com for final version.
   ggplot(new_environ_plant2) + 
-              geom_line(aes(y = Temperature, x = dates, col = Temps), show.legend = TRUE) +
+              geom_line(aes(y = Temperature, x = dates, col = Temps), show.legend = TRUE, size = 0.8) +
               labs(y = "Temperature (°C)", x = "Date") + theme_classic() +
-              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),legend.position = "top", legend.text = element_text(size = 6)) + 
+              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),legend.position = "none", legend.text = element_text(size = 14), axis.text = element_text(size = 14), axis.title = element_blank()) + 
               scale_colour_viridis_d()
+  # ggsave(here("figs", "fig_plant_temp2_box1.png"), width = 8, height = 5, dpi = 600)
 ```
 
 Here, we can see that stomatal closure in the middle of the day causes the leaf temperatures to rise substantially compared to if they were always open and transpiring (i.e., evaporative cooling). This is important because it means that the grasshopper will be exposed to higher temperatures when plant stomata close midday. 
 
-```{r, deb_grasshopper_params_box1}
-#| label: deb_grasshopper_params
-#| echo: true
-#| warning: false
-#| message: false
-
-
-# We first need to load the DEB model parameters. These are estimated using MatLab. We've already estimated these so we'll simply just load them into R.
-
-     pars <- readMat(here("sims", "results_Warramaba_virgo.mat"))
-
-par.names <- unlist(labels(pars$par))
-for(i in 1:length(par.names)){
-  assign(par.names[i], unlist(pars$par[i]))
-}
-
-     pars <- readMat(here("sims", "stat_Warramaba_virgo.mat"))
-par.names <- unlist(labels(pars$stat))
-for(i in 1:length(par.names)){
-  assign(par.names[i], unlist(pars$stat[i]))
-}
-
-# Additional parameters we need
-        E_sm <- 2000            # J/cm^2, maximum stomach energy content
-       fract <- 1               # scaling factor to change size
-
-# Inital state for DEB model
-
-# Egg Stage. Starting conditions
-     E_init <- (E.0 * fract ^ 4) / (3E-9 * fract ^ 3)
-   E_H_init <- 0
-     V_init <- 3E-9
-      stage <- 0
-
-# Life history traits
- clutchsize <- 8                # Eggs per clutch
-     stages <- 7                # Number of stages, 0 = egg, 1-5 = nymphs, 6 = pre egg-laying adult, 7 = post-laying adult
-   S_instar <- rep(s.1, stages) # Stress at instar n: L_n^2/ L_n-1^2 (-)}\cr}
-        L_b <- L.b              # Structural length at birth (cm)}\cr}
- photostart <- 0                # no photoperiod effect on reproduction
-photofinish <- 0                # no photoperiod effect on reproduction
-      reset <- 0                # don't reset lifecycle if death occurs
-   soilnode <- 3                # depth (soil node) at which eggs laid - 3 = 5 cm
-
-# Thermoregulatory parameters
-       Ww_g <- 0.2              # g, body mass, not used though because DEB model computes this
-      shape <- 1                # cylinder
-    shape_b <- 10               # ratio of long to short axis of cylinder
-     T_pref <- 38               # preferred body temperature (animal will attempt to regulate as close to this value as possible)
-    T_F_min <- 13               # degrees C, lower body temperature for foraging
-    T_F_max <- 40               # degrees C, upper body temperature for foraging
-    T_B_min <- 13               # degrees C, minimum basking temperature
-   T_RB_min <- 13               # degrees C, temperature at which animal will move to a basking site
-     CT_max <- 47               # degrees C, critical thermal maximum (animal will die if CT_kill = 1 and this threshold is exceeded)
-     CT_min <- 0                # degrees C, critical thermal minimum (used by program to determine depth selected when inactive and burrowing)
-
-
-# Behavioural traits (made stage-specific later)
-      diurn <- 1                # Diurnal activity allowed (1) or not (0)?
-    nocturn <- 1                # Nocturnal activity allowed (1) or not (0)?
-     crepus <- 1                # Crepuscular activity allowed (1) or not (0)?
-     burrow <- 0                # Shelter in burrow allowed (1) or not (0)?
- shade_seek <- 1                # Shade seeking allowed (1) or not (0)?
-   pct_cond <- 0                # Percentage of animal surface contacting the substrate (\%)
-```
-
- ### Run biophysical-physiological model for two grasshoppers using the plant microclimate as the environment for grasshoppers
+### Run biophysical-physiological model for two grasshoppers using the plant microclimate as the environment for grasshoppers
 
 Define the biophysical model parameters for the grasshopper. Note we also include DEB model parameters here, which relate to Box 2, but it's easier to run the model once with all the parameters defined and we can (and will) extract what we need for Box 1.
 
-```{r, grasshopper_params_box1_2}
-#| label: grasshopper_params_box1_2
+```{r, speciesA_grasshopper_params}
+#| label: speciesA_grasshopper_params
 #| echo: true
-#| warning: false
 #| message: false
-
+#| warning: false
 
 # We first need to load the DEB model paraemeters. These are estimated using MatLab. We've already estimated these so we'll simply just load them into R.
 
@@ -427,10 +453,10 @@ for(i in 1:length(par.names)){
 }
 
 # Additional parameters we need
-        E_sm <- 2000            # J/cm^2, maximum stomach energy content
+        E_sm <- 1800            # J/cm^2, maximum stomach energy content
        fract <- 1               # scaling factor to change size
 
-# Inital state for DEB model. Note that DEB can ve turned off and only heat and water budget models will be used so some parameters are not needed if DEB is off.
+# Inital state for DEB model
 
 # Egg Stage. Starting conditions
      E_init <- (E.0 * fract ^ 4) / (3E-9 * fract ^ 3)
@@ -439,28 +465,29 @@ for(i in 1:length(par.names)){
       stage <- 0
 
 # Life history traits
- clutchsize <- 8                # Eggs per clutch
+ clutchsize <- 15               # Eggs per clutch
      stages <- 7                # Number of stages, 0 = egg, 1-5 = nymphs, 6 = pre egg-laying adult, 7 = post-laying adult
    S_instar <- rep(s.1, stages) # Stress at instar n: L_n^2/ L_n-1^2 (-)}\cr}
-        L_b <- L.b              # Structural length at birth (cm)}\cr}
+        L_b <- 0.09             # Structural length at birth (cm)}\cr}
  photostart <- 0                # no photoperiod effect on reproduction
 photofinish <- 0                # no photoperiod effect on reproduction
       reset <- 0                # don't reset lifecycle if death occurs
    soilnode <- 3                # depth (soil node) at which eggs laid - 3 = 5 cm
+         sG <- 0.0779           # Gompertz stress coefficient, from Debber
 
 # Thermoregulatory parameters
        Ww_g <- 0.2              # g, body mass, not used though because DEB model computes this
       shape <- 1                # cylinder
     shape_b <- 10               # ratio of long to short axis of cylinder
-     T_pref <- 38               # preferred body temperature (animal will attempt to regulate as close to this value as possible)
+     T_pref <- 40               # preferred body temperature (animal will attempt to regulate as close to this value as possible)
     T_F_min <- 13               # degrees C, lower body temperature for foraging
-    T_F_max <- 40               # degrees C, upper body temperature for foraging
+    T_F_max <- 42               # degrees C, upper body temperature for foraging
     T_B_min <- 13               # degrees C, minimum basking temperature
    T_RB_min <- 13               # degrees C, temperature at which animal will move to a basking site
-     CT_max <- 47               # degrees C, critical thermal maximum (animal will die if CT_kill = 1 and this threshold is exceeded)
+     CT_max <- 50               # degrees C, critical thermal maximum (animal will die if CT_kill = 1 and this threshold is exceeded)
      CT_min <- 0                # degrees C, critical thermal minimum (used by program to determine depth selected when inactive and burrowing)
 
-# Behavioural traits 
+# Behavioural traits (made stage-specific later)
       diurn <- 1                # Diurnal activity allowed (1) or not (0)?
     nocturn <- 1                # Nocturnal activity allowed (1) or not (0)?
      crepus <- 1                # Crepuscular activity allowed (1) or not (0)?
@@ -469,7 +496,7 @@ photofinish <- 0                # no photoperiod effect on reproduction
    pct_cond <- 0                # Percentage of animal surface contacting the substrate (\%)
 ```
 
-Run the biophysical-physiological model species A with some adjustments based on hypothetical differences between the species. 
+Run the biophysical-physiological model species A.
 
 ```{r, grasshopperA_box1_2}
 #| label: grasshopperA_box1_2
@@ -478,30 +505,25 @@ Run the biophysical-physiological model species A with some adjustments based on
 #| message: false
 
 # First, we need to load in the two microclimates scenarios. We'll do this in a loop so that we can run the DEB model for each of the two microclimates. So, here we'll just create a few vectors that cell specific objects we need.
-        plant_micro <- c("plant_micro.RDa", "plant2_micro.RDa")
-  plant_mirco_names <- c("stomata_open", "stomata_closed")
+        plant_micro <- c("plant_micro.RDa")
+  plant_mirco_names <- c("stomata_closed")
 
 # We also need to load in the original microclimate object so that we can get the dates and other information from it. This is the original microclimate object that we used to simulate the plant microclimate. We'll also overide the `mirco` object so that the ectotherm model can use it.
   load(here("output", "microclim", "microclimate.RDa"))
+  load(here("output", "microclim", "plant_micro.RDa"))
 
-# Now we can loop through the two microclimates and run the DEB model for each of them
-for(i in 1:length(plant_micro)){
+# Use the plant microclimate data to reset the original microclimate object. Note that we need to adjust both shade and nonshade conditions
+            
 
-# Load the microclimate object
-  load(here("output", "microclim", plant_micro[i]))
-
-# Object is labelled plant2 for the plant2_micro.RDa object
-  if(plant_micro[i] == "plant2_micro.RDa"){
-    plant <- plant2
-  } else {
-    plant <- plant
-  }
-
-# Use the plant microclimate data to reset the original microclimate object. Note that we need to adjust both shade and nonshade conditions 
-  
   # Unshaded microclimate
   micro$metout <- plant$metout
   micro$metout [,"TALOC"] <- plant$environ[,"TC"]
+
+  # Update the IR profiles. 
+    micro$metout[,"TSKYC"] <- plant$environ[,"TSKY"]  
+  
+  # Update the relative humidity.
+  micro$metout[,"RHLOC"] <- plant$environ[,"RELHUM"]
 
   # Shaded microclimate  
   microshadmet <- plant$shadmet
@@ -522,9 +544,9 @@ oviposition_date <- '2018-03-31 23:00:00'
             subs <- which( dates > as.POSIXct(oviposition_date))
            subs2 <- which(dates2 > as.POSIXct(oviposition_date))
 
-# Now run the DEB life-cyle model for the grasshopper
+# Now run the biophysical model for the grasshopper
 
-  ecto <- ectotherm( Ww_g = Ww_g,
+  ectoA <- ectotherm( Ww_g = Ww_g,
                     shape = shape,
                   shape_b = shape_b,
                    T_pref = T_pref,
@@ -554,8 +576,8 @@ oviposition_date <- '2018-03-31 23:00:00'
                 shadhumid = micro$shadhumid[subs,],
                 shadtcond = micro$shadtcond[subs,], 
                  rainfall = micro$RAINFALL[subs2],
-                minshades = micro$minshade[subs2],
-                maxshades = micro$maxshade[subs2],
+                minshades = rep(unique(micro$minshade), length(subs)),
+                maxshades = rep(unique(micro$maxshade), length(subs)),
                       DEB = 1, # turns DEB model on
                metab_mode = 1, # turns on hemimetabolous model, abp
                         z = z * fract,
@@ -572,7 +594,7 @@ oviposition_date <- '2018-03-31 23:00:00'
                      E_Hp = (E.Hj+1e-5) * fract ^ 3,
                      E_Hj = E.Hj * fract ^ 3,
                       h_a = h.a / (24 ^ 2),
-                      s_G = 0.0779,   # Gompertz stress coefficient, from Debber
+                      s_G = sG,   # Gompertz stress coefficient, from Debber
                       E_0 = E.0 * fract ^ 4,
                      mu_E = mu.E,
                       d_V = d.V,
@@ -591,17 +613,67 @@ oviposition_date <- '2018-03-31 23:00:00'
                clutchsize = clutchsize,
                    stages = stages,
                  S_instar = rep(s.1, stages),
-                      L_b = 0.09, # structural length at birth (cm),
+                      L_b = L_b, # structural length at birth (cm),
                photostart = photostart,
               photofinish = photofinish,
                     reset = reset,
                  soilnode = soilnode)
-# Save the DEB model
-  save(ecto, file = here("output", "microclim", paste0("grasshopperspA_", plant_mirco_names[i], "_DEB.RDa")))
-}
+# Save the ectotherm model
+  save(ectoA, file = here("output", "microclim", paste0("grasshopperspA_", plant_mirco_names, "_Box1.RDa")))
+
 ```
 
-Run the biophysical-physiological model again, but for species B which uses different parameters to capture the different life histories of the species.
+Run the biophysical-physiological model again, but for species B which uses different parameters to capture the different life histories of the species. Note that species B occupies a slightly different microhabitat which is cooler than species A so we will assume they will be closet to leaf temperatures when stomata are open.
+
+```{r, speciesB_grasshopper_params}
+#| label: speciesB_grasshopper_params
+#| echo: true
+#| warning: false
+#| message: false
+
+# Using the same starting parameters as species A, so will not re-load the matrix again. 
+# Additional parameters we need
+        E_sm <- 2000            # J/cm^2, maximum stomach energy content
+       fract <- 1               # scaling factor to change size
+
+# Inital state for DEB model. Note that DEB can be turned off and only heat and water budget models will be used so some parameters are not needed if DEB is off.
+
+# Egg Stage. Starting conditions
+     E_init <- (E.0 * fract ^ 4) / (3E-9 * fract ^ 3)
+   E_H_init <- 0
+     V_init <- 3E-9
+      stage <- 0
+
+# Life history traits
+ clutchsize <- 8                # Eggs per clutch
+     stages <- 7                # Number of stages, 0 = egg, 1-5 = nymphs, 6 = pre egg-laying adult, 7 = post-laying adult
+   S_instar <- rep(s.1, stages) # Stress at instar n: L_n^2/ L_n-1^2 (-)}\cr}
+        L_b <- L.b              # Structural length at birth (cm)}\cr}
+ photostart <- 0                # no photoperiod effect on reproduction
+photofinish <- 0                # no photoperiod effect on reproduction
+      reset <- 0                # don't reset lifecycle if death occurs
+   soilnode <- 3                # depth (soil node) at which eggs laid - 3 = 5 cm
+
+# Thermoregulatory parameters
+       Ww_g <- 0.2              # g, body mass
+      shape <- 1                # cylinder
+    shape_b <- 10               # ratio of long to short axis of cylinder
+     T_pref <- 38               # preferred body temperature species B
+    T_F_min <- 13               # degrees C, lower body temperature for foraging
+    T_F_max <- 40               # degrees C, upper body temperature for foraging
+    T_B_min <- 13               # degrees C, minimum basking temperature
+   T_RB_min <- 13               # degrees C, temperature at which animal will move to a basking site
+     CT_max <- 47               # degrees C, critical thermal maximum species B
+     CT_min <- 0                # degrees C, critical thermal minimum (used by program to determine depth selected when inactive and burrowing)
+
+# Behavioural traits 
+      diurn <- 1                # Diurnal activity allowed (1) or not (0)?
+    nocturn <- 1                # Nocturnal activity allowed (1) or not (0)?
+     crepus <- 1                # Crepuscular activity allowed (1) or not (0)?
+     burrow <- 0                # Shelter in burrow allowed (1) or not (0)?
+ shade_seek <- 1                # Shade seeking allowed (1) or not (0)?
+   pct_cond <- 0                # Percentage of animal surface contacting the substrate (\%)
+```
 
 ```{r, grasshopperB_box1_2}
 #| label: grasshopperB_box1_2
@@ -609,41 +681,30 @@ Run the biophysical-physiological model again, but for species B which uses diff
 #| warning: false
 #| message: false
 
-# First, we need to load in the two microclimates scenerios. We'll do this in a loop so that we can run the DEB model for each of the two microclimates. So, here we'll just create a few vectors that cell specific objects we need.
-        plant_micro <- c("plant_micro.RDa", "plant2_micro.RDa")
-  plant_mirco_names <- c("stomata_open", "stomata_closed")
+   plant_micro <- c("plant2_micro.RDa")
+  plant_mirco_names <- c("stomata_open")
 
 # We also need to load in the original microclimate object so that we can get the dates and other information from it. This is the original microclimate object that we used to simulate the plant microclimate. We'll also overide the `mirco` object so that the ectotherm model can use it.
   load(here("output", "microclim", "microclimate.RDa"))
+  load(here("output", "microclim", "plant2_micro.RDa")) 
 
-# Now we can loop through the two microclimates and run the DEB model for each of them
-for(i in 1:length(plant_micro)){
-
-# Load the microclimate object
-  load(here("output", "microclim", plant_micro[i]))
-
-# Object is labelled plant2 for the plant2_micro.RDa object
-  if(plant_micro[i] == "plant2_micro.RDa"){
-    plant <- plant2
-  } else {
-    plant <- plant
-  }
-
-# Use the plant microclimate data to reset the original microclimate object. Note that we need to adjust both shade and nonshade conditions 
+# Use the plant microclimate data to reset the original microclimate object. Note that we need to adjust both shade and nonshade conditions
   
   # Unshaded microclimate
-  micro$metout <- plant$metout
-  micro$metout [,"TALOC"] <- plant$environ[,"TC"]
+             micro$metout <- plant2$metout
+  micro$metout [,"TALOC"] <- plant2$environ[,"TC"]
+   micro$metout[,"TSKYC"] <- plant2$environ[,"TSKY"]  
+   micro$metout[,"RHLOC"] <- plant2$environ[,"RELHUM"]
 
   # Shaded microclimate  
-  microshadmet <- plant$shadmet
-  micro$shadmet [,"TALOC"] <- plant$environ [,"TC"]
+              microshadmet <- plant2$shadmet
+  micro$shadmet [,"TALOC"] <- plant2$environ [,"TC"]
  
   # Soil microclimate
-       micro$soil <- plant$soil
-   micro$shadsoil <- plant$shadsoil
-  micro$soilmoist <- plant$soilmoist
-  micro$shadmoist <- plant$shadmoist
+       micro$soil <- plant2$soil
+   micro$shadsoil <- plant2$shadsoil
+  micro$soilmoist <- plant2$soilmoist
+  micro$shadmoist <- plant2$shadmoist
 
 # Get dates from microclimate object
  dates <- micro$dates  # dates, hourly
@@ -656,7 +717,7 @@ oviposition_date <- '2018-03-31 23:00:00'
 
 # Now run the DEB life-cyle model for the grasshopper
 
-  ecto <- ectotherm( Ww_g = Ww_g,
+  ectoB <- ectotherm( Ww_g = Ww_g,
                     shape = shape,
                   shape_b = shape_b,
                    T_pref = T_pref,
@@ -686,8 +747,8 @@ oviposition_date <- '2018-03-31 23:00:00'
                 shadhumid = micro$shadhumid[subs,],
                 shadtcond = micro$shadtcond[subs,], 
                  rainfall = micro$RAINFALL[subs2],
-                minshades = micro$minshade[subs2],
-                maxshades = micro$maxshade[subs2],
+                minshades = rep(unique(micro$minshade), length(subs)),
+                maxshades = rep(unique(micro$maxshade), length(subs)),
                       DEB = 1, # turns DEB model on
                metab_mode = 1, # turns on hemimetabolous model, abp
                         z = z * fract,
@@ -729,10 +790,50 @@ oviposition_date <- '2018-03-31 23:00:00'
                     reset = reset,
                  soilnode = soilnode)
 # Save the DEB model
-  save(ecto, file = here("output", "microclim", paste0("grasshopper_", plant_mirco_names[i], "_DEB.RDa")))
-}
+  save(ectoB, file = here("output", "microclim", paste0("grasshopperB_", plant_mirco_names, "_Box1.RDa")))
 ```
 
+Now we can have a look at the body temperature of both species under both microclimate scenarios.
+
+```{r}
+#| label: fig-grasshopper_temp_box1
+#| eval: false
+#| echo: true
+#| code-fold: true
+
+
+
+load(here("output", "microclim", "grasshopperspA_stomata_closed_Box1.RDa"))
+
+ sub <- which(datetime > as.POSIXct('2019-01-15') & datetime < as.POSIXct('2019-01-31'))
+ datetime <- dates[subs]
+ 
+    temp_spA_open <- data.frame(ectoA$environ)
+  temp_spA_open$datetime <- datetime
+
+load(here("output", "microclim", "grasshopperB_stomata_open_Box1.RDa"))
+    temp_spB_open <- data.frame(ectoB$environ)
+temp_spB_open$datetime <- datetime
+
+      
+# Merge the two dataframes
+  temp_combined <- rbind(
+    temp_spA_open %>% mutate(Species = "Species A (Stomata Closed)"),
+    temp_spB_open %>% mutate(Species = "Species B (Stomata Open)")
+  )
+
+# Now subset to the desired dates
+  temp_combined_sub <- temp_combined %>% filter(datetime > as.POSIXct('2019-01-15') & datetime < as.POSIXct('2019-01-31'))
+
+# Plot
+ggplot(temp_combined_sub, aes(x = datetime, y = TA, color = Species)) +
+  geom_line() +
+  labs(x = "Date",
+       y = "Body Temperature (°C)") +
+  theme_classic() + theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.text = element_text(size = 14), legend.position = "none", axis.text = element_text(size = 14), axis.title = element_blank()) +
+  scale_colour_viridis_d()
+
+```
 
 # Box 2 Code
 
@@ -2068,11 +2169,12 @@ for(i in 1:length(par.names)){
  clutchsize <- 15               # Eggs per clutch
      stages <- 7                # Number of stages, 0 = egg, 1-5 = nymphs, 6 = pre egg-laying adult, 7 = post-laying adult
    S_instar <- rep(s.1, stages) # Stress at instar n: L_n^2/ L_n-1^2 (-)}\cr}
-        L_b <- L.b              # Structural length at birth (cm)}\cr}
+        L_b <- 0.09             # Structural length at birth (cm)}\cr}
  photostart <- 0                # no photoperiod effect on reproduction
 photofinish <- 0                # no photoperiod effect on reproduction
       reset <- 0                # don't reset lifecycle if death occurs
    soilnode <- 3                # depth (soil node) at which eggs laid - 3 = 5 cm
+         sG <- 0.0779           # Gompertz stress coefficient, from Debber
 
 # Thermoregulatory parameters
        Ww_g <- 0.2              # g, body mass, not used though because DEB model computes this
@@ -2197,7 +2299,7 @@ oviposition_date <- '2018-03-31 23:00:00'
                      E_Hp = (E.Hj+1e-5) * fract ^ 3,
                      E_Hj = E.Hj * fract ^ 3,
                       h_a = h.a / (24 ^ 2),
-                      s_G = 0.0779,   # Gompertz stress coefficient, from Debber
+                      s_G = sG,   # Gompertz stress coefficient, from Debber
                       E_0 = E.0 * fract ^ 4,
                      mu_E = mu.E,
                       d_V = d.V,
@@ -2216,7 +2318,7 @@ oviposition_date <- '2018-03-31 23:00:00'
                clutchsize = clutchsize,
                    stages = stages,
                  S_instar = rep(s.1, stages),
-                      L_b = 0.09, # structural length at birth (cm),
+                      L_b = l_B, # structural length at birth (cm),
                photostart = photostart,
               photofinish = photofinish,
                     reset = reset,
