@@ -879,10 +879,14 @@ get_environ_alive  <- function(sub_alive, sub_env){
 
 # Takes the debout post hatch data and updates survival probabilities based on additional mortality rates including activity based, hatch mortality, and thermal load stress mortality
 update_p_surv <- function(debout_post_hatch, m_h, m_i, m_a, m_tls){
+  # Update survival at hatch
   debout_post_hatch$P_SURV2 <- debout_post_hatch$P_SURV * (1 - m_h) 
+
+  # Update survival for additional mortality rates
   for(i in 2:nrow(debout_post_hatch)){
     debout_post_hatch$P_SURV2[i] <- debout_post_hatch$P_SURV2[i-1] * (1 - m_a) * (1 - m_tls[i]) * (1 - m_i)
   }
+  debout_post_hatch$P_SURV2  <- round(debout_post_hatch$P_SURV2, 2)
   return(debout_post_hatch)
 }
 
@@ -906,47 +910,39 @@ get_lifecycle_vitals <- function(alive_debout, ecto){
                 summarise(P_SURV = mean(P_SURV2),
                              E_B = mean(E_B),
                        fecundity = ifelse(E_B == 0, 0, life_cycle_open$FECUNDITY)) # Reproductive buffer energy, can see we only have a single reproductive event.
-   # Estimate R0 and rmax
-      R0 <- stage_str$P_SURV %*% stage_str$fecundity 
-    rmax <- log(R0) / generation_time
-  
-  return(list(R0 = R0,
-            rmax = rmax,
-       longevity = longevity / 24 / 365,
- generation_time = generation_time,
-       stage_str = stage_str))
+
+    # Build the Leslie matrix. First row fecundnity across stages, sub-diagonal survival probabilities
+    build_life_table <- matrix(0, nrow = nrow(stage_str), ncol = nrow(stage_str))
+    build_life_table[1,] <- stage_str$fecundity
+
+    # Now we need survival probabilities on the sub-diagonal. If adults die at the end of their life than that can be changed to 0.
+    for(i in 2:nrow(stage_str)){
+      build_life_table[i, i - 1] <- stage_str$P_SURV[i - 1]
+    }
+    build_life_table[nrow(build_life_table), ncol(build_life_table)] <- stage_str$P_SURV[nrow(build_life_table)] 
+
+   #Estimate rmax from eigenvalue approach
+   life_table_eigen <- Re(eigen(build_life_table)$values[1])
+    rmax <- log(life_table_eigen)
+
+  return(list(lambda = round(life_table_eigen, 2),
+              rmax = round(rmax, 2),
+         longevity = longevity / 24 / 365,
+   generation_time = generation_time,
+         stage_str = build_life_table))
 }
 
-
-#' Accumulated percentage damage across time intervals
-#'
-#' @description
-#' Calculates a cumulative percentage increase through time,
+#' @title damage_accum
+#' @description Calculates a cumulative percentage increase through time,
 #' where each interval’s increment depends on the temperature.
-#' 
-#' For each adjacent time pair (t[i], t[i+1]):
-#' \deqn{
-#' acc_i = \max\left(0,\; \min\left(100,\;
-#'   \frac{100 \cdot (t_{i+1} - t_i)}
-#'        {10^{(\text{slope} \cdot \max(T_i, T_{i+1}) + \text{intercept})}}\right)\right)
-#' }
-#'
 #' @param time Numeric vector of time points (e.g., minutes).
 #' @param temp Numeric vector of temperatures (°C), same length as `time`.
 #' @param intercept Numeric scalar controlling the denominator (base-10 intercept).
 #' @param slope Numeric scalar controlling how temperature affects the rate.
+#' @param threshold Numeric scalar between 0 and 1 indicating the damage threshold.For example, if LT50 is used as the threshold, set `threshold = 0.5`. Used to convert heat injury to mortality probabilities
 #'
-#' @return A numeric vector of cumulative percentages (0–100).
-#'
-#' @examples
-#' # Example: cumulative increase over 10 minutes of exposure
-#' # where temperature varies between 30–43 °C
-#' time <- log10(c(1, 60, 120, 180, 240, 600, 1200, 2400))       # log-minutes
-#' temp <- seq(30, 43, length = 8)  # °C
-#' ctmax = 47 # CTmax1 hour
-#' slope = -4.5 # slope 
-#' damage_accum(time = 10^time, temp = temp, intercept = ctmax, slope = slope)
-damage_accum <- function(time, temp, intercept, slope) {
+#' @return A numeric vector of cumulative percentages of mortality (0–100).
+damage_accum <- function(time, temp, intercept, slope, threshold = 0.5) {
   
     output = data.frame(z = NA, cumsum = NA)
   last_row = nrow(data.frame(x = time, y = temp))
@@ -960,7 +956,8 @@ damage_accum <- function(time, temp, intercept, slope) {
     output[i, 1] = acc
   }
   
-  output$cumsum = cumsum(output$z)
+  # Multiply cumulative sum by threshold to get mortality probability
+  output$cumsum = cumsum(output$z) * threshold
   z = output$cumsum
   z = append(z, 0)
   z[z > 100] = 100 # Set values exceeding 100% to 100%
@@ -968,8 +965,7 @@ damage_accum <- function(time, temp, intercept, slope) {
   return(z)
 }
 
-#' Repair using Arrhenius/Schoolfield-type thermal performance with low/high inactivation
-#'
+#' @title damage_repair_accum
 #' @description Computes a temperature-dependent rate using an Arrhenius rise with
 #' both low- and high-temperature inactivation terms (Schoolfield form).
 #' @param x Numeric vector of temperatures in **°C** at which to evaluate the rate.
@@ -981,24 +977,6 @@ damage_accum <- function(time, temp, intercept, slope) {
 #' @param TREF Numeric scalar. Reference temperature in **Kelvin** at which the reference rate is defined.
 #' @param kdot_ref Numeric scalar. Reference rate at `TREF` (units of the process being modeled).
 #' @return Numeric vector of the same length as `x`, giving the temperature-dependent rate.
-#' @details
-#' Temperature conversion to Kelvin is handled internally as `273.15 + x`.
-#' This is the commonly used Schoolfield (1981)-style equation:
-#'
-#' \deqn{
-#'   k(T) = k_{\mathrm{ref}}
-#'          \frac{\exp\{TA \; (1/T_{\mathrm{REF}} - 1/T)\}}
-#'               {1 + \exp\{TAL \; (1/T - 1/T_L)\} + \exp\{TAH \; (1/T_H - 1/T)\}}
-#' }
-#'
-#' where all capital \eqn{T} terms are in Kelvin.
-#'
-#' @examples
-#' T_C <- seq(5, 45, by = 1)
-#' rate <- ArrFunc5(
-#'   x = T_C, TA = 5000, TAL = 8000, TAH = 9000,
-#'   TL = 285, TH = 313, TREF = 293.15, kdot_ref = 1
-#' )
 damage_repair_accum <- function(temp, damage, TA, TAL, TAH, TL, TH, TREF, kdot_ref) {
   ## ---- Basic checks ---------------------------------------------------------
   if (!is.numeric(temp)) stop("'temp' must be numeric (°C).")
@@ -1017,15 +995,20 @@ damage_repair_accum <- function(temp, damage, TA, TAL, TAH, TL, TH, TREF, kdot_r
   # TL, TH, TREF
 
   ## ---- Combine with reference rate and damage accumulation -------------------
-  out <- damage - (exp(TA*(1/TREF-1/(273.15+temp)))/(1+exp(TAL*(1/(273.15+temp)-1/TL))+exp(TAH*(1/TH-1/(273.15+temp))))*kdot_ref)*60 # Multiply by 60 to convert the per minute rate
+  
+  # Multiply by 60 to convert the per minute rate because we are in hours
+  out <- damage - (exp(TA*(1/TREF-1/(273.15+temp)))/(1+exp(TAL*(1/(273.15+temp)-1/TL))+exp(TAH*(1/TH-1/(273.15+temp))))*kdot_ref)*60
+  out  <- round(out, 2)  # Round to avoid floating point issues
   out[out < 0] <- 0      # Set negative damage values to zero
   out[out > 100] <- 100  # Set values exceeding 100% to 100%
+
   return(out)
 }
+
 ```
 
 
-```{r}
+```{r, grasshopper_lifecycle_box2_setup}
 #| label: grasshopper_lifecycle_box2_setup
 #| echo: true
 #| warning: false
@@ -1035,6 +1018,20 @@ damage_repair_accum <- function(temp, damage, TA, TAL, TAH, TL, TH, TREF, kdot_r
 load(here("output", "microclim", "grasshopperspA_stomata_closed_Box1.RDa")) #ectoA
 load(here("output", "microclim", "grasshopperB_stomata_open_Box1.RDa"))     #ectoB
 
+# Define Common Parameters Applied to Both Species
+# Thermal Load Sensitivity Repair Function Parameters. Applied to both species A and B.
+  TA <- 14065            # Arrhenius temperature, K
+  TL <- 10.5 + 273.15    # Arrhenius temperature lower threshold, K
+  TH <- 28.5 + 273.15    # Arrhenius temperature upper threshold, K
+ TAL <- 50000            # Arrhenius temperature lower, K
+ TAH <- 100000           # Arrhenius temperature upper, K
+TREF <- 20 + 273.15      # reference temperature, K
+kdot_ref <- 0.05         # repair rate % per minute at ref temp 25 deg C
+
+# Baseline mortality rates to add to DEB. TLS and differences in hatch mortality will be added to these baseline rates differently for each species
+  m_i <- 0     # mortality per hour inactive
+  m_a <- 1e-4  # mortality per hour active
+
 ## ------------------## 
 # Species A
 ## ------------------## 
@@ -1042,62 +1039,61 @@ load(here("output", "microclim", "grasshopperB_stomata_open_Box1.RDa"))     #ect
 # First, find out dates and times when animal is alive. We need these to extract the body temperatures AND the relevant aspects of the lifecyle
 
 # Get the DEB output while alive
-debout_post_hatch_A <- get_alive(ectoA)
+  debout_post_hatch_A <- get_alive(ectoA)
 
 # Get the environ data while alive, which we use for TLS as we need the body temperature every hour
           environ_A <- get_environ(ectoA)
     environ_A_alive <- get_environ_alive(debout_post_hatch_A, environ_A)
     environ_A_alive <- environ_A_alive %>% mutate(time_min = c(0:(n()-1))*60) # time in minutes
 
-# Thermal Load sensitivity parameters for species A
- ctmax <- 50           # CTmax1h
-     z <- -4.5          # z (slope)
-alpha  <- -ctmax/z      # Need these for the log time accumulation function
-  beta <- 1 / z       # Need these for the log time accumulation function
+# Thermal Load sensitivity parameters for species A. Note that CTmax and z are values derived from a regression between temperture (yaxis) and log time to 50% mortality (xaxis). See Arnold et al. 2025 for more details. We need to invert these values to get the intercept and slope for the damage accumulation function.
+ ctmaxA <- 50            # CTmax1h
+     zA <- -1.0          # z (slope), negative indicates decrease in survival with time
+alphaA  <- -ctmaxA/zA    # Need these for the log time accumulation function
+  betaA <- 1 / zA        # Need these for the log time accumulation function
 
 # Set repair coefficients. From Arnold et al. 2025 as examples
-repair_rate <- 0.05          # high
+repair_rateA <- 0.05          # high as evolved to deal with high temps
 
-# Set up the repair function
-TA <- 14065            # Arrhenius temperature, K
-TL <- 10.5 + 273.15    # Arrhenius temperature lower threshold, K
-TH <- 28.5 + 273.15    # Arrhenius temperature upper threshold, K
-TAL <- 50000           # Arrhenius temperature lower, K
-TAH <- 100000          # Arrhenius temperature upper, K
-TREF <- 20 + 273.15    # reference temperature, K
-kdot_ref <- 0.05       # repair rate % per minute at ref temp 25 deg C
-      tb <- environ_A_alive$TC # body temps, Celsius
-    time <- environ_A_alive$time_min # time in minutes
+# Define temperatures and times
+      tbA <- environ_A_alive$TC # body temps, Celsius
+    timeA <- environ_A_alive$time_min # time in minutes
 
-# Using body temperatures through time, estimate the accumulation of physiological damage towards a threshold of 50% mortality under no repair
-damage <- damage_accum(time = rep(60, length(tb)), 
-                       temp = tb, 
-                  intercept = alpha, 
-                      slope = beta)
+# Using body temperatures through time, estimate the accumulation of physiological damage towards a threshold of 50% mortality under no repair. Note that threshold (50% = 0.5) is used to scale % HI to % mortality
+damageA <- damage_accum(time = timeA, 
+                        temp = tbA, 
+                   intercept = alphaA, 
+                       slope = betaA)
 
 # Using body temperatures through time, estimate the accumulation of physiological damage towards a threshold of 50% mortality with repair
-damage_w_repair  <- damage_repair_accum(  temp = tb,
-                                        damage = damage,
+damage_w_repairA  <- damage_repair_accum( temp = tbA,
+                                        damage = damageA,
                                             TA = TA,
                                            TAL = TAL,
                                            TAH = TAH,
                                             TL = TL,
                                             TH = TH,
                                           TREF = TREF,
-                                      kdot_ref = repair_rate) / 100
+                                      kdot_ref = repair_rateA) / 100
 
-# Now that we have the probability of mortality from thermal load stress, we can update the survival probabilities in the DEB model output
+# Check
+par(mfrow = c(3,1))
+plot(timeA, tbA, type = 'l', xlab = 'Time (min)', ylab = 'Body Temperature (C)')
+plot(timeA, damageA, type = 'l', xlab = 'Time (min)', ylab = 'Accumulated Mortality (%)')
+plot(timeA, damage_w_repairA, type = 'l', xlab = 'Time (min)', ylab = 'Accumulated Mortality (%)')
 
-  m_h <- 0.5   # mortality at hatch
-  m_i <- 0     # mortality per hour inactive
-  m_a <- 1e-4  # mortality per hour active
+# Now that we have the probability of mortality from thermal load stress, we can update the survival probabilities in the DEB model output. Note that DEB model already has some baseline mortality rates from the Gompertz ageing model, so we are adding additional sources of mortality.
+
+m_h <- 0.2   # mortality at hatch
+
 debout_post_hatch_A <- update_p_surv(debout_post_hatch_A, 
                                     m_h = m_h,    # mortality at hatch
                                     m_a = m_a,    # mortality for active hour
                                     m_i = m_i,    # mortality for inactive hour
-                                    m_tls = damage_w_repair)    # Heat load mortality
+                                    m_tls = damage_w_repairA)    # Heat load mortality
 
-# Now we can extract life-cycle details
+# Now we can extract life-cycle details. Life cycle model assumes all animals progress to the next stage that survive. Given we have multiple life stages we create a stage-structured matrix to capture survival and fecundity at each stage, and quantify the probability of transitioning through each stage. From this, we can estimate population growth rate (rmax) and other life-cycle details.
+
 lifecycle_A <- get_lifecycle_vitals(debout_post_hatch_A, ectoA)
 
 ## ------------------## 
@@ -1106,79 +1102,64 @@ lifecycle_A <- get_lifecycle_vitals(debout_post_hatch_A, ectoA)
 
 debout_post_hatch_B <- get_alive(ectoB)
           environ_B <- get_environ(ectoB)
-    environ_B_alive <- get_environ_alive(debout_post_hatch_B, environ_B)
+    environ_B_alive <- get_environ_alive(debout_post_hatch_B, environ_B) %>% mutate(time_min = c(0:(n()-1))*60) # time in minutes
    
+# Thermal Load sensitivity parameters for species A. Note that CTmax and z are values derived from a regression between temperture (yaxis) and log time to 50% mortality (xaxis). See Arnold et al. 2025 for more details. We need to invert these values to get the intercept and slope for the damage accumulation function.
+ ctmaxB <- 55              # CTmax1h
+     zB <- -1.1            # z (slope), negative indicates decrease in survival with time
+alphaB  <- -ctmaxB/zB      # Need these for the log time accumulation function
+  betaB <- 1 / zB          # Need these for the log time accumulation function
+
+# Set repair coefficients. From Arnold et al. 2025 as examples
+  repair_rateB <- 0.02          # lower
+
+# Set up the repair function
+  kdot_ref <- 0.05       # repair rate % per minute at ref temp 25 deg C
+
+# Define temperatures and times
+      tbB <- environ_B_alive$TC # body temps, Celsius
+    timeB <- environ_B_alive$time_min # time in minutes
+
+# Using body temperatures through time, estimate the accumulation of physiological damage towards a threshold of 50% mortality under no repair
+damageB <- damage_accum(time = timeB, 
+                       temp = tbB, 
+                  intercept = alphaB, 
+                      slope = betaB)
+
+# Using body temperatures through time, estimate the accumulation of physiological damage towards a threshold of 50% mortality with repair
+damage_w_repairB  <- damage_repair_accum(  temp = tbB,
+                                        damage = damageB,
+                                            TA = TA,
+                                           TAL = TAL,
+                                           TAH = TAH,
+                                            TL = TL,
+                                            TH = TH,
+                                          TREF = TREF,
+                                      kdot_ref = repair_rateB) / 100
+
+
+# Check
+par(mfrow = c(3,1))
+plot(timeB, tbB, type = 'l', xlab = 'Time (min)', ylab = 'Body Temperature (C)')
+plot(timeB, damageB, type = 'l', xlab = 'Time (min)', ylab = 'Accumulated Mortality (%)')
+plot(timeB, damage_w_repairB, type = 'l', xlab = 'Time (min)', ylab = 'Accumulated Mortality (%)')
+
+# Now that we have the probability of mortality from thermal load stress, we can update the survival probabilities in the DEB model output
+
+  m_h <- 0.05   # mortality at hatch
+
+debout_post_hatch_B <- update_p_surv(debout_post_hatch_B, 
+                                    m_h = m_h,    # mortality at hatch
+                                    m_a = m_a,    # mortality for active hour
+                                    m_i = m_i,    # mortality for inactive hour
+                                    m_tls = damage_w_repairB)    # Heat load mortality
+
+# Now we can extract life-cycle details
+lifecycle_B <- get_lifecycle_vitals(debout_post_hatch_B, ectoB)
 
 ```
 
-
-```{r, fig-grasshopperspA_lifecycle_box2}
-#| label: fig-grasshopperspA_lifecycle
-#| fig-cap: "Life-cycle of a grasshopper (Species A) at a location near Renmark, South Australia. Life-cycle of the grasshopper is shown in under two scenarios, one where stomata are open all day, and one where stomatal closure is driven by photosynthetically active radiation intensity and vapour pressure. Note that the life-cycle is shown as the wet mass of the grasshopper (mg) over time (days) with different colours corresponding to different life stages. The life stages are: 0 = egg (‘grey’), 1 = first instar (‘forest green’), 2 = second instar (‘lime green’), 3 = third instar (‘tan’), 4 = fourth instar (‘brown’), 5 = fifth instar (‘orange’), 6 = adult (‘pink’).The grey lines indicate the body temperature of the grasshopper (°C) (right axis)."
-#| code-fold: true
-#| echo: true
-#| warning: false
-#| message: false
-
-# Load in the DEB model for scenerio 1
-  load(here("output", "microclim", "grasshopperspA_stomata_open_DEB.RDa"))
-         datetime <- dates[subs]
-              sub <- which(datetime > as.POSIXct('2018-03-31') & datetime < as.POSIXct('2019-04-30'))
-           debout <- data.frame(ecto$debout)
-  debout$datetime <- datetime
-    scale_factor  <-  10
-# Create the life cycle plot
-
-p1 <- ggplot() +
-geom_line(data = ecto$environ, aes(x = datetime, y = TC*scale_factor), col = 'lightgrey', linewidth = 0.5) +
-ylim(-10, 500) +
-geom_line(data = ecto$environ, aes(x = datetime, y = SHADE), col = "forestgreen") +
-geom_line(data = debout, aes(x = datetime, y = WETMASS * 1000), col = "black") +
-geom_line(data = debout %>% filter(STAGE == 0), aes(x = datetime, y = WETMASS * 1000), col = "darkgrey", linewidth =2) +
-geom_line(data = debout %>% filter(STAGE == 1), aes(x = datetime, y = WETMASS * 1000), col = "lightgreen", linewidth =2) +
-geom_line(data = debout %>% filter(STAGE == 2), aes(x = datetime, y = WETMASS * 1000), col = "green", linewidth =2) +
-geom_line(data = debout %>% filter(STAGE == 3), aes(x = datetime, y = WETMASS * 1000), col = "tan", linewidth =2) +
-geom_line(data = debout %>% filter(STAGE == 4), aes(x = datetime, y = WETMASS * 1000), col = "brown", linewidth =2) +
-geom_line(data = debout %>% filter(STAGE == 5), aes(x = datetime, y = WETMASS * 1000), col = "orange", linewidth =2) +
-geom_line(data = debout %>% filter(STAGE == 6), aes(x = datetime, y = WETMASS * 1000), col = "pink", linewidth =2) +
-labs(title = "Predicted Species A Grasshopper life-cycle under stomata open", x = "Date") + 
-scale_y_continuous(
-    name = "Wet mass (mg)", 
-    sec.axis = sec_axis(~ . / scale_factor, name = "Body temperature (°C)")
-  )+ theme_classic()
-
-# Now for scenerio 2
-
-load(here("output", "microclim", "grasshopperspA_stomata_closed_DEB.RDa"))
-           debout <- data.frame(ecto$debout)
-  debout$datetime <- datetime
-
-# Create the life cycle plot
-p2 <- ggplot() +
-geom_line(data = ecto$environ, aes(x = datetime, y = TC*scale_factor), col = 'lightgrey', size = 0.5) +
-ylim(-10, 500) +
-geom_line(data = ecto$environ, aes(x = datetime, y = SHADE), col = "forestgreen") +
-geom_line(data = debout, aes(x = datetime, y = WETMASS * 1000), col = "black") +
-geom_line(data = debout %>% filter(STAGE == 0), aes(x = datetime, y = WETMASS * 1000), col = "darkgrey", linewidth =2) +
-geom_line(data = debout %>% filter(STAGE == 1), aes(x = datetime, y = WETMASS * 1000), col = "lightgreen", linewidth =2) +
-geom_line(data = debout %>% filter(STAGE == 2), aes(x = datetime, y = WETMASS * 1000), col = "green", linewidth =2) +
-geom_line(data = debout %>% filter(STAGE == 3), aes(x = datetime, y = WETMASS * 1000), col = "tan", linewidth =2) +
-geom_line(data = debout %>% filter(STAGE == 4), aes(x = datetime, y = WETMASS * 1000), col = "brown", linewidth =2) +
-geom_line(data = debout %>% filter(STAGE == 5), aes(x = datetime, y = WETMASS * 1000), col = "orange", linewidth =2) +
-geom_line(data = debout %>% filter(STAGE == 6), aes(x = datetime, y = WETMASS * 1000), col = "pink", linewidth =2) +
-labs(title = "Predicted Species A Grasshopper life-cycle under stomata closed",  x = "Date") + 
-scale_y_continuous(
-    name = "Wet mass (mg)", 
-    sec.axis = sec_axis(~ . / scale_factor, name = "Body temperature (°C)")
-  )+ theme_classic()
-
-p1/p2 + plot_layout(ncol = 1) + plot_annotation(tag_levels = "A") +
-  theme(plot.tag = element_text(size = 12, face = "bold"))
-
-```
-
-
-# Detailed Guide to Code 
+# Detailed Guide to Code
 
 To make the more complicated examples above clearer we also provide six hypothetical case studies that build greater complexity to help understand the concepts in the Boxes. We provide theory and code with each of our case studies in the hopes that it stimulates easier application and development of our ideas. Models and code will of course always need to be modified to suite the specific system in question and should be validated against empirical data. 
 
