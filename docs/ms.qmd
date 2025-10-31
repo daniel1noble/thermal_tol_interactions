@@ -85,7 +85,7 @@ Environmental factors known to impact thermal sensitivity, such as water and dro
 
 ::: {.callout-note icon="false" appearance="minimal"}
 
-# Box 1: Building a systems modelling approach to capture multi-species exposure
+# Box 1: Building a systems modelling approach to capture multi-species exposure to extreme heat
 
 Using a simple hypothetical community (@fig-box1) we outline how a systems-modelling approach can be developed. In Box 1 we focus on how climate, microclimate, and biophysical models can predict the differential exposure to extreme heat events across species, how species can alter each others microclimates and incorporate 'behavioural' responses of species in response to temperature (e.g., stomatal behaviour, thermoregulation). In Box 2, we then demonstrate how we can use the predicted organismal temperatures from these models to predict life-cycles for species that incorporate differences in thermal sensitivity, and are used to estimate vital rates for population and community models.
 

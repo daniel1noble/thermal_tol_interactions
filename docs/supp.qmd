@@ -159,7 +159,7 @@ gFortran can be a problem for NicheMapR so you need to set the paths properly if
 :::
 :::
 
-# Box 1 Code
+# Box 1 Code: Building a systems modelling approach to capture multi-species exposure to extreme heat
 
 #### Getting the microclimate data
 
@@ -840,7 +840,7 @@ ggplot(temp_combined_sub, aes(x = datetime, y = TA, color = Species)) +
 # ggsave(here("figs", "fig_grasshopper_temp_box1.png"), width = 8, height = 5, dpi = 600)
 ```
 
-# Box 2 Code
+# Box 2 Code: Scaling up extreme heat effects from impacts on individuals of species to communities
 
 Now that we have predictions about body temperatures we can incorporate thermal load accumulation and use the DEB models to predict life-cycles of the two grasshopper species. The output from DEB models can then be used to calculate vital rates such as growth, development, reproduction, and survival, which we can use to calculate population growth rates ($r_{max}$). We can then model population dynamics and interactions between the two species.
 
