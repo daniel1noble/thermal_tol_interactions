@@ -855,7 +855,18 @@ First, we'll need some functions to extract life-cycle details from the DEB mode
 #| message: false
 #| code-fold: true
 
-# Subset debout to period when alive
+#' @title alive_data: Subset DEB output to period when alive
+#' @description Extracts DEB model output corresponding only to periods when the individual
+#' is alive (post-hatch). This is done by subsetting the `debout` component
+#' of the ectotherm model output (`ecto`) to include only rows where both 
+#' volume (`V`) and stage (`STAGE`) are greater than zero (indicating they are alive).
+#' @param ecto A list object (from NicheMapR's `ectotherm` function)
+#'   containing components `debout` (developmental output) and `dates`.
+#' @return A data frame of post-hatch DEB output, including only periods when
+#'   the organism is alive. Adds a `dates` column corresponding to those time points.
+#' @examples
+#' alive_data <- get_alive(ecto)
+#'
 get_alive <- function(ecto){
     debout <- data.frame(ecto$debout)
     # Then, we can subset to just the post-hatch period
@@ -864,20 +875,54 @@ get_alive <- function(ecto){
   return(debout_post_hatch)
 }
 
-# Extract environ data
+#' @title get_environ: Extract environmental data from DEB model output
+#' @description Extracts and formats the environmental data (`environ`) from a DEB model
+#' object, appending the corresponding datetime information.
+#' @param ecto A list object (from NicheMapR's `ectotherm` function) containing components `environ` (heat budget calculations) and `dates`
+#' @return A data frame of environmental variables with an added `datetime` column.
+#' @examples
+#' env_data <- get_environ(ecto)
+#'
 get_environ <- function(ecto){
   environ <- data.frame(ecto$environ)
   environ$datetime <- ecto$dates
   return(environ)
 }
 
-# limit envirn data to period when alive, use TB for TLS
+#' @title get_environ_alive: Limit environmental data to period when organism is alive
+#' @description Filters environmental data to match the period when the organism is alive
+#' (based on `dates` from the DEB output). Useful for synchronizing survival
+#' and environmental records.
+#' @param sub_alive A data frame of post-hatch DEB output (from [get_alive()]),
+#'   containing a `dates` column for the alive period.
+#' @param sub_env A data frame of environmental data (from [get_environ()]),
+#'   containing a `datetime` column.
+#' @return A data frame of environmental conditions corresponding only to the
+#'   period when the organism is alive.
+#' @examples
+#' env_alive <- get_environ_alive(sub_alive = alive_data, sub_env = env_data)
+#'
 get_environ_alive  <- function(sub_alive, sub_env){
   sub_env_alive <- data.frame(sub_env[which(sub_env$datetime %in% sub_alive$dates), ])
   return(sub_env_alive)
 }
 
-# Takes the debout post hatch data and updates survival probabilities based on additional mortality rates including activity based, hatch mortality, and thermal load stress mortality
+#' @title update_p_surv: Update survival probabilities with additional mortality sources
+#' @description Adjusts survival probabilities in post-hatch DEB output to include additional
+#' sources of mortality such as hatch mortality, inactivity mortality, activity-based
+#' mortality, and thermal load stress mortality.
+#' @param debout_post_hatch A data frame of post-hatch DEB output (from [get_alive()]),
+#'   containing a column `P_SURV` with baseline survival probabilities.
+#' @param m_h Numeric scalar; proportional mortality due to hatching (0–1).
+#' @param m_i Numeric scalar; proportional mortality due to inactivity (0–1).
+#' @param m_a Numeric scalar; proportional mortality due to activity (0–1).
+#' @param m_tls Numeric vector; proportional mortality due to thermal load stress (0–1)
+#'   for each time step (must match `nrow(debout_post_hatch)`).
+#' @return A modified data frame with an additional column `P_SURV2` representing
+#'   updated survival probabilities accounting for all mortality components.
+#' @examples
+#' debout_updated <- update_p_surv(debout_post_hatch, m_h = 0.1, m_i = 0.02, m_a = 0.03, m_tls = runif(nrow(debout_post_hatch), 0, 0.1))
+#'
 update_p_surv <- function(debout_post_hatch, m_h, m_i, m_a, m_tls){
   # Update survival at hatch
   debout_post_hatch$P_SURV2 <- debout_post_hatch$P_SURV * (1 - m_h) 
@@ -890,9 +935,27 @@ update_p_surv <- function(debout_post_hatch, m_h, m_i, m_a, m_tls){
   return(debout_post_hatch)
 }
 
-#' @title get_lifecycle_vitals
-#' @description Function to extract key life cycle details from DEB model output (survival, fecunity, lifespan) 
-#' alive_debout=debout_post_hatch_A, ecto=ectoA
+#' @title get_lifecycle_vitals: Extract life-cycle vitals from DEB model output
+#' @description Derives key life-history parameters from DEB model output, including survival,
+#' fecundity, longevity, generation time, and the population growth rate (`rmax`).
+#' The function builds a stage-structured life table and estimates the dominant
+#' eigenvalue (λ) of the Leslie matrix to calculate `rmax`.
+#' @param alive_debout A data frame of post-hatch DEB output (from [get_alive()]),
+#'   with columns `STAGE`, `E_B`, and updated survival probabilities (`P_SURV2`).
+#' @param ecto A DEB model object containing at least a `yearout` component with
+#'   a column `FECUNDITY` (representing reproductive output). This is summarised by stage.
+#' @return A list containing:
+#' \describe{
+#'   \item{lambda}{Dominant eigenvalue of the life table (finite rate of increase).}
+#'   \item{rmax}{Intrinsic rate of increase (log of λ).}
+#'   \item{longevity}{Longevity in years (based on time steps in `alive_debout`).}
+#'   \item{generation_time}{Age at first reproduction (years).}
+#'   \item{stage_str}{Stage-structured life table (Leslie matrix).}
+#' }
+#' @examples
+#' vitals <- get_lifecycle_vitals(alive_debout = alive_data, ecto = ecto)
+#' vitals$rmax
+#'
 get_lifecycle_vitals <- function(alive_debout, ecto){
   
   # Fecundity data
@@ -1048,7 +1111,7 @@ kdot_ref <- 0.05         # repair rate % per minute at ref temp 25 deg C
 
 # Thermal Load sensitivity parameters for species A. Note that CTmax and z are values derived from a regression between temperture (yaxis) and log time to 50% mortality (xaxis). See Arnold et al. 2025 for more details. We need to invert these values to get the intercept and slope for the damage accumulation function.
  ctmaxA <- 50            # CTmax1h
-     zA <- -1.0          # z (slope), negative indicates decrease in survival with time
+     zA <- -1.0          # z (slope), negative indicates decrease in survival with time which it must do as animals don't get better the longer they are at stressful temps
 alphaA  <- -ctmaxA/zA    # Need these for the log time accumulation function
   betaA <- 1 / zA        # Need these for the log time accumulation function
 
