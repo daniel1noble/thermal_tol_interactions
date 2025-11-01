@@ -59,7 +59,7 @@ Using plants and insects as examples, we review broad classes of models across f
 pacman::p_load(magick, ggplot2, patchwork, here, grid)
 
 # Load the image
-img <- image_read(here("figs", "Fig1.png"))
+img <- image_read(here("figs", "Fig1_rev1.png"))
 grid::grid.raster(img)
 
 ```
@@ -106,7 +106,6 @@ box1_img <- image_read(here("figs", "Box1_Fig.png"))
 box1_img
 ```
 
-Once the thermal sensitivity (i.e., the slope $z$, Figure 1) for a particular endpoint has been quantified it can be used to predict the accumulation of damage during stressful temperatures experienced under realistic conditions [@Orsted2024; @Orsted2022; @Rezende2020; @Arnold2025a].
 :::
 
 ::: {.callout-note icon="false" appearance="minimal"}
@@ -148,20 +147,20 @@ Box 1 demonstrated how to predict differential exposure to extreme heat events a
 
 To start, using existing parameters for a dynamic energy budget (DEB) model for a grasshopper [@Llandres2015] we can use the `ectotherm` function in *NicheMapR*, to simulate life cycles for each of the two species. We assume that both species have similar DEB parameters but vary in their life-history, thermal physiology, size and reproduction, which we include in our DEB model (see Figure I in Box 1). 
 
-DEB models incorporate a simple Gompertz mortality function to capture senescence, but do not integrate the effects of thermal load accumulation in response to extreme heat events into survival functions (we assume reproduction is not impacted for simplicity). Using thermal sensitivity parameters from TLS (i.e. $z$, slope and $\alpha$ = critical thermal limit), which differ for each species, we can calculate heat injury (HI) accumulated between time point $t_{i}$ and $t_{i+1}$ (using an $LT_{100}$ threshold), and integrate this across life (@eq-hi) (Fig IIA).
+DEB models incorporate a simple Gompertz mortality function to capture senescence, but do not integrate the effects of thermal load accumulation in response to extreme heat events into survival functions (we assume reproduction is not impacted for simplicity).  By using thermal sensitivity parameters for mortality endpoints from TLS models (i.e. $z$, slope and $\alpha$ = critical thermal limit), they can be used to predict the accumulation of damage during stressful temperatures experienced under realistic conditions for each species by calculating heat injury (HI) accumulated between time point $t_{i}$ and $t_{i+1}$ across life (using an $LT_{50}$ threshold)(@eq-hi) (Fig IIA) [@Orsted2024; @Orsted2022; @Rezende2020; @Arnold2025a].
 $$ 
 HI = \sum_{i = 1}^{T_{e} > T_{c}} \frac{100 \cdot \left(t_{i+1} - t_{i} \right)}{10^{\left(- \frac{1}{z} \cdot max\left(T_{i}; T_{i+1}\right) + \alpha \right)}} 
 $$ {#eq-hi}
 
-After calculating HI, and thus probability of mortality through time, we can multiply the mortality rate at each time step $t$ from the Gompertz mortality rate and the mortality rate due to HI accumulation from TLS. In combination with the DEB model outputs on total reproduction across life, we can build a simple stage-structured population matrix (Fig IIB) to estimate population growth rate ($r_{max}$ = ln($\lambda$)) for each species under their respective microclimates and include this in a two-species Ricker model to calculation their population growth under competition (@eq-general).
+After calculating HI, and converting to the probability of mortality through time, we can calculate the total probability of survival (i.e., from senescence, thermal stress, and activity based mortality) for each age/stage class. In combination with the DEB model outputs on total reproduction across life, we can build a simple stage-structured population matrix (Fig IIB) to estimate population growth rate ($r_{max}$ = ln($\lambda$)) for each species under their respective microclimates. $r_{max}$ can then be included in a two-species, density dependent Ricker model to predict their population growth under competition (@eq-general).
 
 $$
 N_{t+1}^i = N_t^i \cdot \lambda_i^{\left(1 - \frac{N_t^i + \sum_{j \neq i} \alpha_{ij} N_t^j}{K_i}\right)}
 $$ {#eq-general}
 
-where $N_t^i$ is the population size of species $i$ at time $t$, $\lambda_i$ is the intrinsic growth rate of species $i$, $K_i$ is the carrying capacity of species $i$, and $\alpha_{ij}$ is the competition coefficient that describes how much species $j$ affects species $i$. Given mechanistic models of physiology, the stage-structured population matrix can be updated to reflect changes in vital rates (survival and reproduction) under different microclimates and thermal sensitivities each generation.
+where $N_t^i$ is the population size of species $i$ at time $t$, $\lambda_i$ is the intrinsic growth rate of species $i$, $K_i$ is the carrying capacity of species $i$, and $\alpha_{ij}$ is the competition coefficient that describes how much species $j$ affects species $i$. Given mechanistic models of physiology, the stage-structured population matrix can be updated each generation to reflect changes in vital rates (survival and reproduction) under different microclimates.
 
-```{r, fig-box2}
+```{r}
 #| label: fig-box2
 #| eval: true
 #| fig-cap: "Figure II: **A systems approach to using mechanistic physiological models to capture life-cycle vital rates and thermal load stress on survival to scale up to multi-species population dynamics. Created with BioRender.com."
@@ -171,12 +170,6 @@ img <- image_read(here("figs", "Fig_Box2.pdf"))
 grid::grid.raster(img)
 
 ```
-
-
-Arnold *et al* @Arnold2025a discuss approaches for integrating repair processes into these models as well, but for now keep it simple.
-
-The second species (Species A; @fig-two_species_grasshopper) has a different physiology compared to the first species but is usually more abundant than Species B making it highly competitive. We'll now simulate its life-cycle like we did for Species B in [Case Study 2](#case2). Then, link this to a two-species population dynamic model. These species are closely related but do have some differences in physiology that include: 1) higher thermal tolerance, 2) larger clutch sizes, and 3) different preferred body temperatures; and 4) smaller size. Otherwise, we will assume the same DEB model parameters as Species B
-
 :::
 
 # 'Hot' solutions for a changing world
@@ -206,7 +199,7 @@ $$
 \Delta \bar{\bm{z}} = \bm{G} \cdot \bm{\beta}
 $$ {#eq-breeders}
 
-where $\Delta \bar{\bm{z}}$ is the vector of changes in the mean trait values, $\bm{G}$ is the genetic covariance matrix and $\bm{\beta}$ is the vector of standardised selection gradients that regress each trait on relative fitness (i.e., $\bm{\omega} = \bm{\alpha} + \bm{\beta^{T}}\cdot \bm{z} + \bm{e}$; @Walsh2018). Plasticity can be captured by mapping trait development to the environment and incorporating environmental variability into the Breeders equation [see also, @McGlothlin2014]. While the multivariate breeders equation can be useful for predicting short term evolutionary responses (i.e., one or a few generations) it likely has limited in predictive power over longer timespans because of changes in heritability and selection through time, which is a future challenge [@Walsh2018; @Hoffmann2011]. 
+where $\Delta \bar{\bm{z}}$ is the vector of changes in the mean trait values, $\bm{G}$ is the genetic covariance matrix and $\bm{\beta}$ is the vector of standardised selection gradients that regress each trait on relative fitness (i.e., $\bm{\omega} = \bm{\alpha} + \bm{\beta^{T}}\cdot \bm{z} + \bm{e}$; @Walsh2018). Plasticity can be captured by mapping trait development to the environment and incorporating environmental variability into the Breeders equation [see also, @McGlothlin2014a]. While the multivariate breeders equation can be useful for predicting short term evolutionary responses (i.e., one or a few generations) it likely has limited in predictive power over longer timespans because of changes in heritability and selection through time, which is a future challenge [@Walsh2018; @Hoffmann2011]. 
 
 :::
 
