@@ -148,26 +148,26 @@ Box 1 demonstrated how to predict differential exposure to extreme heat events a
 
 To start, using existing parameters for a dynamic energy budget (DEB) model for a grasshopper [@Llandres2015] we can use the `ectotherm` function in *NicheMapR*, to simulate life cycles for each of the two species. We assume that both species have similar DEB parameters but vary in their life-history, thermal physiology, size and reproduction, which we include in our DEB model (see Figure I in Box 1). 
 
-DEB models incorporate a simple Gompertz mortality function to capture senescence, but do not integrate the effects of thermal load accumulation in response to extreme heat events into survival functions (we assume reproduction is not impacted for simplicity). Using thermal sensitivity parameters from TLS (i.e. $z$, slope and $\alpha$ = critical thermal limit), which differ for each species, we can calculate heat injury (HI) accumulated between time point $t_{i}$ and $t_{i+1}$ (using an $LT_{100}$ threshold), and integrate this across life (@eq-hi).
+DEB models incorporate a simple Gompertz mortality function to capture senescence, but do not integrate the effects of thermal load accumulation in response to extreme heat events into survival functions (we assume reproduction is not impacted for simplicity). Using thermal sensitivity parameters from TLS (i.e. $z$, slope and $\alpha$ = critical thermal limit), which differ for each species, we can calculate heat injury (HI) accumulated between time point $t_{i}$ and $t_{i+1}$ (using an $LT_{100}$ threshold), and integrate this across life (@eq-hi) (Fig IIA).
 $$ 
 HI = \sum_{i = 1}^{T_{e} > T_{c}} \frac{100 \cdot \left(t_{i+1} - t_{i} \right)}{10^{\left(- \frac{1}{z} \cdot max\left(T_{i}; T_{i+1}\right) + \alpha \right)}} 
 $$ {#eq-hi}
 
-After calculating HI, and thus probability of mortality through time, we can multiply the mortality rate at each time step $t$ from the Gompertz mortality rate and the mortality rate due to HI accumulation from TLS. In combination with the DEB model outputs on total reproduction across life, we can build a simple stage-structured population matrix to estimate population growth rate ($R_{0} = \sum{l_{x} \cdot m_{x}}$ = ) for each species under their respective microclimates and include this in a two-species Ricker model to calculation their population growth under competition (@eq-general).
+After calculating HI, and thus probability of mortality through time, we can multiply the mortality rate at each time step $t$ from the Gompertz mortality rate and the mortality rate due to HI accumulation from TLS. In combination with the DEB model outputs on total reproduction across life, we can build a simple stage-structured population matrix (Fig IIB) to estimate population growth rate ($r_{max}$ = ln($\lambda$)) for each species under their respective microclimates and include this in a two-species Ricker model to calculation their population growth under competition (@eq-general).
 
 $$
 N_{t+1}^i = N_t^i \cdot \lambda_i^{\left(1 - \frac{N_t^i + \sum_{j \neq i} \alpha_{ij} N_t^j}{K_i}\right)}
 $$ {#eq-general}
 
-where $N_t^i$ is the population size of species $i$ at time $t$, $\lambda_i$ is the intrinsic growth rate of species $i$, $K_i$ is the carrying capacity of species $i$, and $\alpha_{ij}$ is the competition coefficient that describes how much species $j$ affects species $i$. When $\alpha_{ij}$ = 1, species $j$ competes just as strongly as species $i$ does with itself. When $\alpha_{ij}$ < 1, then species $j$ has a weaker effect on species $i$ then conspecifics and $\alpha_{ij}$ > 1, indicates that species $j$ has a stronger effect on species $i$ than conspecifics. The sum runs over all species $j$ that are not equal to $i$, which means that the model can be extended to include any number of species within a community.
+where $N_t^i$ is the population size of species $i$ at time $t$, $\lambda_i$ is the intrinsic growth rate of species $i$, $K_i$ is the carrying capacity of species $i$, and $\alpha_{ij}$ is the competition coefficient that describes how much species $j$ affects species $i$. Given mechanistic models of physiology, the stage-structured population matrix can be updated to reflect changes in vital rates (survival and reproduction) under different microclimates and thermal sensitivities each generation.
 
-```{r}
-#| label: fig-box3
+```{r, fig-box2}
+#| label: fig-box2
 #| eval: true
-#| fig-cap: "Figure II: **Impacts of extreme heat on natural and production ecosystems will cascade to affect people, both locally and in distant human-dominated systems such as cities**. Decisions made by people in these communities in response to these changes will affect the ecosystems on which they rely, creating an interdependent social-ecological system. Created with BioRender.com."
+#| fig-cap: "Figure II: **A systems approach to using mechanistic physiological models to capture life-cycle vital rates and thermal load stress on survival to scale up to multi-species population dynamics. Created with BioRender.com."
 
 # Load the image
-img <- image_read(here("figs", ))
+img <- image_read(here("figs", "Fig_Box2.pdf"))
 grid::grid.raster(img)
 
 ```

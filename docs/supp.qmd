@@ -846,6 +846,8 @@ Now that we have predictions about body temperatures we can incorporate thermal 
 
 Note that in Box 1, we ran the biophysical model with DEB turned on, but we only extracted body temperature information. So, in essence, we already coupled heat and water-budget models with dynamic energy budget models for grasshoppers. Here, we will extract the DEB model and do a bit more with it. 
 
+
+## Capturing impacts of extreme heat on physiological function across the life-cycle
 First, we'll need some functions to extract life-cycle details from the DEB model output and compute survival probabilities.
 
 ```{r, grasshopper_lifecycle_functions}
@@ -938,8 +940,8 @@ update_p_surv <- function(debout_post_hatch, m_h, m_i, m_a, m_tls){
 #' @title get_lifecycle_vitals: Extract life-cycle vitals from DEB model output
 #' @description Derives key life-history parameters from DEB model output, including survival,
 #' fecundity, longevity, generation time, and the population growth rate (`rmax`).
-#' The function builds a stage-structured life table and estimates the dominant
-#' eigenvalue (λ) of the Leslie matrix to calculate `rmax`.
+#' The function builds a stage-structured matrix and estimates the dominant
+#' eigenvalue (λ) of the matrix to calculate `rmax`.
 #' @param alive_debout A data frame of post-hatch DEB output (from [get_alive()]),
 #'   with columns `STAGE`, `E_B`, and updated survival probabilities (`P_SURV2`).
 #' @param ecto A DEB model object containing at least a `yearout` component with
@@ -950,7 +952,7 @@ update_p_surv <- function(debout_post_hatch, m_h, m_i, m_a, m_tls){
 #'   \item{rmax}{Intrinsic rate of increase (log of λ).}
 #'   \item{longevity}{Longevity in years (based on time steps in `alive_debout`).}
 #'   \item{generation_time}{Age at first reproduction (years).}
-#'   \item{stage_str}{Stage-structured life table (Leslie matrix).}
+#'   \item{stage_str}{Stage-structured matrix.}
 #' }
 #' @examples
 #' vitals <- get_lifecycle_vitals(alive_debout = alive_data, ecto = ecto)
@@ -990,7 +992,7 @@ get_lifecycle_vitals <- function(alive_debout, ecto){
 
   return(list(lambda = round(life_table_eigen, 2),
               rmax = round(rmax, 2),
-         longevity = longevity / 24 / 365,
+         longevity = longevity / 24 / 365,   # days
    generation_time = generation_time,
          stage_str = build_life_table))
 }
@@ -1089,7 +1091,7 @@ load(here("output", "microclim", "grasshopperB_stomata_open_Box1.RDa"))     #ect
  TAL <- 50000            # Arrhenius temperature lower, K
  TAH <- 100000           # Arrhenius temperature upper, K
 TREF <- 20 + 273.15      # reference temperature, K
-kdot_ref <- 0.05         # repair rate % per minute at ref temp 25 deg C
+kdot_ref <- 0.05         # repair rate % per minute at ref temp 20 deg C
 
 # Baseline mortality rates to add to DEB. TLS and differences in hatch mortality will be added to these baseline rates differently for each species
   m_i <- 0     # mortality per hour inactive
@@ -1138,12 +1140,6 @@ damage_w_repairA  <- damage_repair_accum( temp = tbA,
                                             TH = TH,
                                           TREF = TREF,
                                       kdot_ref = repair_rateA) / 100
-
-# Check
-par(mfrow = c(3,1))
-plot(timeA, tbA, type = 'l', xlab = 'Time (min)', ylab = 'Body Temperature (C)')
-plot(timeA, damageA, type = 'l', xlab = 'Time (min)', ylab = 'Accumulated Mortality (%)')
-plot(timeA, damage_w_repairA, type = 'l', xlab = 'Time (min)', ylab = 'Accumulated Mortality (%)')
 
 # Now that we have the probability of mortality from thermal load stress, we can update the survival probabilities in the DEB model output. Note that DEB model already has some baseline mortality rates from the Gompertz ageing model, so we are adding additional sources of mortality.
 
@@ -1200,13 +1196,6 @@ damage_w_repairB  <- damage_repair_accum(  temp = tbB,
                                           TREF = TREF,
                                       kdot_ref = repair_rateB) / 100
 
-
-# Check
-par(mfrow = c(3,1))
-plot(timeB, tbB, type = 'l', xlab = 'Time (min)', ylab = 'Body Temperature (C)')
-plot(timeB, damageB, type = 'l', xlab = 'Time (min)', ylab = 'Accumulated Mortality (%)')
-plot(timeB, damage_w_repairB, type = 'l', xlab = 'Time (min)', ylab = 'Accumulated Mortality (%)')
-
 # Now that we have the probability of mortality from thermal load stress, we can update the survival probabilities in the DEB model output
 
   m_h <- 0.05   # mortality at hatch
@@ -1220,9 +1209,214 @@ debout_post_hatch_B <- update_p_surv(debout_post_hatch_B,
 # Now we can extract life-cycle details
 lifecycle_B <- get_lifecycle_vitals(debout_post_hatch_B, ectoB)
 
+
+### Create a TLS figure for box 2
+
+# Check
+# par(mfrow = c(3,1))
+# plot(timeA, tbA, type = 'l', xlab = 'Time (min)', ylab = 'Body Temperature (C)')
+# plot(timeA, damageA, type = 'l', xlab = 'Time (min)', ylab = 'Accumulated Mortality (%)')
+# plot(timeA, damage_w_repairA, type = 'l', xlab = 'Time (min)', ylab = 'Accumulated Mortality (%)')
+# plot(timeB, tbB, type = 'l', xlab = 'Time (min)', ylab = 'Body Temperature (C)')
+# plot(timeB, damageB, type = 'l', xlab = 'Time (min)', ylab = 'Accumulated Mortality (%)')
+# plot(timeB, damage_w_repairB, type = 'l', xlab = 'Time (min)', ylab = 'Accumulated Mortality (%)')
+
+# Create a plot of body temperatures for both species with a secondary axis showing the accumulated thermal load for mortality
+
+# Species A
+p1_tlA <- ggplot() +
+annotate("rect",
+           xmin = 1800, xmax = 2500,
+           ymin = -Inf, ymax = Inf,
+           fill = "red", alpha = 0.2) +
+  labs(x = "Time (hours)", y = "Body Temperature (°C)") +
+geom_line(aes(x = timeA / 60, y = tbA), color = "#E5D3B3", size = 0.5) +
+geom_line(aes(x = timeA / 60, y = damage_w_repairA * 500), color = "red") + 
+scale_y_continuous(
+    name = "Probability of Survival (Thermal Load Stress)", 
+    sec.axis = sec_axis(~ . / 500, name = "Body temperature (°C)")) +
+  theme_classic() +
+  theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none", legend.text = element_text(size = 14), axis.text = element_text(size = 14), axis.title = element_blank())  
+
+# Species B
+p2_tlB <- ggplot() +
+annotate("rect",
+           xmin = 1800, xmax = 2500,
+           ymin = -Inf, ymax = Inf,
+           fill = "red", alpha = 0.2) +
+  labs(x = "Time (hours)", y = "Body Temperature (°C)") +
+geom_line(aes(x = timeB / 60, y = tbB), color = "#664229", size = 0.5) +
+geom_line(aes(x = timeB / 60, y = damage_w_repairB * 500), color = "red") + 
+scale_y_continuous(
+    name = "Probability of Survival (Thermal Load Stress)", 
+    sec.axis = sec_axis(~ . / 500, name = "Body temperature (°C)")) +
+  theme_classic() +
+  theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none", legend.text = element_text(size = 14), axis.text = element_text(size = 14), axis.title = element_blank(), axis.text.y.left = element_blank())  
+
+# Combine plots
+ggsave(p1_tlA | p2_tlB + plot_layout(ncol = 1), width = 11.876543, height = 4.839506, dpi = 600, filename = here("figs", "fig_grasshopper_TLS_box2.png"))
+
 ```
 
-# Detailed Guide to Code
+
+## Modelling population dynamics of the two grasshopper species including density dependence and interactions
+
+We now have key vital rate information for each species that incorperates physiologically explicit processes governing growth, survival and reproduction. We can now use this information to model population dynamics of the two species including density dependence and interspecific interactions.
+
+One way (of many) we could model the population dynamics of the two species is to use a discrete-time Ricker model that incorporates both intra and interspecific competition. The general form of the model is as follows:
+
+$$
+N_{t+1}^i = N_t^i \cdot \lambda_i^{\left(1 - \frac{N_t^i + \sum_{j \neq i} \alpha_{ij} N_t^j}{K_i}\right)}
+$$ {#eq-general}
+
+where $N_t^i$ is the population size of species $i$ at time $t$, $\lambda_i$ is the intrinsic growth rate of species $i$, $K_i$ is the carrying capacity of species $i$, and $\alpha_{ij}$ is the competition coefficient that describes how much species $j$ affects species $i$. When $\alpha_{ij}$ = 1, species $j$ competes just as strongly as species $i$ does with itself. When $\alpha_{ij}$ < 1, then species $j$ has a weaker effect on species $i$ then conspecifics and $\alpha_{ij}$ > 1, indicates that species $j$ has a stronger effect on species $i$ than conspeecifics. The sum runs over all species $j$ that are not equal to $i$, which means that the model can be extended to include any number of species within a community.
+
+As with any model there are assumptions that need to be considered. In this case:
+
+1. it again assumes discrete non-overlapping generations. 
+2. it assumes $\lambda$, $K$ and now $\alpha_{ij}$ are constant over time, ignoring any effects of environmental stochasticity, changing interaction strengths between species or evolution. Again, these assumptions can be relaxed. For example, $\alpha_{ij}$ can of course vary depending on the environment and could be viewed as a function in of itself. As such, we could, for example, couple our mircoclimate and biophysical model predictions to estimate how $\alpha_{ij}$ varies as a function of temperature, water or even resource availability based on experimental data describing how $\alpha_{ij}$ varies as across different environments.
+3. it assumes that population growth is limited by the total effective density based on both intra and interspecific effects. It also assumes these act additively on the log scale. 
+4. it assumes a closed system with no emmigration or immigration. 
+5. while we assume symmetric interactions, it allows for asymmetric interaction (i.e., $\alpha_{ij} \neq \alpha_{ji}$) 
+
+For now, we will assume that the population is closed and that $K$ is constant over time. While this model allows for asymmetric interaction (i.e., $\alpha_{ij} \neq \alpha_{ji}$), we will assume that the interactions are symmetric (i.e., $\alpha_{ij} = \alpha_{ji}$). We will also assume that $\lambda$ varies slightly over time and add this to our model to demonstrate how you can relax assumptions of $\lambda$, $K$ and $\alpha_{ij}$ being constant over time.
+
+We'll need some functions to run the population dynamics model.
+
+```{r, ricker_two_species_functions_box2}
+#| label: ricker_two_species_functions_box2
+#| echo: true
+#| warning: false
+#| message: false
+#| code-fold: false
+
+#' @title Ricker two species function
+#' @description A simple Ricker model function to simulate population dynamics for multiple species
+#' @param N0   Initial population size of species i
+#' @param r_i    Intrinsic growth rate for species i
+#' @param sd_r_i Standard deviation of the growth rate for species i
+#' @param K_i    Carrying capacity for species i
+#' @param alpha_ij Competition coefficient for species j on species i
+#' @param N0_j   Initial population size of species j
+#' @return     Next years population size
+ricker_two <- function(N0_i, r_i, sd_r_i, K_i, N0_j, alpha_ij){
+  N0_i * exp(rnorm(1, r_i, sd_r_i)*(1 - ((N0_i + (alpha_ij * N0_j))/K_i)))
+}
+
+## Create a function to do a stochastic simulation of the two species Ricker model
+#' @title Two species ricker model simulation function
+#' @description A simple two species Ricker model function to simulate population dynamics for two species
+#' @param N0_i     Initial population size of species i
+#' @param r_i      Intrinsic growth rate for species i
+#' @param sd_r_i   Standard deviation of the growth rate for species i
+#' @param K_i      Carrying capacity for species i
+#' @param N0_j     Initial population size of species j
+#' @param r_j      Intrinsic growth rate for species j
+#' @param sd_r_j   Standard deviation of the growth rate for species j
+#' @param K_j      Carrying capacity for species j
+#' @param alpha_ij Competition coefficient for species j on species i
+#' @param time     Time step
+#' @param nsims    Number of replicates
+#' @return         A matrix of population sizes at each time step for nsims
+
+sim_ricker_two_sp <- function(N0_i, r_i, sd_r_i, K_i, N0_j, r_j, sd_r_j, K_j, alpha_ij, time, nsims){
+  # Create a vector to store the population size at each time step
+  N_array_i <- array(NA, dim = c(time, nsims)) 
+  N_array_j <- array(NA, dim = c(time, nsims))
+  
+  for(j in 1:nsims){
+    # Create arrays to store population sizes and initilise with initial population sizes
+        N_array_i[1,j] <- N0_i
+        N_array_j[1,j] <- N0_j
+    
+    for(i in 2:time){
+      # Calculate the population size in the next time step for species i
+        N_array_i[i,j] <- ricker_two(N_array_i[i-1, j], r_i, sd_r_i, K_i, N_array_j[i-1, j], alpha_ij)
+
+      # Calculate the population size in the next time step for species j
+        N_array_j[i,j] <- ricker_two(N_array_j[i-1, j], r_j, sd_r_j, K_j, N_array_i[i-1, j], alpha_ij)
+    }
+  }
+  # Return the population size at each time step for species i and j
+  return(list(N_i = N_array_i, N_j = N_array_j))
+}
+
+```
+
+
+
+```{r, ricker_simulation_twosp_box2}
+#| label: ricker_simulation_twosp_box2
+#| echo: true
+#| message: false
+#| warning: false
+
+set.seed(123) # Set seed for reproducibility
+
+# Set up the parameters for the Ricker model
+      N0_A <- 1000     # Initial population size, species A
+      N0_B <- 500      # Initial population size, species B
+    sd_r_A <- 0.15     # Standard deviation of the growth rate species A
+    sd_r_B <- 0.15     # Standard deviation of the growth rate species B
+       K_A <- 10000    # Carrying capacity species A
+       K_B <- 10000    # Carrying capacity species B
+r_A <- lifecycle_A$rmax # Intrinsic growth rate species A and B open watering scenerio 
+r_B <- lifecycle_B$rmax # Intrinsic growth rate species A and B closed watering scenerio
+  alpha_AB <- 0.8      # Competition coefficient. Assumed not to vary with environment
+    time <- 10         # Time steps
+   nsims <- 1000       # Number of simulations
+
+# Lets run the simulations
+
+N_heat <- sim_ricker_two_sp( N0_i = N0_A, 
+                              r_i = r_A, 
+                           sd_r_i = sd_r_A, 
+                              K_i = K_A, 
+                             N0_j = N0_B, 
+                              r_j = r_B, 
+                           sd_r_j = sd_r_B, 
+                              K_j = K_B, 
+                         alpha_ij = alpha_AB, time, nsims)
+
+
+# Create a data frame to store the results for each species for each scenerio
+sims_pop <- plyr::ldply(lapply(N_heat, function(x){ 
+                            pivot_longer(as.data.frame(x), 
+                            cols = everything(), 
+                        names_to = "sim", 
+                       values_to = "N")  %>% 
+               mutate(time = rep(1:time, each = nsims))}))
+
+
+```
+
+Code to plot the results and export part of the box figure below:
+
+```{r, fig-ricker_twosp_box2}
+#| label: fig-ricker_twosp_box2
+#| echo: true
+#| code-fold: true
+#| message: false
+#| warning: false
+
+  # Create a summary of the simulations to make plotting easier
+   sims_heat  <- sims_pop  %>% group_by(.id, time) %>%
+  summarise(N_m = mean(N), sd = sd(N)) 
+, "Species B (Stomata Open)" = "#664229"
+
+# Plot the results
+p1 = ggplot(sims_heat, aes(x = time, y = N_m, colour = .id, fill = .id)) +
+geom_ribbon(aes(ymin = N_m - sd, ymax = N_m + sd), alpha = 0.3, colour = NA) +
+  geom_line() +
+  labs(x = "Generation (time)", y = "Population size (N)") + theme_classic()  + scale_colour_manual(values = c("#E5D3B3", "#664229")) + scale_fill_manual(values = c("#E5D3B3", "#664229")) + theme(legend.position = "none", axis.text = element_text(size = 14), axis.title = element_blank())
+  
+# Save the plot
+# ggsave(here("figs", "fig-ricker_twosp_box2.png"), p1, width = 6, height = 5,  dpi = 600)
+```
+
+More complex models that incorporate a multitude of species and their interactions can be built using the same principles [e.g., @Bimler2018; @Bimler2023; @Bimler2024]. Information on interaction strength between species can be used to understand how species coexistence is expected to change under extreme heat scenarios.
+
+# A Detailed Guided Introduction to Code in the Boxes
 
 To make the more complicated examples above clearer we also provide six hypothetical case studies that build greater complexity to help understand the concepts in the Boxes. We provide theory and code with each of our case studies in the hopes that it stimulates easier application and development of our ideas. Models and code will of course always need to be modified to suite the specific system in question and should be validated against empirical data. 
 
@@ -2767,78 +2961,6 @@ mutate(across(where(is.numeric), sprintf, fmt = '%.2f')) %>%
 datatable(.,
             extensions = "Buttons",
             rownames = FALSE)
-
-```
-
-#### Incorporating thermal load impacts on survival into population dynamics
-
-As shown in [Case Study 2](#case2), extreme heat can have significant impacts on survival of ectotherms. We can incorporate this into our DEB models as an additional source of mortality. Combining mortality, reproduction and development time allows us to estimate the intrinsic growth rate ($r$) of each species under each scenario. This is done using the life-cycle outputs from the DEB model as shown in @tbl-grasshopperssp_lifecycle.
-
-```{r, TLS}
-#| label: TLS
-#| echo: true 
-
-# Load in the DEB model for scenerio 1 ****UPDATE OBJECT*****
-  load(here("output", "microclim", "grasshopper_stomata_open_DEB.RDa"))
-  
-
-# Extract the key traits we need from the life-cycle output so that we can calculate r_max
-           traits <- c("FECUNDITY", "CLUTCHES", "LifeSpan", "rmax")  
-  life_cycle_open <- data.frame(ecto$yearout)[,traits]
-           debout <- data.frame(ecto$debout)
-  debout$datetime <- dates[subs]
-
-#plot(debout$datetime, debout$WETMASS, type = 'l')
-
-# We first need to get all the data for when the animal is alive, structure always > 0 when alive so we can use that to subset the data
-debout_alive <- debout[debout$V > 0, ]  
-
-# Then, we can subset to just the post-hatch period
-debout_post_hatch <- debout[debout$V > 0 & debout$STAGE > 0, ] 
-
-# plot(debout_post_hatch$P_SURV, type = 'l') # survival probability over life-cycle
-
-# Now we can define the mortality rates
-m_h <- 0.5   # mortality at hatch
-m_i <- 0     # mortality per hour inactive
-m_a <- 1e-4  # mortality per hour active
-
-# 
-longevity <- nrow(debout_alive) # hours
-plot(debout_alive$E_B, type = 'l') # egg batch reproduction buffer
-E_B_diff <- debout_alive$E_B[2:longevity] - debout_alive$E_B[1:(longevity - 1)]
-plot(E_B_diff, type = 'l')
-age_first_repro <- which(E_B_diff < 0)[1]
-generation_time <- age_first_repro / 24 / 365
-abline(v = age_first_repro, col = 2)
-
-# Now we can adjust the survival probability to include mortality at hatch. Note that P_SURV is survival and so we need to turn our mortality rates inferto survival probabilities, which is why we see (1 - m_h) and (1 - m_a) below. We can get total surival by simply multiplying the independent survival probabilities together.
-
-debout_post_hatch$P_SURV2 <- debout_post_hatch$P_SURV * (1 - m_h) 
-for(i in 2:nrow(debout_post_hatch)){
-  debout_post_hatch$P_SURV2[i] <- debout_post_hatch$P_SURV2[i-1] * (1 - m_a)
-}
-
-# We can check that the survival probabilities look correct by comparing initial with the combined survival probabilities
-  plot(debout_post_hatch$P_SURV, type = 'l', ylim = c(0, 1))
-  points(debout_post_hatch$P_SURV2, type = 'l', col = 2)
-
-# Now that we have survival probability and reproduction we can calculate r_max.. not sure this is totally correct yet ebcause we have an whole life cyle of probabilities and we nee dto find the points when reproduction occures and 
-  L_x <- min(debout_post_hatch$P_SURV2) # Why min?
-  #L_x <- min(debout_post_hatch$P_SURV) # This should match the calculation of r_max from the life-cyle output, but it doesn't.
-  M_x <- life_cycle_open$FECUNDITY
-  R_0 <- L_x * M_x
-  r_max <- log(R_0) / generation_time
-  r_max
-
-# But could we do this by creating a matrix population model..starting like this but we need some tranistion probabilities between stages...or could just multiply the stages with fecundity vector and probably the same.
-stage_str <- debout_post_hatch  %>% group_by(STAGE) %>% summarise(P_SURV = mean(P_SURV2),
-                                                          E_B = mean(E_B),
-                                                          fecundity = ifelse(E_B == 0, 0, life_cycle_open$FECUNDITY)) # Reproductive buffer energy, can see we only have a single reproductive event.
-  R0 <- stage_str$P_SURV %*% stage_str$fecundity. 
-  rmax <- log(R0) / generation_time
-
-## New approach is pretty close to Mike's but need to understand mismatch better in lifecycle output.
 
 ```
 
