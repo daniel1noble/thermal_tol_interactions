@@ -1739,18 +1739,29 @@ names(environ_plant) <- listnames
                                                           ifelse(.id == "environ_plant_20", "Watering (20 mm)", NA))))))  %>% 
                             mutate(.id = factor(.id, levels = c("Original Rainfall", "Watering (2 mm)", "Watering (5 mm)", "Watering (10 mm)", "Watering (20 mm)")))
 
-# Now lets plot the leaf temperature of the plant over time for each of the three different watering scenarios
-plant_temps_water <- environ_plant2  %>% filter(dates > "2019-01-15" & dates < "2019-01-31")  %>% 
-  ggplot() + 
-              geom_line(aes(y = TC, x = dates, col = .id), show.legend = TRUE) +
-              labs(y = "Leaf Temperature (°C)", x = "Date") + theme_classic() +
-              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "top") + 
-              scale_colour_viridis_d() + theme(legend.title = element_blank(),
-                                                legend.text = element_text(size = 12),
-                                                axis.title = element_text(size = 18),
-                                                axis.text = element_text(size = 12)) 
+```
 
-plant_temps_water
+
+```{r, fig_plant_temp_water_main}
+#| label: fig-fig_plant_temp_water_main
+#| echo: true
+#| warning: false
+#| message: false
+#| eval: false
+
+# Now lets plot the leaf temperature of the plant over time for each of the three different watering scenarios
+plant_temps_water <- environ_plant2  %>% filter(dates > "2019-01-15" & dates < "2019-01-20")  %>% 
+  ggplot() + 
+              geom_line(aes(y = TC, x = dates, col = .id), show.legend = TRUE, size = 1) +
+              labs(y = "Leaf Temperature (°C)", x = "Date") + theme_classic() +
+              theme(legend.position = "none") + 
+              scale_colour_viridis_d() + theme(legend.title = element_blank(),
+                                                legend.text = element_blank(),
+                                                axis.title = element_text(size =24),
+                                                axis.text.x = element_blank(), 
+                                                axis.text.y = element_text(size = 20)) 
+# Export the figure for Fig 2 in paper
+ggsave(plant_temps_water, filename = here("figs", "fig-plant_temp2.png"), width = 8.580247, height = 6.111111, dpi = 600)
 
 ```
 
