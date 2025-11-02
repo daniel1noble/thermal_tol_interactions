@@ -43,7 +43,7 @@ $\dagger$ These authors contributed equally to this work.
 #### Keywords: plant-animal interactions, microclimate, biophysical models, thermal load sensitivity, dynamic energy budget models, coexistence theory, ecological modelling
 
 # Abstract
-Anthropogenic climate change is leading to more frequent and extreme heat waves. These short-term but large-scale events are radically re-shaping interactions among organisms, impacting biodiversity, community composition and ecosystem services crucial to natural systems and food security. Predicting heat wave impacts on interacting species requires an understanding of the processes driving differential exposure and sensitivity of organisms to extreme heat events in a life-cycle context. To achieve this predictive capacity, we need to integrate models across scales while capturing species-specific responses at the level of individuals. We review how existing models in disparate fields can be linked to achieve a level of understanding necessary for calculated responses to extreme heat from individuals to communities, now and into the future.
+Anthropogenic climate change is leading to more frequent and extreme heat waves. These large-scale events are radically re-shaping interactions among organisms, impacting biodiversity, community composition and ecosystem services crucial to natural systems and food security. Predicting heat wave impacts on interacting species requires an understanding of the processes driving differential exposure and sensitivity of organisms to extreme heat events in a life-cycle context. To achieve this predictive capacity, we need to integrate models across scales while capturing species-specific responses at the level of individuals. We review and demonstrate how existing models in disparate fields can be linked to achieve a level of understanding necessary for calculated responses to extreme heat from individuals to communities, now and into the future
 
 # A systems-modelling approach to modelling biotic impacts of heatwaves
 
@@ -182,7 +182,7 @@ Extreme heat will have dramatic and widespread effects on biological and socioec
 #| fig-cap: "How a systems modelling approach to extreme heat can be used to inform solutions. Drawing on our case study of insect-plant interactions (**Boxes 1 & 2**), we can use weather data to predict microclimates and thus leaf and body temperatures of insects. Given the associated heatwave is also during a period of drought, we are limited in water availability. Our goal is to use minimal water to cool plants while also preventing pest outbreaks. Adjusting the watering scenarios during the heatwave event increases water availability in our microclimate. We can then update the calculations of leaf and insect body temperature using biophysical models that account for the cooling effects of evaporation. Using our physiological models we can then predict how these different watering scenarios grasshopper life-cycles and population dynamics. We show how comparing amoung these different scenarios can inform management decisions given that watering 5 mm d^-1^ is optimal for both plant cooling and pest suppression (reduced population growth). Created with BioRender.com."
 
 # Load the image
-img <- image_read(here("figs", "Fig2_final.png"))
+img <- image_read(here("figs", "Fig 2_rev1.png"))
 grid::grid.raster(img)
 
 ```
