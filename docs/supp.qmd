@@ -60,7 +60,7 @@ The code below loads the required packages that are needed.
 # devtools::install_github("ilyamaclean/microclima")
 
 # Load required libraries after the installation
-pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable, NicheMapR, terra, microclima, plantecophys, magick, here, ggrepel, lutz, R.matlab, magick, grid, DT, latex2exp)
+pacman::p_load(devtools, deSolve, ggplot2, dplyr, tidyr, purrr, patchwork, equatags, flextable, NicheMapR, terra, microclima, plantecophys, magick, here, ggrepel, lutz, R.matlab, magick, grid, DT, latex2exp, popbio, popdemo)
 
 ```
 
@@ -963,7 +963,7 @@ update_p_surv <- function(debout_post_hatch, m_h, m_i, m_a, m_tls){
 #' vitals <- get_lifecycle_vitals(alive_debout = alive_data, ecto = ecto)
 #' vitals$rmax
 #'
-get_lifecycle_vitals <- function(alive_debout, ecto){
+get_lifecycle_vitals <- function(alive_debout, ecto, type = STAGE){
   
   # Fecundity data
   life_cycle_open <- data.frame(ecto$yearout)
@@ -976,10 +976,10 @@ get_lifecycle_vitals <- function(alive_debout, ecto){
 
   # Create stage-specific survival and fecundity
    stage_str <- alive_debout  %>% 
-                group_by(STAGE) %>% 
+                group_by({{type}}) %>% 
                 summarise(P_SURV = mean(P_SURV2),
                              E_B = mean(E_B),
-                       fecundity = ifelse(E_B == 0, 0, life_cycle_open$FECUNDITY)) # Reproductive buffer energy, can see we only have a single reproductive event.
+                       fecundity = ifelse(E_B == 0, 0, life_cycle_open$FECUNDITY/life_cycle_open$CLUTCHES)) # Reproductive buffer energy, can see we only have a single reproductive event.
 
     # Build the Leslie matrix. First row fecundnity across stages, sub-diagonal survival probabilities
     build_life_table <- matrix(0, nrow = nrow(stage_str), ncol = nrow(stage_str))
@@ -991,15 +991,20 @@ get_lifecycle_vitals <- function(alive_debout, ecto){
     }
     build_life_table[nrow(build_life_table), ncol(build_life_table)] <- stage_str$P_SURV[nrow(build_life_table)] 
 
-   #Estimate rmax from eigenvalue approach
+   #Estimate rmax and other demographic parameters from eigenvalue approach
    life_table_eigen <- Re(eigen(build_life_table)$values[1])
-    rmax <- log(life_table_eigen)
-
+               rmax_log <- log(life_table_eigen)
+            lambda_dem <- popbio::lambda(build_life_table)  # double check
+           gen_time_dem <- popbio::generation.time(build_life_table)
+    net_reproductive_rate_dem <- popbio::net.reproductive.rate(build_life_table)
+  
   return(list(lambda = round(life_table_eigen, 2),
-              rmax = round(rmax, 2),
+              rmax = round(rmax_log, 2),
          longevity = longevity / 24 / 365,   # days
+          net_reproductive_rate_dem = round(net_reproductive_rate_dem, 2),
+        gen_time_dem = round(gen_time_dem, 2),
    generation_time = generation_time,
-         stage_str = build_life_table))
+         matrix = build_life_table))
 }
 
 #' @title damage_accum
@@ -1132,7 +1137,7 @@ load(here("output", "microclim", "grasshopperB_stomata_open_Box1.RDa"))     #ect
 
 # Thermal Load sensitivity parameters for species A. Note that CTmax and z are values derived from a regression between temperture (yaxis) and log time to 50% mortality (xaxis). See Arnold et al. 2025 for more details. We need to invert these values to get the intercept and slope for the damage accumulation function.
  ctmaxA <- 50            # CTmax1h
-     zA <- -0.19          # z (slope), negative indicates decrease in survival with time which it must do as animals don't get better the longer they are at stressful temps
+     zA <- -0.9          # z (slope), negative indicates decrease in survival with time which it must do as animals don't get better the longer they are at stressful temps - try -0.9
 alphaA  <- -ctmaxA/zA    # Need these for the log time accumulation function
   betaA <- 1 / zA        # Need these for the log time accumulation function
 
@@ -1156,9 +1161,8 @@ debout_post_hatch_A <- update_p_surv(debout_post_hatch_A,
                                     m_i = m_i,    # mortality for inactive hour
                                     m_tls = damageA$mortality_prob)    # Heat load mortality
 
-# Now we can extract life-cycle details. Life cycle model assumes all animals progress to the next stage that survive. Given we have multiple life stages we create a stage-structured matrix to capture survival and fecundity at each stage, and quantify the probability of transitioning through each stage. From this, we can estimate population growth rate (rmax) and other life-cycle details.
-
-lifecycle_A <- get_lifecycle_vitals(debout_post_hatch_A, ectoA)
+# Now we can extract life-cycle details. Life cycle model assumes all animals progress to the next stage that survive. Given we have multiple life stages we create a stage-structured matrix to capture survival and fecundity at each stage, and quantify the probability of transitioning through each stage. From this, we can estimate population growth rate (rmax) and other life-cycle details. # Note that this could be an age/stage structure here by setting type = DAY it's an age structured model and should be more comparable across species with different development times.
+lifecycle_A <- get_lifecycle_vitals(debout_post_hatch_A, ectoA, type = STAGE) 
 
 ## ------------------## 
 # Species B
@@ -1196,7 +1200,6 @@ debout_post_hatch_B <- update_p_surv(debout_post_hatch_B,
 
 # Now we can extract life-cycle details
 lifecycle_B <- get_lifecycle_vitals(debout_post_hatch_B, ectoB)
-
 
 ### Create a TLS figure for box 2
 
