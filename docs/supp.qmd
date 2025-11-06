@@ -1077,29 +1077,29 @@ damage_repair_accum <- function(time, temp, intercept, slope, threshold = 0.5, T
     damage_repair <- c()
   for(i in 1:length(temp)){
     repair_rate <- (exp(TA*(1/TREF-1/max(TK[i + 1], TK[i]))/(1+exp(TAL*(1/max(TK[i + 1], TK[i])-1/TL))+exp(TAH*(1/TH-1/max(TK[i + 1], TK[i])))))*kdot_ref) # per minute repair rate
-    damage_repair[i] <- damage$damage_i[i] - (repair_rate * (time[i+1] - time[i]))  # time in minutes
+    damage_repair[i] <- damage$damage_i[i] - (repair_rate * 10^(time[i+1] - time[i]))  # time in minutes
   }
   
   # If repair outweighs damage and the combined values are less than 0 then assign them zero.
   damage_repair[damage_repair < 0] <- 0
 
-  output$damage_repair <- damage_repair[!is.na(damage_repair)]
+  damage$damage_repair <- damage_repair[!is.na(damage_repair)]
 
   # Step 3: Sum the increments cumulatively to get accumulated heat damage through time
 
-  output$cum_damage_repair[1] <- output$damage_repair[1]
-  for (j in 2:nrow(output)) {
-    output$cum_damage_repair[j] <- output$cum_damage_repair[j - 1] + output$damage_repair[j]
+  damage$cum_damage_repair[1] <- damage$damage_repair[1]
+  for (j in 2:nrow(damage)) {
+    damage$cum_damage_repair[j] <- damage$cum_damage_repair[j - 1] + damage$damage_repair[j]
   }
 
   # Convert HI to survival probability at each time step given a threshold value used (50%, or 80% usually)
-  output$mortality_prob = (output$cum_damage_repair * threshold) / 100
+  damage$mortality_prob = (damage$cum_damage_repair * threshold) / 100
 
   # Now check that mortality cum damage and probabilities do not exceed 1 (100%)
-          output$mortality_prob[output$mortality_prob > 1] <- 1
-  output$cum_damage_repair[output$cum_damage_repair > 100] <- 100
+  damage$mortality_prob[damage$mortality_prob > 1] <- 1
+  damage$cum_damage_repair[damage$cum_damage_repair > 100] <- 100
 
-  return(output)
+  return(damage)
 }
 
 ```
@@ -1151,6 +1151,26 @@ damageA <- damage_accum(time = timeA,
                   intercept = alphaA, 
                       slope = betaA)
 
+# Set Arrhenius model and repair rate parameters        
+TA <- 14065 # Arrhenius temperature, K
+TL <- 10.5 + 273.15 # Arrhenius temperature lower threshold, K
+TH <- 28.5 + 273.15 # Arrhenius temperature upper threshold, K
+TAL <- 50000 # Arrhenius temperature lower, K
+TAH <- 100000 # Arrhenius temperature upper, K
+TREF <- 20 + 273.15 # reference temperature, K
+kdot_ref <- 0.02 # repair rate % per minute at ref temp 20 deg C
+
+damageA_repair <- damage_repair_accum(time = timeA, 
+                       temp = tbA, 
+                  intercept = alphaA, 
+                      slope = betaA,
+                         TA = TA, 
+                        TAL = TAL, 
+                        TAH = TAH,
+                         TL = TL, 
+                         TH = TH, 
+                       TREF = TREF, 
+                   kdot_ref = kdot_ref)
 # Now that we have the probability of mortality from thermal load stress, we can update the survival probabilities in the DEB model output. Note that DEB model already has some baseline mortality rates from the Gompertz ageing model, so we are adding additional sources of mortality.
 
 m_h <- 0.05   # mortality at hatch
@@ -1187,6 +1207,19 @@ damageB <- damage_accum(time = timeB,
                        temp = tbB, 
                   intercept = alphaB, 
                       slope = betaB)
+
+
+damageB_repair <- damage_repair_accum(time = timeB, 
+                       temp = tbB, 
+                  intercept = alphaB, 
+                      slope = betaB,
+                         TA = TA, 
+                        TAL = TAL, 
+                        TAH = TAH,
+                         TL = TL, 
+                         TH = TH, 
+                       TREF = TREF, 
+                   kdot_ref = kdot_ref)
 
 # Now that we have the probability of mortality from thermal load stress, we can update the survival probabilities in the DEB model output
 
