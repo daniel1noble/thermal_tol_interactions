@@ -805,6 +805,7 @@ Now we can have a look at the body temperature of both species under both microc
 #| echo: true
 #| code-fold: true
 
+## TO CHECK. Grasshoppers underground so maybe set so they cannot burrow which explains why they are the same temperature. Can also adjust the time to capture a spot when they diverse in Tb.
 # Load the two ectotherm models
 load(here("output", "microclim", "grasshopperspA_stomata_closed_Box1.RDa"))
 load(here("output", "microclim", "grasshopperB_stomata_open_Box1.RDa"))
