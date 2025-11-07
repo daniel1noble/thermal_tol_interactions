@@ -1040,6 +1040,8 @@ damage_accum <- function(time, temp, intercept, slope, threshold = 0.5) {
   # Now check that mortality cum damage and probabilities do not exceed 1 (100%)
   output$mortality_prob[output$mortality_prob > 1] <- 1
   output$cum_damage[output$cum_damage > 100] <- 100
+  output$temp <- temp[1:(length(time) - 1)]
+  output$time_min <- time[1:(length(time) - 1)]
 
   return(output)
 }
@@ -1074,36 +1076,48 @@ damage_repair_accum <- function(time, temp, intercept, slope, threshold = 0.5, T
   damage <- damage_accum(time = time, temp = temp, intercept = intercept, slope = slope, threshold = threshold)
 
   # Step 2: Calculate how much repair occurs at each time step based on temperature
-    damage_repair <- c()
-  for(i in 1:length(temp)){
+  damage_repair_i <- c()
+  for(i in 1:(length(TK)-1)){
+
     repair_rate <- (exp(TA*(1/TREF-1/max(TK[i + 1], TK[i]))/(1+exp(TAL*(1/max(TK[i + 1], TK[i])-1/TL))+exp(TAH*(1/TH-1/max(TK[i + 1], TK[i])))))*kdot_ref) # per minute repair rate
-    damage_repair[i] <- damage$damage_i[i] - (repair_rate * 10^(time[i+1] - time[i]))  # time in minutes
+
+    damage$damage_repair_i[i] <- damage$damage_i[i] - (repair_rate * (time[i+1] - time[i]))  # time in minutes on original scale
   }
-  
-  # If repair outweighs damage and the combined values are less than 0 then assign them zero.
-  damage_repair[damage_repair < 0] <- 0
+ 
+  # Step 3: Calculate net damage after repair at each time step. If repair produces a negative value, reset to 0 because there is no damage to repair if it's negative.
 
-  damage$damage_repair <- damage_repair[!is.na(damage_repair)]
+  for (j in 1:nrow(damage)) {
+              net_damage_repair_i <- damage$damage_i[j] + damage$damage_repair_i[j]
+    damage$net_damage_repair_i[j] <- ifelse(net_damage_repair_i < 0, 0, net_damage_repair_i)
+  }
 
-  # Step 3: Sum the increments cumulatively to get accumulated heat damage through time
-
-  damage$cum_damage_repair[1] <- damage$damage_repair[1]
+  #Step 4: Sum the increments cumulatively to get accumulated heat damage through time. Always reset to 0 of the repair produces a negative value because there is no damage to repair if it's negative. This prevents a buildup of negative values over time.
+  damage$cum_damage_repair[1] <- damage$net_damage_repair_i[1]
   for (j in 2:nrow(damage)) {
-    damage$cum_damage_repair[j] <- damage$cum_damage_repair[j - 1] + damage$damage_repair[j]
+    damage$cum_damage_repair[j] <- damage$net_damage_repair_i[j - 1] + damage$net_damage_repair_i[j]
   }
 
   # Convert HI to survival probability at each time step given a threshold value used (50%, or 80% usually)
   damage$mortality_prob = (damage$cum_damage_repair * threshold) / 100
 
   # Now check that mortality cum damage and probabilities do not exceed 1 (100%)
-  damage$mortality_prob[damage$mortality_prob > 1] <- 1
+          damage$mortality_prob[damage$mortality_prob > 1] <- 1
   damage$cum_damage_repair[damage$cum_damage_repair > 100] <- 100
+
+  # Set all values after tghe first instance of 100% mortality to 100% mortality
+  first_max_index <- which(damage$cum_damage_repair == 100)[1]
+  if (!is.na(first_max_index)) {
+    damage$cum_damage_repair[first_max_index:nrow(damage)] <- 100
+    damage$mortality_prob[first_max_index:nrow(damage)] <- 1
+  }
 
   return(damage)
 }
-
+# par(mfrow = c(3, 1))
+# plot(temp ~ time, data = damage, type = "l", xlim = c(109000, 120780))
+# plot(cum_damage_repair ~ time, data = damage, type = "l", xlim = c(109000, 120780))
+# plot(mortality_prob ~ time, data = damage, type = "l", xlim = c(109000, 120780))
 ```
-
 
 ```{r, grasshopper_lifecycle_box2_setup}
 #| label: grasshopper_lifecycle_box2_setup
@@ -1136,8 +1150,8 @@ load(here("output", "microclim", "grasshopperB_stomata_open_Box1.RDa"))     #ect
     environ_A_alive <- environ_A_alive %>% mutate(time_min = c(0:(n()-1))*60) # time in minutes
 
 # Thermal Load sensitivity parameters for species A. Note that CTmax and z are values derived from a regression between temperture (yaxis) and log time to 50% mortality (xaxis). See Arnold et al. 2025 for more details. We need to invert these values to get the intercept and slope for the damage accumulation function.
- ctmaxA <- 50            # CTmax1h
-     zA <- -0.9          # z (slope), negative indicates decrease in survival with time which it must do as animals don't get better the longer they are at stressful temps - try -0.9
+ ctmaxA <- 48            # CTmax1h, 50
+     zA <- -5.5          # z (slope), negative indicates decrease in survival with time which it must do as animals don't get better the longer they are at stressful temps - try -0.9
 alphaA  <- -ctmaxA/zA    # Need these for the log time accumulation function
   betaA <- 1 / zA        # Need these for the log time accumulation function
 
