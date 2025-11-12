@@ -494,7 +494,7 @@ photofinish <- 0                # no photoperiod effect on reproduction
     nocturn <- 1                # Nocturnal activity allowed (1) or not (0)?
      crepus <- 1                # Crepuscular activity allowed (1) or not (0)?
      burrow <- 0                # Shelter in burrow allowed (1) or not (0)?
- shade_seek <- 1                # Shade seeking allowed (1) or not (0)?
+ shade_seek <- 0                # Shade seeking allowed (1) or not (0)?
    pct_cond <- 0                # Percentage of animal surface contacting the substrate (\%)
 ```
 
@@ -674,7 +674,7 @@ photofinish <- 0                # no photoperiod effect on reproduction
     nocturn <- 1                # Nocturnal activity allowed (1) or not (0)?
      crepus <- 1                # Crepuscular activity allowed (1) or not (0)?
      burrow <- 0                # Shelter in burrow allowed (1) or not (0)?
- shade_seek <- 1                # Shade seeking allowed (1) or not (0)?
+ shade_seek <- 0                # Shade seeking allowed (1) or not (0)?
    pct_cond <- 0                # Percentage of animal surface contacting the substrate (\%)
 ```
 
