@@ -769,16 +769,13 @@ Now we can have a look at the body temperature of both species under both microc
 load(here("output", "microclim", "grasshopperspA_stomata_closed_Box1.RDa"))
 load(here("output", "microclim", "grasshopperB_stomata_open_Box1.RDa"))
 
-# Extract dates
- sub <- which(datetime > as.POSIXct('2019-01-15') & datetime < as.POSIXct('2019-01-31'))
- datetime <- dates[subs]
- 
 # Create dataframes for plotting for both species
            temp_spA_open <- data.frame(ectoA$environ)
-  temp_spA_open$datetime <- datetime
+  temp_spA_open$datetime <- ectoA$dates
 
          temp_spB_open <- data.frame(ectoB$environ)
-temp_spB_open$datetime <- datetime
+temp_spB_open$datetime <- ectoB$dates
+
       
 # Merge the two dataframes
   temp_combined <- rbind(
@@ -796,7 +793,7 @@ ggplot(temp_combined_sub, aes(x = datetime, y = TA, color = Species)) +
        y = "Body Temperature (°C)") +
   theme_classic() +
   theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),legend.position = "none", legend.text = element_text(size = 14), axis.text = element_text(size = 14), axis.title = element_blank()) +
-  scale_colour_manual(values = c("Species A (Stomata Closed)" = "#E5D3B3", "Species B (Stomata Open)" = "#664229"))
+  scale_colour_manual(values = c("Species A (Stomata Closed)" = "#356920", "Species B (Stomata Open)" = "#664229"))
 # ggsave(here("figs", "fig_grasshopper_temp_box1.png"), width = 8, height = 5, dpi = 600)
 ```
 
