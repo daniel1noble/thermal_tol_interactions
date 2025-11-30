@@ -163,6 +163,8 @@ gFortran can be a problem for NicheMapR so you need to set the paths properly if
 
 #### Getting the microclimate data
 
+We first need to use climate data to calculate the microclimate at our location of interest. Here, we use the `micro_silo` function  to calculate the microclimate at a location near Renmark, South Australia (longitude = 140.799, latitude = -34.159) for the years 2018-2019.
+
 ```{r, microclimate_box1}
 #| label: microclimate_box1
 #| echo: true
@@ -195,58 +197,15 @@ gFortran can be a problem for NicheMapR so you need to set the paths properly if
 
 #### Plant biophysical model with stomatal conductance
 
-Set up the parameters:
-
-```{r, plant_params_box1}
-#| label: plant_params_box1
-#| echo: true
- # Load the microclimate object
-    load(here("output", "microclim", "microclimate.RDa"))
-
-  # First, lets extract the relevant information from the microclimate object to model stomatal behaviour
-      PDIFs <- micro$diffuse_frac             # use variable diffuse fraction
-        P_a <- get_pressure(micro$elev)       # air pressure, Pa
-        P_a <- rep(P_a, nrow(micro$metout))   # create hourly vector
-      dates <- micro$dates                    # dates
-
-  # Set leaf functional traits
-         live <- 0      # don't simulate behaviour or respiration, for animal
-         leaf <- 1      # use the stomatal conductance formulation for evaporation
-         Ww_g <- 1      # wet weight, g
-        shape <- 2      # 0=plate, 1=cylinder, 2=ellipsoid
-      shape_b <- 0.0025 # ratio of b axis:a axis for ellipsoid 
-      shape_c <- 0.1176 # ratio of c axis:a axis for ellipsoid 
-      g_vs_ab <- 0.4    # leaf vapour conductance, abaxial (bottom of leaf), mol/m2/s
-      g_vs_ad <- 0.0    # leaf vapour conductance, adaxial (top of leaf), mol/m2/s
-  g_vs_ab_max <- 0.4    # leaf vapour conductance, abaxial (bottom of leaf), mol/m2/s
-  g_vs_ad_max <- 0.0    # leaf vapour conductance, adaxial (top of leaf), mol/m2/s
-  epsilon_sub <- 0.95   # emissivity of the substrate (-)
-  epsilon_sky <- 1      # emissivity of the sky (-), accounted for already in 'TSKY' output from microclimate model so make it 1
-    epsilon_L <- 0.97   # emissivity of the leaf (-)
-      alpha_L <- 0.5    # solar absorptivity of the leaf (-)
-       fatosk <- 0.5    # radiation configuration factor to sky (-)
-       fatosb <- 0.5    # radiation configuration factor to substrate (-)
- conv_enhance <- 1.4    # convective enhancement factor (-)
-     pct_cond <- 0      # percent of leaf conducting to the ground (%)
-       postur <- 3      # leaf oriented horizontally, not tracking sun
-          M_1 <- 0      # make metabolic rate zero
-
-# Set up vapour conductance vectors and simulate stomatal closure at night
-                              f_open <- rep(1, nrow(micro$metout))
-  f_open[micro$metout[,"ZEN"] == 90] <- 0      # close stomata when the sun is set
-                            g_vs_abs <- g_vs_ab * f_open 
-                            g_vs_ads <- g_vs_ad * f_open
-
-```
-
-#### Run the biophysical model for the plant leaf
+Now that we have the microclimate data, we can run the biophysical model to calculate the realised environmental conditions for a plant leaf using the `ectotherm` function in `NicheMapR`. We first need to set up the parameters for the plant leaf.
 
 ```{r, microclimate_plant_box1}
 #| label: microclimate_plant_box1
 #| echo: true
 #| warning: false
 #| message: false
-
+   # Load the microclimate object
+    load(here("output", "microclim", "microclimate.RDa"))
 
   # First, lets extract the relevant information from the microclimate object
       PDIFs <- micro$diffuse_frac             # use variable diffuse fraction
