@@ -1209,14 +1209,14 @@ lifecycle_B <- get_lifecycle_vitals(debout_post_hatch_B, ectoB)
 
 # Species A
 
-multiplier <- 10000  # to scale the two y axes
+multiplier <- 50  # to scale the two y axes
 p1_tlA <- ggplot() +
 annotate("rect",
            xmin = 1800*60, xmax = 2500*60,
            ymin = -Inf, ymax = Inf,
            fill = "red", alpha = 0.2) +
   labs(x = "Time (hours)", y = "Body Temperature (°C)") +
-geom_line(aes(x = timeA, y = tbA), color = "#E5D3B3", size = 0.5) +
+geom_line(aes(x = timeA, y = tbA), color = "#356920", size = 0.5) +
 geom_line(aes(x = timeA, y = c(0, damageA$mortality_prob) * multiplier), color = "red") +
 scale_y_continuous(
     name = "Probability of Survival (Thermal Load Stress)", 
