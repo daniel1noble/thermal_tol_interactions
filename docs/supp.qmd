@@ -472,10 +472,18 @@ Run the biophysical-physiological model species A.
 # We also need to load in the original microclimate object so that we can get the dates and other information from it. This is the original microclimate object that we used to simulate the plant microclimate. We'll also overide the `mirco` object so that the ectotherm model can use it.
   load(here("output", "microclim", "microclimate.RDa"))
   load(here("output", "microclim", "plant_micro.RDa"))
+  load(here("output", "microclim", "plant2_micro.RDa")) # We can use this to invoke movement behaviour such that, once a certain temperature is reached by the plant the grasshopper will seek lower parts of the plant where stomata are open. 
+
+     behaviour <- FALSE    # Set to TRUE to invoke behaviour, FALSE to not
+threshold_temp <- 41      # degrees C for animal to move into cooler parts of the plant with stomata open
+
+if(behaviour){
+  # Check where plant temperature exceeds threshold temp. If so, then assume grasshopper moves into lower parts of plants and microclimate becomes that of plant2 with different stomatal behaviour.
+  plant$environ[which(plant$environ[,"TC"] > threshold_temp),] <- plant2$environ[which(plant$environ[,"TC"] > threshold_temp),]
+} 
 
 # Use the plant microclimate data to reset the original microclimate object. Note that we need to adjust both shade and nonshade conditions
             
-
   # Unshaded microclimate
   micro$metout <- plant$metout
   micro$metout [,"TALOC"] <- plant$environ[,"TC"]
