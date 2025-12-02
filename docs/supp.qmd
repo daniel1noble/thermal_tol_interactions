@@ -372,7 +372,7 @@ Now, lets have a look at the leaf temperature when stomatal closure behaviour is
               pivot_longer(cols = c(TC), 
                            names_to = "Temps", 
                            values_to = "Temperature") %>% 
-              mutate(Temps = ifelse(Temps == "TC",  "Leaf Temperature (Stomatal Closure) (40% shade)"))
+              mutate(Temps = ifelse(Temps == "TC",  "Leaf Temperature (Stomatal Closed) (40% shade)"))
 
   # Combine the two dataframes environ_plant_plantecophys and environ_plant2
   new_environ_plant2 <- rbind(environ_plant_plantecophys, environ_plant2)
@@ -381,7 +381,7 @@ Now, lets have a look at the leaf temperature when stomatal closure behaviour is
   ggplot(new_environ_plant2) + 
               geom_line(aes(y = Temperature, x = dates, col = Temps), show.legend = TRUE, size = 0.8) +
               labs(y = "Temperature (°C)", x = "Date") + theme_classic() +
-              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),legend.position = "none", legend.text = element_text(size = 14), axis.text = element_text(size = 14), axis.title = element_blank()) + 
+              theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),legend.position = "right", legend.text = element_text(size = 14), axis.text = element_text(size = 14), axis.title = element_blank()) + 
               scale_colour_viridis_d()
   # ggsave(here("figs", "fig_plant_temp2_box1.png"), width = 8, height = 5, dpi = 600)
 ```
@@ -467,20 +467,11 @@ Run the biophysical-physiological model species A.
 
 # First, we need to load in the two microclimates scenarios. We'll do this in a loop so that we can run the DEB model for each of the two microclimates. So, here we'll just create a few vectors that cell specific objects we need.
         plant_micro <- c("plant_micro.RDa")
-  plant_mirco_names <- c("stomata_closed")
+  plant_mirco_names <- c("stomata_open")
 
 # We also need to load in the original microclimate object so that we can get the dates and other information from it. This is the original microclimate object that we used to simulate the plant microclimate. We'll also overide the `mirco` object so that the ectotherm model can use it.
   load(here("output", "microclim", "microclimate.RDa"))
   load(here("output", "microclim", "plant_micro.RDa"))
-  load(here("output", "microclim", "plant2_micro.RDa")) # We can use this to invoke movement behaviour such that, once a certain temperature is reached by the plant the grasshopper will seek lower parts of the plant where stomata are open. 
-
-     behaviour <- FALSE    # Set to TRUE to invoke behaviour, FALSE to not
-threshold_temp <- 41      # degrees C for animal to move into cooler parts of the plant with stomata open
-
-if(behaviour){
-  # Check where plant temperature exceeds threshold temp. If so, then assume grasshopper moves into lower parts of plants and microclimate becomes that of plant2 with different stomatal behaviour.
-  plant$environ[which(plant$environ[,"TC"] > threshold_temp),] <- plant2$environ[which(plant$environ[,"TC"] > threshold_temp),]
-} 
 
 # Use the plant microclimate data to reset the original microclimate object. Note that we need to adjust both shade and nonshade conditions
             
@@ -651,8 +642,27 @@ photofinish <- 0                # no photoperiod effect on reproduction
 #| warning: false
 #| message: false
 
+# Load objects
+  load(here("output", "microclim", "plant2_micro.RDa")) 
    plant_micro <- c("plant2_micro.RDa")
-  plant_mirco_names <- c("stomata_open")
+  plant_mirco_names <- c("stomata_closed")
+
+####-----------------------------######
+### Behavioural Plasticity       ####
+####-----------------------------######
+
+# Invoke movement behaviour such that, once a certain temperature is reached by the plant the grasshopper will seek lower parts of the plant where stomata are open. Simulating theormoregulatioon in space within the plant. 
+     behaviour <- TRUE    # Set to TRUE to invoke behaviour, FALSE to not
+threshold_temp <- 43      # degrees C for animal to move into cooler parts of the plant with stomata open
+
+# plot(plant2$environ[,"TC"], type = "l")
+if(behaviour){
+  # Check where plant temperature exceeds threshold temp. If so, then assume grasshopper moves into lower parts of plants and microclimate becomes that of plant2 with different stomatal behaviour.
+  plant2$environ[which(plant2$environ[,"TC"] > threshold_temp),] <- plant$environ[which(plant2$environ[,"TC"] > threshold_temp),]
+} 
+
+## Check that it worked
+# lines(plant2$environ[,"TC"], col = "red") # Clearly as thresholds reached the new microclimate environment experieced by the grasshopper is that of the plant with stomata open because it migrates down into the plant where it's cooler.
 
 # Use the plant microclimate data to reset the original microclimate object. Note that we need to adjust both shade and nonshade conditions
   
@@ -769,8 +779,8 @@ Now we can have a look at the body temperature of both species under both microc
 #| code-fold: true
 
 ## load the two grasshopper model outputs
-load(here("output", "microclim", "grasshopperspA_stomata_closed_Box1.RDa"))
-load(here("output", "microclim", "grasshopperB_stomata_open_Box1.RDa"))
+load(here("output", "microclim", "grasshopperspA_stomata_open_Box1.RDa"))
+load(here("output", "microclim", "grasshopperB_stomata_closed_Box1.RDa"))
 
 # Create dataframes for plotting for both species
            temp_spA_open <- data.frame(ectoA$environ)
@@ -781,8 +791,8 @@ temp_spB_open$datetime <- ectoB$dates
 
 # Merge the two dataframes
   temp_combined <- rbind(
-    temp_spA_open %>% mutate(Species = "Species A (Stomata Closed)"),
-    temp_spB_open %>% mutate(Species = "Species B (Stomata Open)")
+    temp_spA_open %>% mutate(Species = "Species A (Stomata Open)"),
+    temp_spB_open %>% mutate(Species = "Species B (Stomata Closed)")
   )
 
 # Now subset to the desired dates
@@ -795,7 +805,7 @@ ggplot(temp_combined_sub, aes(x = datetime, y = TA, color = Species)) +
        y = "Body Temperature (°C)") +
   theme_classic() +
   theme( axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),legend.position = "none", legend.text = element_text(size = 14), axis.text = element_text(size = 14), axis.title = element_blank()) +
-  scale_colour_manual(values = c("Species A (Stomata Closed)" = "#356920", "Species B (Stomata Open)" = "#664229"))
+  scale_colour_manual(values = c("Species A (Stomata Open)" = "#356920", "Species B (Stomata Closed)" = "#664229"))
 # ggsave(here("figs", "fig_grasshopper_temp_box1.png"), width = 8, height = 5, dpi = 600)
 ```
 
@@ -1334,8 +1344,8 @@ damage_repair_accum_state <- function(time, temp,
 #| message: false
 
 # Load each grasshopper DEB model and extract life-cycle details
-load(here("output", "microclim", "grasshopperspA_stomata_closed_Box1.RDa")) #ectoA
-load(here("output", "microclim", "grasshopperB_stomata_open_Box1.RDa"))     #ectoB
+load(here("output", "microclim", "grasshopperspA_stomata_open_Box1.RDa")) #ectoA
+load(here("output", "microclim", "grasshopperB_stomata_closed_Box1.RDa"))     #ectoB
 
 # Define Common Parameters Applied to Both Species
 
@@ -1418,7 +1428,7 @@ debout_post_hatch_B <- get_alive(ectoB)
    
 # Thermal Load sensitivity parameters for species A. Note that CTmax and z are values derived from a regression between temperture (yaxis) and log time to 50% mortality (xaxis). See Arnold et al. 2025 for more details. We need to invert these values to get the intercept and slope for the damage accumulation function.
  ctmaxB <- 47              # CTmax1h
-     zB <- -1            # z (slope), negative indicates decrease in survival with time
+     zB <- -2            # z (slope), negative indicates decrease in survival with time
 alphaB  <- -ctmaxB/zB      # Need these for the log time accumulation function
   betaB <- 1 / zB          # Need these for the log time accumulation function
 
