@@ -45,7 +45,7 @@ $\dagger$ These authors contributed equally to this work.
 # Abstract
 Anthropogenic climate change is leading to more frequent and extreme heat waves. These large-scale events are radically re-shaping interactions among organisms – impacting biodiversity, community composition and ecosystem services crucial to natural systems and food security. Predicting heat wave impacts on interacting species requires an understanding of the processes driving differential exposure and sensitivity of organisms to extreme heat events in a life-cycle context. To achieve this predictive capacity, we need to integrate models across scales while capturing species-specific responses at the individual level. We review and demonstrate how existing models in disparate fields can be linked to achieve an increased  understanding of how individuals and communities will respond to extreme heat, now and into the future.
 
-# A systems-modelling approach to understanding the biotic impacts of heatwaves
+# A systems-modelling approach to understand the biotic impacts of heatwaves
 
 Climate change is leading to warmer and more variable thermal environments globally [@Barriopedro2023; @Perkins-Kirkpatrick2020]. Greater thermal variability is resulting in organisms experiencing extreme heat waves that lead to thermal stress impacting organismal growth, survival and reproduction, with cascading effects on population dynamics, species interactions, community composition and ecosystem structure and function [@Evans2025; @Margalef-Marrase2020]. Climate variability has already been linked to dramatic global declines in pollinator abundance [@Kazenel2024] and crop yields [@Zhao2017; @Tito2018; @Bernacchi2025], but the causes underlying such declines, and their ramifications through communities and society, are not fully understood. The impacts of extreme heat on species and communities are driven by a combination of direct effects of heat stress on the physiology and fitness of organisms within a given species [@Martinez2023; @Rezende2020; @Orsted2024] and indirect effects on interactions (both positive and negative) among species [e.g., @Lopez-Goldar2024]. Understanding the dynamic interplay between direct and indirect effects of extreme heat, and how these are mediated by environmental factors (e.g., water and food availability, microbial community), has been hampered by inadequate coupling of models that predict short-term physiological damage on a given species’ fitness with population and community dynamic models across species [@Arnold2025a; @Orsted2024; @Trivedi2022]. A systems-thinking approach is now needed to tackle the multifaceted nature with which extreme heat manifests within a community. This approach will require interdisciplinary collaboration to integrate biophysical, physiological, population and community ecology processes so that we can capture and model the dynamic feedbacks, nonlinearities and interactions between species that drive responses across scales [@Bimler2024; @Chesson2000]. 
 
@@ -212,9 +212,9 @@ where $\Delta \bar{\bm{z}}$ is the vector of changes in the mean trait values, $
 # Outstanding Questions
 1.	How effective is using parameters of closely related species for predicting the impacts of extreme heat for data deficient species?
 2.	How can we best capture rapid and longer-term evolutionary responses of interacting species to extreme heat in a systems-modelling framework?
-3.	How can we capture multiple anthropogenic stressors in a systems-modelling framework to explore how they interact with extreme heat to impact on organisms, populations and communities?
+3.	How can we capture multiple anthropogenic stressors in a systems-modelling framework to explore how they interact with extreme heat to affect organisms, populations and communities?
 4.	How will extreme heat affect species coexistence and functional trait diversity in natural and agricultural systems?
-5.	How do we best model lagged impacts of extreme heat events on whole communities?
+5.	How do we best the model lagged effects of extreme heat events on whole communities?
 6.	How can we extend a systems modelling approach to understand how thermal stress to natural ecosystems and food production systems impact people?
 
 :::
@@ -229,7 +229,7 @@ There are exciting new tools and data that are helping to overcome these challen
 We would like to thank Pieter Arnold, Joel Treutlein and Patrice Pottier for helpful comments on previous versions of this manuscript. We would also like to thank the Editor and three anonymous reviewers who provided very constructive feedback on earlier versions of our manuscript. DWAN, SJL and DW are supported by an ARC Future Fellowship (FT220100276 to DWAN, FT200100381 to SJL and FT230100193 to DW), and MRK by an ARC Laureate Fellowship (FL240100088). We would also like to thank The Australian National University, the University of Melbourne and Western Sydney University for funding to support workshops that helped develop this manuscript.
 
 # Code
-Link to the code used to for examples in Box 1 and 2 can be found here: https://daniel1noble.github.io/thermal_tol_interactions/ with the full set of files being located on our GitHub repository at https://github.com/daniel1noble/thermal_tol_interactions.
+Link to the code used to for examples in Box 1 and 2, as well as Figure 2, can be found at: https://daniel1noble.github.io/thermal_tol_interactions/ with the full set of files being located on our GitHub repository at https://github.com/daniel1noble/thermal_tol_interactions.
 
 
 # References
